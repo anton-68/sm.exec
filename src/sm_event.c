@@ -2,12 +2,11 @@
    Event module   
    (c) anton.bondarenko@gmail.com */
 
-#include <stdint.h>			// uint32_t
 #include <stdlib.h>			// malloc(), free(), NULL, size_t, 
 #include "../oam/logger.h"
 #include "sm_event.h"
 
-
+#include <stdio.h>
 
 /* sm_event */
 
@@ -37,4 +36,5 @@ sm_event *sm_event_create(size_t payload_size) {
 void sm_event_free(sm_event * e) {
 	free(e->data);
 	free(e);
+	e = NULL;
 }

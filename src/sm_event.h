@@ -5,7 +5,8 @@
 #ifndef SM_EVENT_H
 #define SM_EVENT_H
 
-
+#include <stdint.h>     // uint32_t
+#include "sm_sys.h"
 
 
 
