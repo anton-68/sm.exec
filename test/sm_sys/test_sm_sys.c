@@ -1,4 +1,4 @@
-/* TrafficLab
+/* SM.EXEC
    Core functions tests
    anton.bondarenko@gmail.com */
 
