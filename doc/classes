@@ -1,0 +1,48 @@
+sm.exec 
+=======
+
+sm_event
+sm_queue
+
+sm_state
+  sm_table** fsm
+  int node
+  sm_event* parked_events
+sm_array
+
+sm_table
+  array{
+    sm_node
+  }
+sm_node
+  array {
+    sm_app** sm_pre_app
+    int next
+	sm_app** sm_post_app
+  }
+sm_app
+
+sm_exec // thread descriptor
+  sm_state* current
+  sm_host*
+
+sm_host
+  sm_app_table
+    sm_app* a_1
+	...
+	sm_app* a_l
+  sm_exec_table
+    sm_exec* t_1
+    ...
+    sm_exec* t_n
+  sm_queue_table
+    sm_queue* q_1
+    ...
+    sm_queue* q_m
+  sm_array_table
+    sm_array* a_1
+	...
+	sm_array* a_k
+  sm_compiler* --> apps ??	
+	
+sm_cons ??
