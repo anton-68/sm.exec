@@ -32,12 +32,13 @@ void sm_exec_free(sm_exec *exec);
 struct sm_state;
 typedef struct sm_tx {
 	sm_exec *exec;
-	sm_queue2 *input_queue_ptr;
+	sm_queue2 *input_queue_ptr; // move to queue2
 	sm_queue2 **input_queue;
-	bool is_synchronized;
 	struct sm_state *state;
-	size_t data_size;
+	struct sm_state *default_state;
 	void* data;
+	bool is_synchronized;
+	size_t data_size;
 } sm_tx;
 
 // Public methods

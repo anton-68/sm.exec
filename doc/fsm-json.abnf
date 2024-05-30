@@ -3,21 +3,23 @@
 fsm-json = {
   "name" : string,
   "type" : "mealy" | "moore",
+  "class" : "static" | "dynamic"
+  "apply_event_method" : string
   "initialState" : string,
   "finalState" : string,
-  "states" : [ state *(, state)]
+  "nodes" : [ node *(, node)]
 }
 
-state = {
+node = {
   "name" : string,
   "type" : "switch" | "state",
-  "transitions" : [ transition *(, transition)]
+  ["transitions" : transition *(, transition)]
 }
 
 transition = { 
-  "appliedOnEvent" : int | "any",
+  "appliedOnEvent" : int,
   ["name" : string,]
-  "targetState" : string,
   ["setEventId" : int,]
-  "invokeOnTransition" : string
+  ["invokeOnTransition" : string,]
+  "targetNode" : string
 }

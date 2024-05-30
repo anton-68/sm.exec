@@ -68,6 +68,7 @@ sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
     s->key_length = 0;
     s->key_hash = 0;
 	s->exec = NULL;
+	s->home = NULL;
 	s->tx = NULL;
 	s->trace = NULL;
 	return s;    
@@ -106,22 +107,10 @@ void sm_state_free(sm_state * s) {
 	free(s);
 }
 
+// DEPRECATED: backward compatibility
+/*
 void sm_apply_event(sm_state *s, sm_event *e){
-	//SM_EVENT_ID eid = e->id;
-	//if(eid >= SM_STATE_FSM(s)->num_of_nodes)
-	//	eid = SM_STATE_FSM(s)->omega;
-	SM_EVENT_ID eid;
-	do {
-		eid = SM_STATE_EVENT_ID(s, e);
-		sm_app *a = SM_STATE_FSM(s)->table[s->id][eid].action;
-		if(SM_STATE_FSM(s)->type == SM_MEALY) {
-			s->id = SM_STATE_FSM(s)->table[s->id][eid].new_node;
-			if(a != NULL) (*a)(e, s);
-		}
-		else {
-			if(a != NULL) (*a)(e, s);
-			eid = SM_STATE_EVENT_ID(s, e); // can be another FSM at this point
-			s->id = SM_STATE_FSM(s)->table[s->id][eid].new_node;
-		}
-	} while(SM_STATE_FSM(s)->nodes[s->id] == SM_JOINT);
+	if(sm_fsm_apply_event(s, e) != EXIT_SUCCESS)
+		SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error invoking sm_fsm_apply_event", "(?) Misconfigured FSM");
 }
+*/

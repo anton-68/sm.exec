@@ -8,64 +8,16 @@
 
 #include "sm_sys.h"
 #include "sm_fsm.h"
-#include "sm_app.h"
-#include "jsmn.h"
+#include "../lib/jsmn/jsmn.h"
 #include "../oam/logger.h"
 
 /* sm_fsm */
 
-// Private types & objects
-
-typedef struct node {
-	SM_EVENT_ID id;
-	sm_fsm_node_type type;
-} node;
-
-static node *parsed_nodes = NULL;
-
-typedef enum event_type {
-    REGULAR,
-	DEFAULT
-} event_type;
-
-typedef struct event {
-	SM_EVENT_ID id;
-	event_type type;
-} event;
-
-static event* parsed_events = NULL;
-
-typedef struct transition {
-	SM_STATE_ID sid;
-	SM_EVENT_ID eid;
-	SM_STATE_ID nid;
-	sm_app *action;
-} transition;
-
-static transition* parsed_transitions = NULL;
-
-static bool *oflags = NULL;
-static bool **tflags = NULL;
-
-// Private methods
+// --- Private methods ---------------------------------------
 
 static sm_fsm *cleanup(sm_fsm *fsm, jsmntok_t *tokens){
 	sm_fsm_free(fsm);
 	free(tokens);
-	if(parsed_nodes != NULL)
-		free(parsed_nodes);
-	if(parsed_events != NULL)
-		free(parsed_events);
-	if(parsed_transitions != NULL)
-		free(parsed_transitions);
-	if(oflags != NULL)
-		free(oflags);
-	if(tflags != NULL){
-		for(int i = 0; i < fsm->num_of_nodes; i++)
-			if(tflags[i] != NULL)
-				free(tflags[i]);
-		free(tflags);
-	}
 	return NULL;
 }
 
@@ -86,12 +38,15 @@ static char *tostr(const char *f, jsmntok_t *t) {
 
 static int toint(const char *f, jsmntok_t *t) {
 	char *s = tostr(f, t);
+	if (s == NULL)
+		return -1;
 	int i = atoi(s);
 	free(s);
     return i;
 }
 
-// Public methods
+
+// --- Public methods ----------------------------------------
 
 void sm_fsm_free(sm_fsm *f) {
 	if(f->nodes != NULL)
@@ -105,16 +60,18 @@ void sm_fsm_free(sm_fsm *f) {
 	}
 }
 
-sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *at, sm_fsm_type t){
+sm_fsm* sm_fsm_create(const char *fsm_json, sm_directory *dir, sm_fsm_type type, sm_fsm_class class){
 	sm_fsm *fsm;
-	char er[80];
-    if((fsm = malloc(sizeof(sm_fsm))) == NULL) {
+	//?? char er[80];
+	if((fsm = malloc(sizeof(sm_fsm))) == NULL) {
         REPORT(ERROR, "malloc()");
         return NULL;
     }
 	fsm->this = fsm;
 	fsm->ref = &fsm->this;
-	fsm->type = t;
+	fsm->type = type;
+	fsm->class = class;
+		
 	jsmn_parser parser;
 	jsmn_init(&parser);
 	int ta_size = jsmn_parse(&parser, fsm_json, strlen(fsm_json), NULL, 0);
@@ -131,6 +88,7 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *at, sm_fsm_type t){
 		REPORT(ERROR, "calloc()");
 		return NULL;
 	}
+	
 	jsmn_init(&parser);
 	int num_of_tokens = jsmn_parse(&parser, fsm_json, strlen(fsm_json), tokens, ta_size);			
 	if (num_of_tokens <= 0) {
@@ -141,273 +99,557 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *at, sm_fsm_type t){
 	
 	typedef enum {
 		START,
-		ARRAY_NAME,
-		NODES_ARRAY, 
-			NODE_ID, 
-			NODE_TYPE,
-		EVENTS_ARRAY,
-			EVENT_ID,
-			EVENT_TYPE,
-		TRANSITIONS_ARRAY, 
-			TRANSITION_STATE, 
-			TRANSITION_EVENT, 
-			TRANSITION_NEW_STATE,
-			TRANSITION_ACTION,
+		  SM_S,
+		  SM_OBJ,
+		  SM_O,
+		  SM_TYPE,
+		  SM_CLASS,
+		  SM_INIITAL,
+		  SM_FINAL,
+		  SM_APPLY_F,
+		  SM_NAME,
+		    NODES_A,
+			NODE_OBJ,
+			NEW_NODE,
+			NODE_O,
+			N_NAME,
+			N_TYPE,
+			TRANSITIONS_A,
+		      NEW_TRANSITION,
+			  TRANSITION_O,
+			  T_NAME
+		      T_TARGET,
+		      T_APP,
+		      T_EVENT,
+		      T_SET,
+		FF,
 		SKIP,
 		STOP
 	} parse_state;
 	
 	parse_state state = START;
 	parse_state stack = STOP;
-	size_t arrays = 3;
 	size_t skip_tokens = 0;
-	size_t idx, num_of_nodes, num_of_events, num_of_transitions; 
-	idx = num_of_nodes = num_of_events = num_of_transitions = 0; 
-	size_t non, noe, not;
-	non = noe = not = 0;
-	char *s;
-	char *tok;
+	size_t sm_c, non_c, n_c, not_c, t_c;
+	sm_c = non_c = n_c = not_c = t_c = 0;
+	bool tn_f, app_f;
+	tn_f = app_f = false;
+	char *fsm_initial;
+	char *fsm_final;
+	char *fsm_apply_f;
+	sm_fsm_transition *node_transitions;
+	SM_STATE_ID node_id = 1;
+	char* node_name;
+	sm_fsm_node_type node_type;
+	sm_fsm_transition *transition;
+	char *transition_app_name;
+	size_t cnt;
 	
-	for (size_t i = 0; state != STOP; i++) {
+	for (size_t i = 0; state != STOP && i < num_of_tokens; i++) {
 		jsmntok_t *t = &tokens[i];
 		
 		if(t->start == -1 || t->end == -1) {
-			REPORT(ERROR, "fsm json boudaries");
-			return cleanup(fsm, tokens);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON incorrect boundaries", "Malformed FSM JSON");
+			return cleanup(fsm, tokens, parsed_nodes, parsed_transitions);
 		}
 
 		switch (state) {
 				
 			case START:
 				if(t->type != JSMN_OBJECT) {
-					REPORT(ERROR, "fsm json root element must be object");
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON root element must be object", "Malformed FSM JSON");
 					return cleanup(fsm, tokens);
 				}
-				state = ARRAY_NAME;
+				state = SM_S;
 				break;
 				
-			case ARRAY_NAME:
+			case SM_S:	
 				if(t->type != JSMN_STRING) {
-					REPORT(ERROR, "fsm array name must be string");
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON object tag must string", "Malformed FSM JSON");
 					return cleanup(fsm, tokens);
 				}
-				if(streq(fsm_json, t, "nodes"))
-					state = NODES_ARRAY;
-				else {
-					if(streq(fsm_json, t, "events"))
-						state = EVENTS_ARRAY;
-					else {
-						if (streq(fsm_json, t, "transitions")){
-							state = TRANSITIONS_ARRAY;
-						}
-						else {
-							REPORT(ERROR, "unknown fsm table name");
-							return cleanup(fsm, tokens);
-						}
+				if(!streq(fsm_json, t, "sm")){
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON object tag must be \'sm\'", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = SM_OBJ;
+				break;
+				
+			case SM_OBJ:
+				if(t->type == JSMN_OBJECT) {
+					sm_c = t->size;
+					if(sm_c < 7) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON header incomplete", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
 					}
 				}
-				break;
-				
-			case NODES_ARRAY:
-				if(t->type != JSMN_ARRAY) {
-					REPORT(ERROR, "fsm json nodes must be array");
-					return cleanup(fsm, tokens);
-				}
-				non = num_of_nodes = t->size;
-				if((parsed_nodes = calloc(num_of_nodes, 
-													  sizeof(node))) == NULL) {
-					REPORT(ERROR, "calloc()");
-					return cleanup(fsm, tokens);
-				}
-				idx = 0; 
-				stack = NODE_ID; state = SKIP; skip_tokens = 2;
-				break;
-				
-			case NODE_ID:
-				if(t->type != JSMN_PRIMITIVE) {
-					REPORT(ERROR, "fsm json node id must be integer");
-					return cleanup(fsm, tokens);
-				}
-				parsed_nodes[idx].id = (SM_STATE_ID)toint(fsm_json, t);
-				stack = NODE_TYPE; state = SKIP; skip_tokens = 1;
-				break;
-				
-			case NODE_TYPE:
-				if(t->type != JSMN_STRING) {
-					REPORT(ERROR, "fsm json node type must be string");
-					return cleanup(fsm, tokens);
-				}
-				s = tostr(fsm_json, t);
-				if (s == NULL) {
-					REPORT(ERROR, "malloc()");
-					return cleanup(fsm, tokens); 
-				}
-				else if(!strcmp(s, "state"))
-					parsed_nodes[idx].type = SM_STATE;
-				else if(!strcmp(s, "initial"))
-					parsed_nodes[idx].type = SM_INITIAL;		
-				else if(!strcmp(s, "final"))
-					parsed_nodes[idx].type = SM_FINAL;		
-				else if(!strcmp(s, "joint"))
-					parsed_nodes[idx].type = SM_JOINT;
 				else {
-					REPORT(ERROR, "fsm json unknown node type"); 
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON root element must be object", "Malformed FSM JSON");
 					return cleanup(fsm, tokens);
 				}
-				free(s);
-				idx++;
-				num_of_nodes--;
-				if(num_of_nodes > 0)
-					{state = SKIP; stack = NODE_ID; skip_tokens = 2;}
-				else {
-					arrays--;
-					if(arrays > 0) 
-						state = ARRAY_NAME;
-					else 
-						state = STOP;
-				}
+				state = SM_O;
 				break;
-			
-			case EVENTS_ARRAY:
-				if(t->type != JSMN_ARRAY){
-					REPORT(ERROR,  "fsm json event must be array");
+				
+			case SM_O:
+				if(sm_c == 0){
+					state = STOP;
+					break;
+				} 
+				else if (t->type != JSMN_STRING) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON element tag must be string", "Malformed FSM JSON");
 					return cleanup(fsm, tokens);
 				}
-				noe = num_of_events = t->size;
-				if((parsed_events = calloc(num_of_events, 
-													  sizeof(event))) == NULL) {
-					REPORT(ERROR, "calloc()");
+				else if(streq(fsm_json, t, "type")) {
+					sm_c--;
+					state = SM_TYPE;
+					break;
+				}
+				else if(streq(fsm_json, t, "class")) {
+					sm_c--;
+					state = SM_CLASS;
+					break;
+				}
+				else if(streq(fsm_json, t, "initialEvent")) {
+					sm_c--;
+					state = SM_INITIAL;
+					break;
+				}
+				else if(streq(fsm_json, t, "finalEvent")) {
+					sm_c--;
+					state = SM_FINAL;
+					break;
+				}
+				else if(streq(fsm_json, t, "applyEventMethod")) {
+					sm_c--;
+					state = SM_APPLY_F;
+					break;
+				}
+				else if(streq(fsm_json, t, "name")) {
+					sm_c--;
+					state = SM_NAME;
+					break;
+				}
+				else if(streq(fsm_json, t, "nodes")) {
+					sm_c--;
+					state = NODES_A;
+					break;
+				}
+				else {
+					sm_c--;
+					state = FF;
+					stack = SM_O;
+					mark = t->end;
+					SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "Unrecognized FSM JSON element", "Extending FSM JSON");
+					break;
+				}
+		
+			case SM_TYPE:
+				if(t->type == JSMN_STRING){
+					if(streq(fsm_json, t, "mealy")) {
+						fsm->type = SM_MEALY;
+						
+					}
+					else if(streq(fsm_json, t, "moore")) {
+						fsm->type = SM_MOORE;
+						
+					}
+					else {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Unknown FSM type", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM type must be string", "Malformed FSM JSON");
 					return cleanup(fsm, tokens);
 				}
-				idx = 0; 
-				stack = EVENT_ID; state = SKIP; skip_tokens = 2;
+				state = SM_O;
+				break;
+					
+			case SM_CLASS:
+				if(t->type == JSMN_STRING){
+					if(streq(fsm_json, t, "static")) {
+						fsm->type = SM_STATIC;
+						
+					}
+					else if(streq(fsm_json, t, "dynamic")) {
+						fsm->type = SM_DYNAMIC;
+						
+					}
+					else {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Unknown FSM class", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM class must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = SM_O;
+				break;
+				
+			case SM_INITIAL:
+				if(t->type == JSMN_STRING){
+					if((fsm_initial = tostr(fsm_json, t)) == NULL) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing intial state", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM initial event name must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = SM_O;
+				break;
+					
+			case SM_FINAL:
+				if(t->type == JSMN_STRING){
+					if((fsm_fial = tostr(fsm_json, t)) == NULL) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing final state", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM final event name must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = SM_O;
+				break;
+					
+			case SM_APPLY_F:
+				if(t->type == JSMN_STRING){
+					if((fsm_apply_f = tostr(fsm_json, t)) == NULL) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing apply function name", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM apply function name must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				fsm->sm_fsm_apply_f = sm_directory_get_ref(dir, fsm_apply_f);
+				state = SM_O;
+				break;
+					
+			case SM_NAME:
+				if(t->type == JSMN_STRING) {
+					if((fsm_name = tostr(fsm_json, t)) == NULL) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing apply function name", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+					dir = sm_directory_set(dir, fsm_name, (void *)fsm);
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM name must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}									   
+				state = SM_O;
+				break;
+					
+			case NODES_A:
+				if(t->type == JSMN_ARRAY) {
+					non_c = t->size;
+					state = NODE_OBJ
+					if((fsm->nodes = calloc(non_c, sizeof(sm_fsm_node))) == NULL) {
+        				SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error allocating memory for FSM nodes", "Malformed FSM JSON");
+        				return cleanup(fsm, tokens);
+    				}
+					fsm->num_of_nodes = non_c;
+					break;
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM nodes must be stored in array", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				
+			case NODE_OBJ:
+				if(t->type != JSMN_OBJECT) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON node root element must be object", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = NEW_NODE;
+				break;
+				
+			case NEW_NODE:
+				if(t->type == JSMN_OBJECT) {
+					n_c = t->size;
+					if(n_c < 3){
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON node header incomplete", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON node element must be object", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = NODE_O;
+				break;	
+				
+			case NODE_O:
+				if(n_c == 0) {
+					if(strcmp(fsm_final, node_name) == 0) 
+						cnt = fsm->num_of_nodes-1;
+					else if(strcmp(fsm_initial, node_name) == 0)
+						cnt = 0;
+					else
+						cnt = node_id++;
+					if((fsm->nodes[cnt]->name = malloc(strlen(node_name))) == NULL){
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error allocating memory for FSM node", "Malformed FSM JSON");
+        				return cleanup(fsm, tokens);
+					}
+					strcpy(fsm->nodes[cnt]->name, node_name);
+					fsm->nodes[cnt]->transitions = node_transitions;
+					fsm->nodes[cnt]->id = node_id;
+					fsm->nodes[cnt]->type = node_type;
+					if (node_id >= fsm->num_of_nodes) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing FSM nodes", "Malformed FSM JSON");
+        				return cleanup(fsm, tokens);
+					}
+					if(non_c == 0){
+						state = SM_O;
+						break;
+					}
+					state = NODE_O;
+					break;
+				}
+				else if (t->type != JSMN_STRING) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON node element tag must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				else if(streq(fsm_json, t, "type")) {
+					n_c--;
+					state = N_TYPE;
+					break;
+				}
+				else if(streq(fsm_json, t, "name")) {
+					n_c--;
+					state = N_NAME;
+					break;
+				}
+				else if(streq(fsm_json, t, "node")) {
+					if(n_c > 0) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON node incomplete", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+					non_c--;
+					state = NEW_NODE;
+					break;
+				}
+				else if(streq(fsm_json, t, "transitions")) {
+					n_c--;
+					state = TRANSITIONS_A;
+					break;
+				}
+				else {
+					n_c--;
+					state = FF;
+					stack = NODE_O;
+					mark = t->end;
+					SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "Unrecognized FSM JSON node element", "Extending FSM JSON");
+					break;	
+				}
+				
+			case N_TYPE:
+				if(t->type == JSMN_STRING){
+					if(streq(fsm_json, t, "state")) {
+						node_type = SM_STATE;
+						
+					}
+					else if(streq(fsm_json, t, "switch")) {
+						node_type = SM_SWITCH;
+						
+					}
+					else {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Unknown FSM node type", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM node type must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = NODE_O;
+				break;
+				
+			case N_NAME:
+				if(t->type == JSMN_STRING) {
+					if((node_name = tostr(fsm_json, t)) == NULL) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing node name", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM name must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}									   
+				state = NODE_O;
+				break;
+				
+			case TRANSITIONS_A:	
+				if(t->type == JSMN_ARRAY) {
+					not_c = t->size;
+					state = TRANSITION_OBJ
+					if((node_transitions = calloc(not_c, sizeof(sm_fsm_transition))) == NULL) {
+        				SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error allocating memory for FSM transitions", "Malformed FSM JSON");
+        				return cleanup(fsm, tokens);
+    				}
+					fsm->nodes[node_id]->num_of_transitions = not_c;
+					transition_id = 0;
+					break;
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM node transitions must be stored in array", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				
+			case TRANSITION_OBJ:
+				if(t->type != JSMN_OBJECT) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON transition root element must be object", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = NEW_TRANSITION;
+				break;	
+				
+			case NEW_TRANSITION:
+				if(t->type == JSMN_OBJECT) {
+					t_c = t->size;
+					if(t_c < 7){
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON transition header incomplete", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+					tn_f = app_f = false;
+				}
+				else {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON transition element must be object", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = TRANSITION_O;
 				break;		
 				
-			case EVENT_ID:
-				if(t->type != JSMN_PRIMITIVE){
-					REPORT(ERROR, "fsm json event id must be integer");
-					return cleanup(fsm, tokens);
-				}
-				parsed_events[idx].id = (SM_EVENT_ID)toint(fsm_json, t);
-				stack = EVENT_TYPE; state = SKIP; skip_tokens = 1;
-				break;	
-				
-			case EVENT_TYPE:
-				if(t->type != JSMN_STRING){
-					REPORT(ERROR, "fsm json node type must be string");
-					return cleanup(fsm, tokens); 
-				}
-				s = tostr(fsm_json, t);
-				if (s == NULL) {
-					REPORT(ERROR, "malloc()");
-					return cleanup(fsm, tokens);
-				}
-				else if(!strcmp(s, "regular"))
-					parsed_events[idx].type = REGULAR;
-				else if(!strcmp(s, "default"))
-					parsed_events[idx].type = DEFAULT;
-				else {
-					REPORT(ERROR, "fsm json unknown event type");
-					return cleanup(fsm, tokens);
-				}
-				free(s);
-				idx++;
-				num_of_events--;
-				if(num_of_events > 0)
-					{state = SKIP; stack = EVENT_ID; skip_tokens = 2;}
-				else {
-					arrays--;
-					if(arrays > 0) 
-						state = ARRAY_NAME;
-					else 
-						state = STOP;
-				}
-				break;	
-	
-			case TRANSITIONS_ARRAY:
-				if(t->type != JSMN_ARRAY){
-					REPORT(ERROR, "fsm json transitions must be array");
-					return cleanup(fsm, tokens);
-				}
-				not = num_of_transitions = t->size;
-				if((parsed_transitions = calloc(num_of_transitions, 
-									   				sizeof(transition))) == NULL) {
-					REPORT(ERROR, "calloc()");
-					return cleanup(fsm, tokens);
-				}
-				idx = 0;   
-				stack = TRANSITION_STATE; state = SKIP; skip_tokens = 2;
-				break;
-				
-			case TRANSITION_STATE:
-				if(t->type != JSMN_PRIMITIVE){
-					REPORT(ERROR, "json state id must be integer");
-					return cleanup(fsm, tokens);
-				}
-				parsed_transitions[idx].sid = (SM_STATE_ID)toint(fsm_json, t);
-				stack = TRANSITION_EVENT; state = SKIP; skip_tokens = 1;
-				break;
-				
-			case TRANSITION_EVENT:
-				if(t->type != JSMN_PRIMITIVE) {
-					REPORT(ERROR, "json event id must be integer");
-					return cleanup(fsm, tokens);
-				}
-				parsed_transitions[idx].eid = (SM_EVENT_ID)toint(fsm_json, t);
-				stack = TRANSITION_NEW_STATE; state = SKIP; skip_tokens = 1;
-				break;	
-				
-			case TRANSITION_NEW_STATE:
-				if(t->type != JSMN_PRIMITIVE){
-					REPORT(ERROR,"json event id must be integer"); 
-					return cleanup(fsm, tokens);
-				}
-				parsed_transitions[idx].nid = (SM_STATE_ID)toint(fsm_json, t);
-				stack = TRANSITION_ACTION; state = SKIP; skip_tokens = 1;
-				break;	
-				
-			case TRANSITION_ACTION:
-				
-				if(t->type == JSMN_PRIMITIVE) {
-					tok = tostr(fsm_json, t);
-					if(!strcmp(tok, "null")) {
-						parsed_transitions[idx].action = NULL;
-						free(tok);
-					}
-					else {
-						REPORT(ERROR, "json app name must be string or null");
+			case TRANSITION_O:
+				if(t_c == 0) {
+					transition_id++;
+					if (!app_f){
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON transition missing mandatory application element", "Malformed FSM JSON");
 						return cleanup(fsm, tokens);
 					}
-				}
-				else {
-					if(t->type == JSMN_STRING) {
-						tok = tostr(fsm_json, t);
-						if(tok == NULL) {
-							REPORT(ERROR, "malloc()");
-							return cleanup(fsm, tokens);
-						}
-						parsed_transitions[idx].action = 
-									(sm_app *)sm_directory_get_ref(at, tok);
-						free(tok);
-					}
-					else {
-						REPORT(ERROR, "json app name must be string or null");
+					if (!tn_f){
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON transition missing mandatory target node id element", "Malformed FSM JSON");
 						return cleanup(fsm, tokens);
 					}
+					if(not_c == 0){
+						// everything is already written to node_transitions
+						// need to sort and copy to fsm->nodes[node_id]->transitions 
+						// adding omega if not present in JSON (++not)
+						state = NODE_O;
+						break;
+					}
+					state = TRANSITION_O;
+					break;
 				}
-				idx++;
-				num_of_transitions--;
-				if(num_of_transitions > 0)
-					{state = SKIP; stack = TRANSITION_STATE; skip_tokens = 2;}
+				else if (t->type != JSMN_STRING) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON transition element tag must be string", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				else if(streq(fsm_json, t, "name")) {
+					t_c--;
+					state = T_NAME;
+					break;
+				}
+				else if(streq(fsm_json, t, "targetNode")) {
+					t_c--;
+					tn_f = true;
+					state = T_TYPE;
+					break;
+				}
+				else if(streq(fsm_json, t, "invokeOnTransition")) {
+					t_c--;
+					state = T_APP;
+					break;
+				}
+				else if(streq(fsm_json, t, "appliedOnEvent")) {
+					t_c--;
+					tn_f = true;
+					state = T_EVENT;
+					break;
+				}
+				else if(streq(fsm_json, t, "setEventId")) {
+					t_c--;
+					state = T_SET;
+					break;
+				}
+				else if(streq(fsm_json, t, "transition")) {
+					if(t_c > 0) {
+						SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON node incomplete", "Malformed FSM JSON");
+						return cleanup(fsm, tokens);
+					}
+					not_c--;
+					state = NEW_TRANSITION;
+					break;
+				}
 				else {
-					arrays--;
-					if(arrays > 0) 
-						state = ARRAY_NAME;
-					else 
-						state = STOP;
-				}
+					t_c--;
+					state = FF;
+					stack = TRANSITION_O;
+					mark = t->end;
+					SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "Unrecognized FSM JSON transition element", "Extending FSM JSON");
+					break;	
+				}			
+			
+			case T_NAME:
+				if((node_transitions[transition_id].name = tostr(fsm_json, t)) == NULL) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing transition name", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}	
+				state = TRANSITION_O;
 				break;
 				
+			case T_TARGET:
+				if((node_transitions[transition_id].targetState = toint(fsm_json, t)) < 0) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing transition target node id", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = TRANSITION_O;
+				break;
+				
+			case T_APP:
+				if((transition_app_name = tostr(fsm_json, t)) == NULL) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing transition app name", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				node_transitions[transition_id].invokeOnTransition = (sm_app *)sm_directory_get_ref(dir, transition_app_name)
+				if(node_transitions[transition_id].invokeOnTransition == NULL){
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Transition app not found in the directory", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = TRANSITION_O;
+				break;
+				
+			case T_EVENT:
+				if((node_transitions[transition_id].setEventId = toint(fsm_json, t)) < 0) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing transition event id", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = TRANSITION_O;
+				break;
+				
+			case T_SET:	
+				if((node_transitions[transition_id].appliedOnEvent = toint(fsm_json, t)) < 0) {
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error parsing translated event id", "Malformed FSM JSON");
+					return cleanup(fsm, tokens);
+				}
+				state = TRANSITION_O;
+				break;
+				
+			case FF:
+				if(t->start < mark) {
+					state = FF;
+					break;
+				}
+				else { 
+					state = stack;
+					break;
+				}	
+		
 			case SKIP:
 				skip_tokens--;
 				if(skip_tokens == 0)
@@ -417,142 +659,25 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *at, sm_fsm_type t){
 			default:
 				REPORT(ERROR, "fsm json parser invalid state");
 				return cleanup(fsm, tokens);
+		}
+	}
+	
+	// post-processing
+	if() {
+		SM_SYSLOG(SM_CORE, SM_LOG_ERR, "FSM JSON ...", "Malformed FSM JSON");
+		return cleanup(fsm, tokens);
+	}
 
-		}
-	}
-	
-	// max node id & nodes
-	size_t max_node_id = 0;
-	for(int i = 0; i < non; i++) {
-		if(parsed_nodes[i].id < 0) {
-			REPORT(ERROR, "node id must be non-negative");
-			return cleanup(fsm, tokens);
-		}
-		if(parsed_nodes[i].id > max_node_id)
-			max_node_id = parsed_nodes[i].id;
-		if(parsed_nodes[i].type == SM_INITIAL)
-			fsm->initial = parsed_nodes[i].id;
-		if(parsed_nodes[i].type == SM_FINAL)
-			fsm->final = parsed_nodes[i].id;
-	}
-	fsm->num_of_nodes = max_node_id + 1;
-	if((fsm->nodes = calloc(fsm->num_of_nodes, sizeof(sm_fsm_node))) == NULL) {
-		REPORT(ERROR, "calloc()");
-		return cleanup(fsm, tokens);
-	}
-	for(int i = 0; i < non; i++)
-		fsm->nodes[parsed_nodes[i].id] = parsed_nodes[i].type;
-	
-	// max event id & events
-	bool omega_set = false;
-	size_t max_event_id = 0;
-	//size_t omegas = 0;
-	event *pe;
-	for(int i = 0; i < noe; i++) {
-		pe = &parsed_events[i];
-		if(pe->id < 0) {
-			REPORT(ERROR, "event id must be non-negative");
-			return cleanup(fsm, tokens);
-		}
-		if(pe->id > max_event_id)
-			max_event_id = pe->id;
-		if(pe->type == DEFAULT) {
-			if(!omega_set) {
-				fsm->omega = pe->id;
-				omega_set = true;
-			}
-			else {
-				sprintf(er, "duplicate omega event definition: eid = %lu, type = %d", 
-						pe->id, pe->type);
-				REPORT(ERROR, er);
-				return cleanup(fsm, tokens);
-			}
-		}
-	}
-	fsm->num_of_events = max_event_id + 1;
-	// allocate flags
-	if((tflags = calloc(fsm->num_of_nodes, sizeof(bool *))) == NULL){
-		REPORT(ERROR, "calloc()");
-		return cleanup(fsm, tokens);
-	}
-	for(int i = 0; i < fsm->num_of_events; i++)
-		if((tflags[i] = calloc(fsm->num_of_events, sizeof(bool))) == NULL) {
-			REPORT(ERROR, "calloc()");
-			return cleanup(fsm, tokens);
-		}
-	if((oflags = calloc(fsm->num_of_nodes, sizeof(bool))) == NULL) {
-		REPORT(ERROR, "calloc()");
-		return cleanup(fsm, tokens);
-	}
-	// allocate and fill in fsm table
-	if((fsm->table = calloc(fsm->num_of_nodes, sizeof(sm_fsm_transition *))) == NULL) {
-		REPORT(ERROR, "calloc()");
-		return cleanup(fsm, tokens);
-	}
-	for(int i = 0; i < fsm->num_of_nodes; i++)
-		if((fsm->table[i] = calloc(fsm->num_of_events, sizeof(sm_fsm_transition))) == NULL) {
-			REPORT(ERROR, "calloc()");
-			return cleanup(fsm, tokens);
-		}
-	transition *pt; 
-	for(int i = 0; i < not; i++) {
-		pt = &parsed_transitions[i];
-		if(pt->eid == fsm->omega) {
-			if(oflags[pt->sid]) {
-				sprintf(er, "duplicate omega transition definition: sid = %lu, eid = %lu",
-						pt->sid, pt->eid);
-				REPORT(ERROR, er);
-				return cleanup(fsm, tokens);
-			}
-			else
-				oflags[pt->eid] = true;
-			for (int j = 0; j < noe; j++) {
-				pe = &parsed_events[j];
-				fsm->table[pt->sid][pe->id].new_node = pt->nid;
-				fsm->table[pt->sid][pe->id].action = pt->action;
-			}
-		}
-	}
-	for(int i = 0; i < not; i++) {
-		pt = &parsed_transitions[i];
-		if(pt->eid != fsm->omega) {
-			if(tflags[pt->sid][pt->eid]) {
-				sprintf(er, "duplicate transition definition: sid = %lu, eid = %lu",
-						pt->sid, pt->eid);
-				REPORT(ERROR, er);
-				return cleanup(fsm, tokens);
-			}
-			else
-				tflags[pt->sid][pt->eid] = true;
-			fsm->table[pt->sid][pt->eid].new_node = pt->nid;
-			fsm->table[pt->sid][pt->eid].action = pt->action;
-		}
-	}
-	free(tokens);
-	free(parsed_nodes);
-	free(parsed_events);
-	free(parsed_transitions);
-	free(oflags);
-	for(int i = 0; i < non; i++)
-		free(tflags[i]);
-	free(tflags);
 	return fsm;
 }	
 
-/* fsm pretty print */
 
 char *sm_fsm_to_string(sm_fsm* f) {
+/*	
 	extern char sm_buffer[];
 	sm_buffer[0] = '\0';
-//	extern char *sm_buffer = sm_buffer;
 	if(f == NULL) 
 		return "";
-//	char sm_buffer[] = "\n";
-//	if((sm_buffer = malloc(SM_sm_buffer_BUF_LEN)) == NULL) {
-//		REPORT(ERROR, "malloc()");
-//		exit(0);
-//	}
-
 	char line[1024];
 	char *node_type[] = {"undefined", "state", "initial", "final", "joint"};
 	sprintf(line, "max number of node :  %lu\n", f->num_of_nodes - 1);
@@ -598,88 +723,5 @@ char *sm_fsm_to_string(sm_fsm* f) {
 		strcat(sm_buffer, line);
 	}
 	return sm_buffer;
+*/	
 }
-
-// DEPRECATED[
-/* FSM registry */
-
-// Private methods
-
-static sm_fsm_table *find_record(sm_fsm_table *t, const char *name) {
-	sm_fsm_table *r = t;
-	while (r != NULL && strcmp(r->name, name)){
-		r = r->next;
-	}
-	return r;
-}
-
-// Public methods
-
-sm_fsm_table *sm_fsm_table_create() { return NULL; }
-
-sm_fsm_table *sm_fsm_table_set(sm_fsm_table *t, const char *name, sm_fsm *fsm) {
-	sm_fsm_table *r;
-	if(t == NULL)
-		r = NULL;
-	else 
-		r = find_record(t, name);
-	if (r == NULL) {
-		if((r = malloc(sizeof(sm_fsm_table))) == NULL) {
-        	REPORT(ERROR, "malloc()");
-        	return NULL;
-		}
-		if((r->name = malloc(strlen(name))) == NULL) {
-        	REPORT(ERROR, "malloc()");
-			free(r);
-			return NULL;
-    	}
-		strcpy(r->name, name);
-		r->ref = &(r->fsm);
-		r->fsm = fsm;
-		r->prev = NULL;
-		r->next = t;
-		if(t != NULL)
-			r->next->prev = r;
-		t = r;
-    }
-	else {
-		char *r_n = r->name;
-		if((r->name = malloc(strlen(name))) == NULL) {
-        	REPORT(ERROR, "malloc()");
-			r->name = r_n;
-			return NULL;
-    	}
-		free(r_n);
-		strcpy(r->name, name);
-		r->fsm = fsm;
-	}
-	return t;		
-}
-
-sm_fsm **sm_fsm_table_get_ref(sm_fsm_table *t, const char *name) {	
-	sm_fsm_table *tr = find_record(t, name);
-	if (tr == NULL)
-		return NULL;
-	else
-		return tr->ref;
-}
-
-void sm_fsm_table_remove(sm_fsm_table *t, const char *name) {
-	sm_fsm_table *tr = find_record(t, name);
-	if (tr != NULL) {
-		tr->prev->next = tr->next;
-		tr->next->prev = tr->prev;
-		free(tr->name);
-		free(tr);
-	}
-}
-
-void sm_fsm_table_free(sm_fsm_table *t) {
-	sm_fsm_table *tmp;
-	while(t != NULL) {
-		tmp = t->next;
-		free(t);
-		t = tmp;
-	}
-}
-// ]

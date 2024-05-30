@@ -14,9 +14,9 @@ state = {
   "transitions" : [ transition *(, transition)]
 }
 
-transition = regular_transition | sync_cascading | hierarchical_fsm_linking 
+transition = regular | cascade | hierarchic 
 
-regular_transition = { 
+regular = { 
   "appliedOnEvent" : int,
   ["name" : string,]
   "targetState" : string,
@@ -24,7 +24,7 @@ regular_transition = {
   "invokeOnTransition" : string
 }
 
-sync_cascading = {
+cascade = {
   "appliedOnEvent" : int,
   ["name" : string,]
   "stateArrayName" : string,
@@ -32,7 +32,7 @@ sync_cascading = {
   "invokeOnTransition" : string
 }
 
-hierarchical_fsm_linking = { 
+hierarchic = { 
   "appliedOnEvent" : int,
   ["name" : string,]
   "linkedFsmName" : string,

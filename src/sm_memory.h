@@ -9,31 +9,28 @@
 #include "sm_sys.h"
 #include "sm_event.h"
 
-
-
+// simple memory manager
 
 // sm_chunk
-// Under any changes length must remain 32 bytes !!!
 typedef struct sm_chunk {
 	struct sm_chunk *next;
 	struct sm_chunk *prev;
 	SM_ID id;
 	uint32_t size;
 	void * data;
-} sm_chunk;
+} sm_chunk; // Must be 32b!
 
+// Macros
 #define SM_CHUNK_DATA(C) (void *)((char *)(C) + sizeof(sm_chunk))
 #define SM_CHUNK_HEAD(C) (sm_chunk *)((C)->data)
-#define SM_CHUNK_LAST(D) ((sm_chunk *)(D))->prev
-//#define SM_LAST_CHUNK(P) ((sm_chunk *)(P->data))->prev
+#define SM_CHUNK_LAST(C) ((sm_chunk *)(C))->prev
 #define SM_CHUNK_LENGTH(C) ((char *)((C)->next) - (char *)(C) - sizeof(sm_chunk))
-//#define SM_PREV_CHUNK(T) ((void *)((char *)(((sm_chunk *)(T))->prev) + sizeof(sm_chunk)))
-//#define SM_PREV_CHUNK_ID(T) (((sm_chunk *)(T))->prev->id)
-
 
 // Public methods
-
 void sm_memory_init(void * data, size_t datasize);
+void * sm_memory_align(void * addr, size_t align);
+size_t sm_memory_size_align(size_t size, size_t align);
+void * sm_memory_add_addr(void * addr, size_t add);
 size_t sm_chunk_memory(sm_chunk *c);
 void *sm_chunk_limit(sm_chunk *c);
 sm_chunk *sm_chunk_find(void *data, SM_ID id);
@@ -41,10 +38,7 @@ sm_chunk *sm_chunk_open(void *data, SM_ID id);
 sm_chunk *sm_chunk_next(sm_chunk *this);
 sm_chunk *sm_chunk_prev(sm_chunk *this);
 
-// Simple C <-> Lua serialization: Read-Write-Allocate-Rewind-Skip
-void * sm_memory_align(void * addr, size_t align);
-size_t sm_memory_size_align(size_t size, size_t align);
-void * sm_memory_add_addr(void * addr, size_t add);
+// Simple Read-Write-Allocate-Rewind-Skip serialization: 
 void * sm_memory_write_int(sm_chunk *c, void ** start, int value);
 void * sm_memory_read_int(sm_chunk *c, void ** start, int *value);
 void * sm_memory_allocate_int_array(sm_chunk *c, void ** start, size_t size);

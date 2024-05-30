@@ -5,24 +5,26 @@
 #ifndef SM_EVENT_H
 #define SM_EVENT_H
 
-#include <stdint.h>     // uint32_t
+#include <stdint.h>
 #include "sm_sys.h"
 
-struct sm_queue;
-
 // sm_event
+struct sm_queue;
 typedef struct sm_event {
-	SM_EVENT_ID id;
 	struct sm_event *next;
-	bool disposable;
+	void *data;
+	uint32_t data_size;
+	uint32_t id;
 	struct sm_queue *home;
-	long long priority[SM_NUM_OF_PRIORITY_STAGES];
-	size_t data_size;
-    void *data;
+	long long priority[2];
+	void *key;
+	uint32_t key_length;
+	uint32_t key_hash;
+	bool disposable;
 } sm_event;
 
 // Public methods
-sm_event *sm_event_create(size_t payload_size);
+sm_event *sm_event_create(uint32_t payload_size);
 void sm_event_free(sm_event *e);
 void sm_event_park(sm_event *e);
 

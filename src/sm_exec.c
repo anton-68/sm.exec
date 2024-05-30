@@ -5,6 +5,7 @@
 #include <stdlib.h>			// malloc(), free(), NULL, size_t, 
 #include <stdio.h>
 #include <pthread.h>
+#include <time.h>			// nanosleep ()
 
 #include "../oam/logger.h"
 #include "sm_fsm.h"
@@ -77,6 +78,7 @@ sm_tx *sm_tx_create(sm_exec *exec,
         REPORT(ERROR, "sm_queue_create()");
         return NULL;
 	}
+	td->default_state = td->state;
 	td->state->exec = exec;
 	if(SM_MEMORY_MANAGER)
 		td->data_size = sm_memory_size_align(size, sizeof(sm_chunk));
@@ -107,25 +109,30 @@ void sm_tx_free(sm_tx *tx){
 void *sm_tx_runner(void *arg) {
 	sm_tx *tx = (sm_tx *)arg;
 	sm_event *event = NULL;
+	struct timespec req, rem;
+	req.tv_sec = (time)(SM_SPINLOCK_NS / 10e9);
+	req.tv_sec = (long)(SM_SPINLOCK_NS % 10e9);
 	if(tx->is_synchronized) {
-		while(true) {
-			while(tx->state->id != (*tx->state->fsm)->final) {
-				event = sm_lock_dequeue2(*tx->input_queue);
-				sm_apply_event(tx->state, event);
-			}
+		for(;;) {
+			event = sm_lock_dequeue2(*tx->input_queue);
+			sm_apply_event(tx->state, event);
 			if(event->disposable)
 				sm_event_park(event);
-			tx->state->id = (*tx->state->fsm)->initial;	
-		}
+			tx->state = tx->default_state;
+			if(tx->state->id == (*tx->state->fsm)->final)
+				tx->state->id = (*tx->state->fsm)->initial;
+		}	
 	}
 	else {
-		while((event = sm_dequeue2(*tx->input_queue)) != NULL) {
-			sm_apply_event(tx->state, event);
-			if(tx->state->id == (*tx->state->fsm)->final) {
+		for(;;) {
+			while((event = sm_dequeue2(*tx->input_queue)) != NULL) {
+				sm_apply_event(tx->state, event);
 				if(event->disposable)
 					sm_event_park(event);
-				tx->state->id = (*tx->state->fsm)->initial;
+				if(tx->state->id == (*tx->state->fsm)->final)
+					tx->state->id = (*tx->state->fsm)->initial;
 			}
+			nanosleep($req, &rem);
 		}
 	}
 	return 0;

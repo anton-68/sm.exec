@@ -35,11 +35,14 @@ sm_event *sm_event_create(size_t payload_size) {
 	}
     e->next = NULL;
 	e->id = 0;
-	e->disposable = false;
 	for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
 		e->priority[stage] = 0;
 	e->home = NULL;
-    return e;    
+	e->key = NULL;
+	e->key_hash = 0;
+	e->key_length = 0;
+	e->disposable = false;
+	return e;    
 }
     
 void sm_event_free(sm_event *e) {

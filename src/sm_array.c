@@ -83,6 +83,7 @@ sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm **fsm, bo
             stack_free(d);
             return NULL;
         }
+		c->home = d;
         push(d, c);
     }
 	// Allocate hash array state pointers   

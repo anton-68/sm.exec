@@ -93,12 +93,12 @@ void sm_thread_runner(void *arg) {
 	sm_event *event = NULL;
 	if(tx->input_queue->synchronized) {
 		while(true) {
-			while(tx->state->id != (*tx->state->fsm)->final) {
-				event = sm_queue_dequeue(tx->input_queue);
-				sm_apply_event(tx->state, event);
-			}
+			event = sm_queue_dequeue(tx->input_queue);
+			sm_apply_event(tx->state, event);
 			if(event->disposable)
 				sm_event_park(event);
+			if(tx->state->id == *(tx->state->fsm)->final)
+				tx->state = 
 			tx->state->id = (*tx->state->fsm)->initial;	
 		}
 	}

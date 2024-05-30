@@ -1,30 +1,53 @@
 %YAML 1.2
-# FSM Default Option 1: translated JSON
+# FSM default 
 sm: 
   name: default
   type: mealy
-  initialState: eventReceived
+  class: static
+  apply_event_method: apply_static
+  initialState: initial
   finalState: done
-  states:
-    - state: &id_e001
-        name: eventReceived
+  nodes:
+    - node:
+        name: initial
+        type: state
         transitions:
-          - transition: &id_t001
-              name: omega
-              onEvent: any
-              target: neighbourhoodChecked
-              mapID: [0]
-              onTransition: check_neighbours
-    - state: &id_e002 
+          - transition:
+              appliedOnEvent: 0
+              targetNode: neighbourhoodChecked
+              invokeOnTransition: check_neighbours
+    - node: 
         name: neighbourhoodChecked
+        type: switch
         transitions:
-          - transition: &id_t002
-              onEvent: 2
-              target: done
-              mapID: [0]
-              onTransition: noap
-          - transition: &id_t003
-              onEvent: any
-              target: neighbourhoodChecked
-              mapID: [0]
-              onTransition: switch_fsm
+          - transition:
+              appliedOnEvent: 2
+              targetNode: done
+          - transition:
+              appliedOnEvent: 0
+              targetNode: neighbourhoodChecked
+              invokeOnTransition: switch_fsm
+    - node:
+        name: done
+        type: state
+---
+# FSM planner
+sm:
+  name: planner
+  type: mealy
+  class: static
+  apply_event_method: apply_static
+  initialState: initial
+  finalState: done
+  nodes:
+    - node:
+        name: initial
+        transitions:
+          - transition:
+              appliedOnEvent: 0
+              invokeOnTransition: switch_fsm
+              targetNode: done
+              setEventId: 2
+    - node:
+        name: done
+        type: state

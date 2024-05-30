@@ -12,7 +12,8 @@
 #include "sm_fsm.h"
 //#include "sm_exec.h"
 #include "../oam/logger.h"
-                 
+
+// DEPRECATED:
 #define SM_STATE_FSM(S) (*(S)->fsm)
 #define SM_STATE_EVENT_ID(s, e) (e)->id >= SM_STATE_FSM(s)->num_of_nodes ? SM_STATE_FSM(s)->omega : (e)->id
  
@@ -27,6 +28,7 @@ typedef struct sm_state {
 	sm_event *trace;
 	size_t key_length;
     uint32_t key_hash;
+	struct sm_array *home;
 	struct sm_tx *tx;
 	struct sm_exec *exec;
 	size_t data_size;
@@ -39,6 +41,6 @@ int sm_state_set_key(sm_state *c, const void *key, size_t key_length);
 sm_state *sm_state_create(sm_fsm **f, size_t payload_size);
 void sm_state_purge(sm_state *c);
 void sm_state_free(sm_state *c);
-void sm_apply_event(sm_state *s, sm_event *e);
+//void sm_apply_event(sm_state *s, sm_event *e); // DEPRECATED: backward compatibility
 
 #endif //SM_STATE_H 

@@ -10,8 +10,8 @@
 #include <time.h>
 
 /* event & state Ids */
-typedef size_t SM_EVENT_ID;
-typedef size_t SM_STATE_ID;
+//typedef size_t SM_EVENT_ID;
+//typedef size_t SM_STATE_ID;
 
 /* bool */
 #if __STDC_VERSION__ >= 199901L
@@ -58,10 +58,11 @@ void get_tid_str(char *);
 #define SM_MEMORY_WORD 8
 
 /* SM ID */
-typedef uint32_t SM_ID;
+//typedef uint32_t SM_ID;
+
 // public methods 
-void sm_id_to_ipstr(SM_ID id, char* const ip);
-SM_ID sm_ipstr_to_id(const char* const ip);
+void sm_id_to_ipstr(uint32_t id, char* const ip);
+uint32_t sm_ipstr_to_id(const char* const ip);
 
 /* SM Default exectutor descriptor data size */
 #define SM_EXEC_DATA_SIZE 4096
@@ -91,5 +92,7 @@ typedef struct sm_timestamp{
 sm_timestamp sm_get_timestamp();
 
 #define SM_SYSLOG_STRING_LEN 4096
+
+#define SM_SPINLOCK_NS 1000 // 1usec
 
 #endif //SM_SYS_H
