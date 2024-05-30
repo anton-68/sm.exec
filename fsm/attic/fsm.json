@@ -1,0 +1,69 @@
+h0 {
+	input: [
+		{
+			name: state,  
+			type: size_t,
+			check: eq
+		},
+		{
+			name: event,
+			type: size_t,
+			check: eq
+		}
+	],
+	output: [
+		{
+			name: state,
+			type: size_t
+		},
+		{
+			name: action,
+			type: sm_app
+		}
+	]
+}
+
+r0 [
+	{
+		input: {
+			state: 1,
+			event: 1
+		},
+		output: :
+			state: 2,
+			action: "IPPP"
+	},
+	{
+		input: {
+			state: 2,
+			event: 2
+		},
+		output: :
+			state: 3,
+			action: "UDPP"
+	},
+	{
+		input: {
+			state: 2,
+			event: 3
+		},
+		output: :
+			state: 3,
+			action: "TCPP"
+	},
+	{
+		input: {
+			state: 3,
+			event: 3
+		},
+		output: {
+			state: 4,
+			action: "BASE"
+		}
+	}
+]
+
+fsm_transitions : {
+	header: h0,
+	rules: r0
+}

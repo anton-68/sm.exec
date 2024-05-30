@@ -1,33 +1,35 @@
-# TrafficLab
-# Core module unit tests makefile
+# SM.EXEC
+# FSM module unit tests makefile
 # anton.bondarenko@gmail.com 
+
 CC		    := gcc
 LD			:= gcc
 INCLUDE		:= /usr/local/include
-CFLAGS		:= -g
+CFLAGS		:= -g -I$(INCLUDE)
 UFLAGS		:= -g -U__linux__
-LFLAGS		:= 
 LIBDIR		:= /usr/local/lib
-LIBS		:= -lpthread
-LIBS_D		:=
-OBJECTS		:=
+LFLAGS		:= -L$(LIBDIR)
+LIBS		:= -lpthread -ljsmn
 SRC			:= ../../src/
 OAM			:= ../../oam/
 WRAP		:= ../../wrap/
+BJHASH		:= ../../lib/bj_hash/
 
 .PHONY					:	all
 all						:	
 							$(CC) $(CFLAGS) \
 							$(SRC)sm_sys.c \
+							$(SRC)sm_event.c \
+							$(SRC)sm_queue.c \
+							$(SRC)sm_queue2.c \
+							$(SRC)sm_app.c \
+							$(SRC)sm_fsm.c \
+							$(SRC)sm_state.c \
+							$(SRC)sm_array.c \
 							$(OAM)logger.c \
-							test_sm_sys.c \
-							-o linux \
-							$(LIBS)
-							$(CC) $(UFLAGS) \
-							$(SRC)sm_sys.c \
-							$(OAM)logger.c \
-							test_sm_sys.c \
-							-o posix \
+							$(BJHASH)bj_hash.c \
+							test_sm_fsm.c \
+							$(LFLAGS) \
 							$(LIBS)
 
 .PHONY					:	clean

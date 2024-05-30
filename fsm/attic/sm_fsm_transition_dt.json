@@ -1,0 +1,36 @@
+{
+	"types": [
+		{	
+			"type": "inout"
+			"typename": "size_t",
+			"check": "int_eq",
+			"any": "",
+			"typesource": "dt_sys.h"
+		},
+		{
+			"type": "out",
+			"typename": "sm_app",
+			"typesource": "sm_app.h"
+		}
+	],
+	"input": [
+		{
+			"name": "state", 
+			"type": "size_t"
+		},
+		{
+			"name": "event",
+			"type": "size_t"
+		}
+	],
+	"output": [
+		{
+			"name": "state",
+			"type": "size_t"
+		},
+		{
+			"name": "action",
+			"type": "sm_app"
+		}
+	]
+}

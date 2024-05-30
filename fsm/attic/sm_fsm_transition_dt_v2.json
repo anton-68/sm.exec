@@ -1,0 +1,30 @@
+{
+	"input": [
+		{
+			"name": "state"
+			"type": "size_t",
+			"test": "int_eq",
+			"any": 0,
+			"source": "dt_sys.h"
+		},
+		{
+			"name": "event"
+			"type": "size_t",
+			"test": "int_eq",
+			"any": 0,
+			"source": "dt_sys.h"
+		}
+	]
+	"output": [
+		{
+			"name": "state"
+			"type": "size_t",
+			"source": "dt_sys.h"
+		},
+		{
+			"name": "action",
+			"type": "sm_app"
+			"source": "sm_app.h"
+		}
+	]
+}

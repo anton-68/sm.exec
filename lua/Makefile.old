@@ -1,0 +1,47 @@
+# SM.EXEC
+# Makefile for Lua wrapper
+# anton.bondarenko@gmail.com 
+
+NAME = sm
+CC = gcc
+CFLAGS = -fPIC -O2 -g -Wall -pthread
+DFLAGS = -fPIC -Og -ggdb -Wall -Werror -pthread
+LFLAGS = -pthread -shared
+LIBS = -lpthread
+
+OAM= /home/anton/lab/sm.exec/v5/oam/
+LUA= /home/anton/lab/sm.exec/v5/lua/
+SRC= /home/anton/lab/sm.exec/v5/src/
+LUAINC= /home/anton/lab/sandbox/lua/lua-5.3.4/src
+
+TOP= /usr/local
+LIB= $(TOP)/lib
+INC= $(TOP)/include
+
+
+LDLIBS= -lm -lpthread
+
+SRCS = 	$(LUA)sm.c \
+		$(SRC)sm_event.c \
+		$(SRC)sm_queue.c \
+		$(SRC)sm_queue2.c \
+		$(SRC)sm_app.c \
+		$(SRC)sm_sys.c \
+		$(OAM)logger.c
+OBJS = $(SRCS:.c=.o)
+
+.PHONY:	all
+all: sm.so
+
+sm.so: $(OBJS)
+	$(CC) $(LDFLAGS) $(LDLIBS) -o $@ $^
+
+$(SRCS:.c=.d):%.d:%.c
+	$(CC) $(CFLAGS) -MM $< >$@
+	
+include $(SRCS:.c=.d)
+
+.PHONY: clean
+clean:
+	rm $(OBJS)
+	

@@ -17,9 +17,10 @@
 
 int report(severity_t severity, const char *message, const char *file, int line, const char *function) {
     if(severity == ERROR) 
-        fprintf (stderr, "[    ERROR ] %s\n", strerror(errno)); 
+        fprintf (stderr, "[ SEVERITY ] ERROR\n"); 
     else
-        fprintf (stderr, "[    EVENT ] %s\n", strerror(errno));
+		fprintf (stderr, "[ SEVERITY ] EVENT\n");
+    fprintf (stderr, "[    errno ] %s\n", strerror(errno));
 	char tid[32];
 	get_tid_str(tid);
 	fprintf (stderr, "[   THREAD ] %s\n", tid);

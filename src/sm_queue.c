@@ -8,9 +8,11 @@
 
 
 
+
 /* queue */
 
 // Private methods
+
 static void enqueue(sm_event *e, sm_queue *q);
 static sm_event *dequeue(sm_queue *q);
 
@@ -30,6 +32,7 @@ sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchr
         return NULL;
     }
     *((unsigned*)(e->data)) = TL_DUMMY_PAYLOAD;
+	e->home = NULL;
     q->head = q->tail = e;
     int i;   
     for(i = 0; i < num_of_events; i++) {
@@ -38,6 +41,7 @@ sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchr
             sm_queue_free(q);
             return NULL;
         }
+		e->home = q;
         enqueue(e, q);
     }
 	q->synchronized = synchronized;

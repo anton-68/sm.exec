@@ -1,16 +1,15 @@
 /* SM.EXEC
-   Some system utilities and definintions
+   Core functions
    anton.bondarenko@gmail.com */
+   
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-
-// #include <stdint.h>
-// #include <stdlib.h>
-
-#include <stdio.h>			// sprintf()
-#include <sys/types.h>		// getpid()
-#include <unistd.h>			// getpid(), syscall()
-#include <string.h>			// memcpy()
-#include <sys/syscall.h>	// syscall()
 #include "sm_sys.h"
 
 
