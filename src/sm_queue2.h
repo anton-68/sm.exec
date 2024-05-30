@@ -26,7 +26,7 @@ typedef struct sm_queue2 {
 
 sm_queue2 *sm_queue2_create(/*size_t event_size, unsigned num_of_events*/);
 void sm_queue2_free(sm_queue2 *q);
-bool sm_queue2_is_empty(sm_queue2 *q);
+bool sm_queue2_is_empty(sm_queue2 *q); // too artificial to exist, deprecate?
 
 sm_event *sm_queue2_get(const sm_queue2 *q);
 sm_event *sm_queue2_get_high(const sm_queue2 *q);

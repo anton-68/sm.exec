@@ -7,7 +7,6 @@
 
 #include <stdint.h>     // uint32_t
 #include "sm_sys.h"
-//#include "sm_queue.h"
 
 
 

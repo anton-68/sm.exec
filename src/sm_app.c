@@ -58,8 +58,7 @@ sm_app_table *sm_app_table_set(sm_app_table *t, const char *name, sm_app app){
 			return NULL;
     	}
 		strcpy(r->name, name);
-		size_t offset = offsetof(sm_app_table, app);
-		r->ref = (sm_app *)(r + offset);
+		r->ref = &(r->app);
 		r->app = app;
 		r->prev = NULL;
 		r->next = t;

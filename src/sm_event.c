@@ -6,7 +6,6 @@
 #include "../oam/logger.h"
 #include "sm_event.h"
 #include "sm_queue.h"
-#include <stdio.h>
 
 
 

@@ -1,0 +1,24 @@
+{
+	input: [
+		{
+			name: state,  
+			type: size_t,
+			check: eq
+		},
+		{
+			name: event,
+			type: size_t,
+			check: eq
+		}
+	],
+	output: [
+		{
+			name: state,
+			type: size_t
+		},
+		{
+			name: action,
+			type: sm_app
+		}
+	]
+}

@@ -12,31 +12,26 @@
 #include "../../src/sm_event.h"
 
 int sm_test_app1(sm_event *e) {
-	printf("test app # 1 invoked\n");
-	printf("event Id: %s\n", (char *)e->data);
+	printf("test app # 1 invoked, event data: %s\n", (char *)e->data);
 	return 0;	
 }
 
 int sm_test_app2(sm_event *e) {
-	printf("test app # 2 invoked\n");
-	printf("event Id: %s\n", (char *)e->data);
+	printf("test app # 2 invoked, event data: %s\n", (char *)e->data);
 	return 0;	
 }
 
 int sm_test_app3(sm_event *e) {
-	printf("test app # 3 invoked\n");
-	printf("event Id: %s\n", (char *)e->data);
+	printf("test app # 3 invoked, event data: %s\n", (char *)e->data);
 	return 0;	
 }
 
 int sm_test_app4(sm_event *e) {
-	printf("test app # 4 invoked\n");
-	printf("event Id: %s\n", (char *)e->data);
+	printf("test app # 4 invoked, event data: %s\n", (char *)e->data);
 	return 0;	
 }
 
 int sm_nope(sm_event *e) {
-	printf("nope app invoked\n");
-	printf("event Id: %s\n", (char *)e->data);
+	printf("nope app invoked, event data: %s\n", (char *)e->data);
 	return 0;	
 }

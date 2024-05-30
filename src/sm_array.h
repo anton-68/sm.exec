@@ -38,7 +38,7 @@ typedef struct sm_array {
 } sm_array;
 
 // Public methods
-sm_array *sm_array_create(size_t stack_size, size_t state_size, bool synchronized);
+sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm *fsm, bool synchronized);
 void sm_array_free(sm_array *a);
 size_t sm_array_stack_size(sm_array *a);
 

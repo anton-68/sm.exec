@@ -23,6 +23,9 @@ typedef size_t SM_STATE_ID;
     enum { false, true };
 #endif
 
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((X) >= (Y)) ? (X) : (Y))
+
 /* JSON Parser 
    not defined == dynamic allocation */
 //#define SM_FSM_NUM_OF_TOKENS 4096
@@ -42,6 +45,9 @@ typedef size_t SM_STATE_ID;
 /* Thread ID */
 unsigned long get_tid();
 void get_tid_str(char *);
+
+/* FSM pretty print buffer */
+#define OUTPUT_BUF_LEN (1024 * 32)
 
 #define SM_RTLD_FLAG RTLD_NOW | RTLD_GLOBAL
 

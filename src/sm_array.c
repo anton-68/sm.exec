@@ -13,14 +13,14 @@
 
 // Private methods
 
-sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length);
-sm_state *sm_array_get_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length);
-sm_state *sm_array_pop(sm_array *d);
-int sm_array_push(sm_array *d, sm_state *c);
-void sm_array_table_free(sm_array *d);
-void sm_array_stack_free(sm_array *d); 
-int sm_array_insert_into_hash(sm_array *d, sm_state *c); 
-int sm_array_remove_from_hash(sm_array *d, sm_state *c); 
+static sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length);
+static sm_state *sm_array_get_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length);
+static sm_state *sm_array_pop(sm_array *d);
+static int sm_array_push(sm_array *d, sm_state *c);
+static void sm_array_table_free(sm_array *d);
+static void sm_array_stack_free(sm_array *d); 
+static int sm_array_insert_into_hash(sm_array *d, sm_state *c); 
+static int sm_array_remove_from_hash(sm_array *d, sm_state *c); 
 
 
 
@@ -29,7 +29,7 @@ int sm_array_remove_from_hash(sm_array *d, sm_state *c);
 
 // Public methods
 
-sm_array *sm_array_create(size_t stack_size, size_t state_size, bool synchronized){
+sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm *fsm, bool synchronized){
 	// Allocate depot main structure
     sm_array *d;
     if((d = malloc(sizeof(sm_array))) == NULL) {
@@ -42,8 +42,8 @@ sm_array *sm_array_create(size_t stack_size, size_t state_size, bool synchronize
 	// Calculate mask 
 	d->hash_mask = hashmask(d->stack_size);
 	// Allocate stack of state addresses
-	if((d->stack = malloc(d->hash_size * sizeof(sm_state *))) == NULL) {
-        REPORT(ERROR, "malloc()");
+	if((d->stack = calloc(d->hash_size, sizeof(sm_state *))) == NULL) {
+        REPORT(ERROR, "calloc()");
         free(d);
         return NULL;
     }
@@ -51,7 +51,7 @@ sm_array *sm_array_create(size_t stack_size, size_t state_size, bool synchronize
 	int i;
 	sm_state *c;
 	for(i = 0; i < d->stack_size; i++) {
-        if((c = sm_state_create(state_size)) == NULL) {
+        if((c = sm_state_create(fsm, state_size)) == NULL) {
             REPORT(ERROR, "state_create()");
             sm_array_stack_free(d);
             return NULL;
@@ -61,8 +61,8 @@ sm_array *sm_array_create(size_t stack_size, size_t state_size, bool synchronize
 	// Initialize pointer for stack of state IDs   
 	d->next_free = 0;
 	// Allocate hash array state pointers   
-	if((d->table = malloc(d->hash_size * sizeof(sm_state *))) == NULL) {
-        REPORT(ERROR, "malloc()");
+	if((d->table = calloc(d->hash_size, sizeof(sm_state *))) == NULL) {
+        REPORT(ERROR, "calloc()");
         free(d);
         return NULL;
     }
@@ -116,7 +116,7 @@ void sm_array_free(sm_array *d){
     free(d);
 }
 
-size_t sm_array_stack_size(sm_array *q) {}
+//size_t sm_array_stack_size(sm_array *q) {}
 
 sm_state *sm_array_find_state(sm_array *d, void *const key, size_t key_length){
     HASH_TYPE h = d->hash_function(key, key_length, d->last_hash_value) & d->hash_mask;
@@ -138,7 +138,7 @@ void sm_array_release_state(sm_array *d, sm_state *c){
 		
 // Private methods
 		
-sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length){
+static sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length){
 	if (d->synchronized)
 		if(pthread_mutex_lock(&(d->table_lock)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_mutex_lock()");
@@ -155,7 +155,7 @@ sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_
 	return c;
 }
 		
-sm_state *sm_array_get_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length){	 
+static sm_state *sm_array_get_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length){	 
 	sm_state *c = sm_array_find_by_hash(d, h, key, key_length);
 	if (c == NULL) {
 		sm_state *c = sm_array_pop(d);
@@ -170,7 +170,7 @@ sm_state *sm_array_get_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t
 	return c;
 }		
 		
-sm_state *sm_array_pop(sm_array *d){
+static sm_state *sm_array_pop(sm_array *d){
 	if (d->synchronized) {
 		if(pthread_mutex_lock(&(d->stack_lock)) != EXIT_SUCCESS){
         	REPORT(ERROR, "pthread_mutex_lock()");
@@ -192,7 +192,7 @@ sm_state *sm_array_pop(sm_array *d){
 	return c; 
 }	
 
-int sm_array_push(sm_array *d, sm_state *c){
+static int sm_array_push(sm_array *d, sm_state *c){
 	if(d->next_free == 0)	
 		return EXIT_FAILURE;
 	if(d->synchronized)
@@ -215,7 +215,7 @@ int sm_array_push(sm_array *d, sm_state *c){
     return EXIT_SUCCESS;	
 }
 
-void sm_array_table_free(sm_array *d){
+static void sm_array_table_free(sm_array *d){
 	int i;
 	sm_state *c;
 	for(i = 0; i < d->hash_size; i++){
@@ -227,16 +227,14 @@ void sm_array_table_free(sm_array *d){
 	}
 }			
 
-
-	
-void sm_array_stack_free(sm_array *d){
+static void sm_array_stack_free(sm_array *d){
 	while(d->next_free > 0) {
 		sm_state_free(d->stack[d->next_free]);
 		d->next_free--;
 	}	
 }	
 		
-int sm_array_insert_into_hash(sm_array *d, sm_state *c){
+static int sm_array_insert_into_hash(sm_array *d, sm_state *c){
 	if(c == NULL) 
     	return EXIT_FAILURE;
 	if (d->synchronized)
@@ -254,20 +252,20 @@ int sm_array_insert_into_hash(sm_array *d, sm_state *c){
 	return EXIT_SUCCESS;
 }		
 
-int sm_array_remove_from_hash(sm_array *d, sm_state *c){	
+static int sm_array_remove_from_hash(sm_array *d, sm_state *c){	
 	if (d->synchronized)
 		if(pthread_mutex_lock(&(d->table_lock)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_mutex_lock()");
         	return EXIT_FAILURE;
     	} 
 	if(c == d->table[c->key_hash])
-		d->table[c->key_hash] == d->table[c->key_hash]->next;
+		d->table[c->key_hash] = d->table[c->key_hash]->next;
 	else{ 	
 		sm_state *c1 = d->table[c->key_hash];	
 		while(c1 != NULL && c1->next != c)
 			c1 = c1->next;
 		if(c1 != NULL)
-			d->table[c->key_hash] == d->table[c->key_hash]->next;
+			d->table[c->key_hash] = d->table[c->key_hash]->next;
 	}
 	if (d->synchronized)
 		if(pthread_mutex_unlock(&(d->table_lock)) != EXIT_SUCCESS) {

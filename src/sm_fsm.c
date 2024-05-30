@@ -106,17 +106,23 @@ void sm_fsm_free(sm_fsm *f) {
 	}
 }
 
-sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
+/*
+SM_STATE_ID sm_get_initial_state(sm_fsm *f) {
+	return f->initial;
+}
+*/
+
+sm_fsm *sm_fsm_create(const char *fsm_json, sm_app_table *at, sm_fsm_type t){
 	sm_fsm *fsm;
 	char er[80];
     if((fsm = malloc(sizeof(sm_fsm))) == NULL) {
         REPORT(ERROR, "malloc()");
         return NULL;
     }
-
+	fsm->type = t;
 	jsmn_parser parser;
 	jsmn_init(&parser);
-	int ta_size = jsmn_parse(&parser, f, strlen(f), NULL, 0);
+	int ta_size = jsmn_parse(&parser, fsm_json, strlen(fsm_json), NULL, 0);
 	if (ta_size <= 0) {
 		free(fsm);
 		sprintf(er, "jsmn_parse() = %i", ta_size);
@@ -131,7 +137,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 		return NULL;
 	}
 	jsmn_init(&parser);
-	int num_of_tokens = jsmn_parse(&parser, f, strlen(f), tokens, ta_size);			
+	int num_of_tokens = jsmn_parse(&parser, fsm_json, strlen(fsm_json), tokens, ta_size);			
 	if (num_of_tokens <= 0) {
 		sprintf(er, "jsmn_parse() = %i", num_of_tokens);
 		REPORT(ERROR, er);
@@ -190,13 +196,13 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR, "fsm array name must be string");
 					return cleanup(fsm, tokens);
 				}
-				if(streq(f, t, "nodes"))
+				if(streq(fsm_json, t, "nodes"))
 					state = NODES_ARRAY;
 				else {
-					if(streq(f, t, "events"))
+					if(streq(fsm_json, t, "events"))
 						state = EVENTS_ARRAY;
 					else {
-						if (streq(f, t, "transitions")){
+						if (streq(fsm_json, t, "transitions")){
 							state = TRANSITIONS_ARRAY;
 						}
 						else {
@@ -227,7 +233,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR, "fsm json node id must be integer");
 					return cleanup(fsm, tokens);
 				}
-				parsed_nodes[idx].id = (SM_STATE_ID)toint(f, t);
+				parsed_nodes[idx].id = (SM_STATE_ID)toint(fsm_json, t);
 				stack = NODE_TYPE; state = SKIP; skip_tokens = 1;
 				break;
 				
@@ -236,7 +242,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR, "fsm json node type must be string");
 					return cleanup(fsm, tokens);
 				}
-				s = tostr(f, t);
+				s = tostr(fsm_json, t);
 				if (s == NULL) {
 					REPORT(ERROR, "malloc()");
 					return cleanup(fsm, tokens); 
@@ -287,7 +293,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR, "fsm json event id must be integer");
 					return cleanup(fsm, tokens);
 				}
-				parsed_events[idx].id = (SM_EVENT_ID)toint(f, t);
+				parsed_events[idx].id = (SM_EVENT_ID)toint(fsm_json, t);
 				stack = EVENT_TYPE; state = SKIP; skip_tokens = 1;
 				break;	
 				
@@ -296,7 +302,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR, "fsm json node type must be string");
 					return cleanup(fsm, tokens); 
 				}
-				s = tostr(f, t);
+				s = tostr(fsm_json, t);
 				if (s == NULL) {
 					REPORT(ERROR, "malloc()");
 					return cleanup(fsm, tokens);
@@ -343,7 +349,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR, "json state id must be integer");
 					return cleanup(fsm, tokens);
 				}
-				parsed_transitions[idx].sid = (SM_STATE_ID)toint(f, t);
+				parsed_transitions[idx].sid = (SM_STATE_ID)toint(fsm_json, t);
 				stack = TRANSITION_EVENT; state = SKIP; skip_tokens = 1;
 				break;
 				
@@ -352,7 +358,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR, "json event id must be integer");
 					return cleanup(fsm, tokens);
 				}
-				parsed_transitions[idx].eid = (SM_EVENT_ID)toint(f, t);
+				parsed_transitions[idx].eid = (SM_EVENT_ID)toint(fsm_json, t);
 				stack = TRANSITION_NEW_STATE; state = SKIP; skip_tokens = 1;
 				break;	
 				
@@ -361,14 +367,14 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 					REPORT(ERROR,"json event id must be integer"); 
 					return cleanup(fsm, tokens);
 				}
-				parsed_transitions[idx].nid = (SM_STATE_ID)toint(f, t);
+				parsed_transitions[idx].nid = (SM_STATE_ID)toint(fsm_json, t);
 				stack = TRANSITION_ACTION; state = SKIP; skip_tokens = 1;
 				break;	
 				
 			case TRANSITION_ACTION:
 				
 				if(t->type == JSMN_PRIMITIVE) {
-					tok = tostr(f, t);
+					tok = tostr(fsm_json, t);
 					if(!strcmp(tok, "null")) {
 						parsed_transitions[idx].action = NULL;
 						free(tok);
@@ -380,7 +386,7 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 				}
 				else {
 					if(t->type == JSMN_STRING) {
-						tok = tostr(f, t);
+						tok = tostr(fsm_json, t);
 						if(tok == NULL) {
 							REPORT(ERROR, "malloc()");
 							return cleanup(fsm, tokens);
@@ -538,7 +544,63 @@ sm_fsm *sm_fsm_create(const char *f, sm_app_table *at){
 	return fsm;
 }	
 
+/* fsm pretty print */
 
+char *sm_fsm_to_string(sm_fsm* f) {
+	if(f == NULL) 
+		return "";
+	char *output;
+	if((output = malloc(OUTPUT_BUF_LEN)) == NULL) {
+		REPORT(ERROR, "malloc()");
+		exit(0);
+	}
+	char line[1024];
+	char *node_type[] = {"undefined", "state", "initial", "final", "joint"};
+	sprintf(output, "FSM:\n");
+	sprintf(line, "max number of node :  %lu\n", f->num_of_nodes - 1);
+	strcat(output, line);
+    sprintf(line, "max number of event :  %lu\n", f->num_of_events - 1);
+	strcat(output, line);
+	sprintf(line, "initial event Id :  %lu\n", f->initial);
+	strcat(output, line);
+	sprintf(line, "final event Id :  %lu\n", f->final);
+	strcat(output, line);
+	sprintf(line, "default event Id :  %lu\n", f->omega);
+	strcat(output, line);
+	sprintf(line, "nodes :\n");
+	strcat(output, line);
+	for(size_t i; i < f->num_of_nodes; i++){
+		sprintf(line, "node Id: %lu, node type: %s\n", i, node_type[f->nodes[i]]);
+		strcat(output, line);
+	}
+	sprintf(line, "transition function :\n");	
+	strcat(output, line);
+	for(size_t i = 0; i < f->num_of_nodes; i++){
+		sprintf(line, "node Id: %lu, transitions:", i);
+		strcat(output, line);
+		for(size_t j = 0; j < f->num_of_events; j++){
+			sprintf(line, " %lu", f->table[i][j].new_node);
+			strcat(output, line);
+		}
+		sprintf(line, "\n");
+		strcat(output, line);
+	}
+	sprintf(line, "output function (actions) :\n");	
+	strcat(output, line);
+	
+	for(size_t i = 0; i < f->num_of_nodes; i++){
+		sprintf(line, "node Id: %lu, actions:", i);
+		strcat(output, line);
+		for(size_t j = 0; j < f->num_of_events; j++){
+			void *ptr = (void *)f->table[i][j].action;
+			sprintf(line, " %p", ptr == NULL ? NULL : (void *)*((sm_app *)ptr));
+			strcat(output, line);
+		}
+		sprintf(line, "\n");	
+		strcat(output, line);
+	}
+	return output;
+}
 
 
 

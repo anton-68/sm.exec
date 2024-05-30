@@ -1,0 +1,44 @@
+{
+	"name": "sketch_0",
+	"states": [
+		
+	
+	
+	
+	
+	
+	sequence : {
+		name : q0
+		apps : {
+			"1" : app1
+			2 : app2
+			}
+	
+	
+sequence q0: app1, app2
+sequence q1: app3, app4
+sequence q2: app5
+
+node s0:
+	type: state
+	input_sequence: q0
+	output_cirquit:
+		1: q1, s1
+		2: q2, s2
+		0: ,s3
+
+sequence q3: app6, app7
+sequence q4: app8
+sequence q5: app9
+sequence q5: app9, app10
+
+node s1:
+	type: switch
+	input_sequence: q3
+	output_cirquit:
+		1: q5, s1
+		2: q6, s2
+		0: q7, s2
+
+
+}

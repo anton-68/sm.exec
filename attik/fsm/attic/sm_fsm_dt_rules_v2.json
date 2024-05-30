@@ -1,0 +1,86 @@
+{
+	"decisions": [
+		{
+			"id": "1"
+			"parameters": [
+				"state": ",
+				"action":
+			]
+		},
+		{
+			"id": "2"
+			"parameters": [
+				"state",
+				"action"
+			]
+		},
+		{
+			"id": "3"
+			"parameters": [
+				"state",
+				"action"
+			]
+		},
+		{
+			"id": "4"
+			"parameters": [
+				"state",
+				"action"
+			]
+		},
+		{
+			"id": "5"
+			"parameters": [
+				"state",
+				"action"
+			]
+		},
+		{
+			"id": "6"
+			"parameters": [
+				"state",
+				"action"
+			]
+		},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+			"type": "sm_app",
+			"null-value": "",
+			"source": "sm_app.h"
+		}
+			"type": "size_t",
+			"test": "int_eq",
+			"any": 0,
+			"source": "dt_sys.h"
+		},
+		{
+			"name": "event"
+			"type": "size_t",
+			"test": "int_eq",
+			"any": 0,
+			"source": "dt_sys.h"
+		}
+	]
+	"rules": [
+		{
+			"name": "state"
+			"type": "size_t",
+			"source": "dt_sys.h"
+		},
+		{
+			"name": "action",
+			"type": "sm_app"
+			"source": "sm_app.h"
+		}
+	]
+}

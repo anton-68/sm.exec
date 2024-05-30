@@ -29,8 +29,9 @@ typedef struct sm_state {
 } sm_state;
 
 // Public methods
-bool sm_state_key_match(sm_state *c, void *const key, size_t key_length);
-sm_state *sm_state_create(size_t payload_size);
+bool sm_state_key_match(sm_state *c, const void *key, size_t key_length);
+int sm_state_set_key(sm_state *c, const void *key);
+sm_state *sm_state_create(sm_fsm *f, size_t payload_size);
 void sm_state_purge(sm_state *c);
 void sm_state_free(sm_state *c);
 void sm_apply_event(sm_state *s, sm_event *e);
