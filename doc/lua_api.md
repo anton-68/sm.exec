@@ -1,652 +1,75 @@
-/* SM.EXEC 
-   Lua wrapper
-   anton.bondarenko@gmail.com */
+**** SM.EXEC
 
+Singleton, created on init, exposed to Lua as global name "sm_exec". Not expected to be used explicitly.
 
-#include "lprefix.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <dlfcn.h>
-/* dlopen() flag */
-#define SM_LUA_RTLD_FLAG RTLD_NOW | RTLD_GLOBAL
+**** SM.DIRECTORY
 
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
+Not accessible in Lua other than through global sm_exec. Initialized on load of SM module. 
 
 
-#include "../src/sm_app.h"
-#include "../src/sm_array.h"
-#include "../src/sm_directory.h"
-#include "../src/sm_event.h"
-#include "../src/sm_exec.h"
-#include "../src/sm_fsm.h"
-#include "../src/sm_memory.h"
-#include "../src/sm_pqueue.h"
-#include "../src/sm_queue.h"
-#include "../src/sm_queue2.h"
-#include "../src/sm_state.h"
-#include "../src/sm_sys.h"
+**** SM.EVENT
 
-#ifndef SM_DEBUG
-#define SM_DEBUG 
-#endif
+Create event:
+e = sm.new_event(size)
 
-/********************
- ****** SM.DCB ******
- ********************/
+Set event data:
+e:set(string)
 
-typedef struct SMDCB {
-	sm_chunk *chunk;
-	void * position;
-	void * start;
-	void * end;
-	bool open;
-	bool collectible;
-} SMDCB;
+Get event data:
+e:get() -> string
 
-#define check_sm_DCB(L, POS) (SMDCB *)luaL_checkudata((L), (POS), "sm.DCB")
-#define test_sm_DCB(L, POS) (SMDCB *)luaL_testudata((L), (POS), "sm.DCB")
+Set event id:
+e:setid(int)
 
-static int push_DCB_handler(lua_State *L, sm_chunk *c) {
-	if(c == NULL)
-		return EXIT_FAILURE;
-	luaL_getmetatable(L, "sm.DCB");						// mt
-	lua_getfield(L, -1, "inventory");					// mt inventory
-	lua_pushlightuserdata(L, c);						// mt inventory lud
-	lua_gettable(L, -2);								// mt inventory ud?
-	if(test_sm_chunk(L, -1) == NULL) { // create handler if not found
-		lua_pop(L, -1);
-		SMDCB *dcb = (SMDCB *)lua_newuserdata(L, sizeof(SMDCB)); // mt inventory ud
-		lua_rotate(L, -3, -1);							// inventory ud mt
-		lua_setmetatable(L, -2);						// inventory ud
-		lua_pushvalue(L, -1);							// inventory ud ud
-		lua_pushlightuserdata(L, s);					// inventory ud ud lud
-		lua_rotate(L, -2, -1);							// inventory ud lud ud
-		lua_settable(L, -4);							// inventory ud
-		dcb->chunk = c;
-		dcb->position = SM_CHUNK_DATA(c); // rewind always 
-		dcb->start = dcb->position;
-		if(c->next == NULL) {
-			dcb->end = (void *)((char *)dcb->start + ((sm_chunk *)c->data)->size);
-			dcb->open = true;
-		}
-		else {
-			dcb->end = (void *)c->next;
-			dcb->open = false;
-		}
-		dcb->collectible = false;
-	}	
-	return EXIT_SUCCESS;	
-}
+Get event id:
+e:getid() -> int
 
-// open
+Set event priority (two values):
+e:setpriority(int, int)
 
-// write int
+Get event priority:
+e:getpriority -> [int, int]
 
-// write int array
+Get event data by app id:
+e[string] -> string
 
-// write 2d inte array
+Get event data size:
+#e -> int
 
-// write string
+Chain two events:
+e0..e1 -> e1
 
-// close
+Unchain event (drop tail):
+-e -> e
 
-// rewind
+Print event:
+print(e)
 
-// read_int
+Collect event:
+Supprted with analysis of dependencies (queueving and linking)
 
-// read_str
 
-// int1d_get
+**** SM.QUEUE
 
-// int1d_set
-
-// int2d_get
-
-// int2d_set
-
-// int1d_skip
-
-// int2d_skip
-
-// # - available legth
-
-// print_DCB
-
-// collect_DCB
-
-static const struct luaL_Reg smDCB_m[] = {
-	{"__tostring", DCB_tostring},
-	{"__gc", collect_DCB},
-	{},
-	{NULL, NULL}
-};
-
-//Deprecated[
-/************************
- **** SM.DIRECTORY ******
- ************************/
-
-typedef struct SMDirectory {
-	sm_directory *native;
-} SMDirectory;
-
-#define check_sm_directory(L, POS) (SMDirectory *)luaL_checkudata((L), (POS), "sm.directory")
-
-// stk:
-static int new_directory(lua_State *L) {
-	SMDirectory *dir = (SMDirectory *)lua_newuserdata(L, sizeof(SMDirectory));
-	dir->native = sm_directory_create();
-	luaL_getmetatable(L, "sm.directory");
-	lua_setmetatable(L, -2);
-	return 1;
-}	
-
-// stk: dir, name
-static int directory_remove(lua_State *L) {
-	SMDirectory *dir = check_sm_directory(L, 1);
-	const char *name = luaL_checkstring(L, 2);
-	sm_directory_remove(dir->native, (char *)name);
-	return 0;
-}	
-
-// stk: dir
-static int directory_tostring(lua_State *L) {	
-	SMDirectory *dir = check_sm_directory(L, 1);
-	size_t s = 0;
-	luaL_Buffer b;
-	luaL_buffinit(L, &b);
-	lua_pushfstring(L, "sm_directory @ %p\n", dir);
-	luaL_addvalue(&b);
-	lua_pushfstring(L, "Items\n");
-	luaL_addvalue(&b);
-	sm_directory *dn = dir->native;
-	while(dn != NULL) {
-		s++;
-		lua_pushfstring(L, "item %s @ %p -> %p\n", dn->name, dn->ref, dn->ptr);
-		luaL_addvalue(&b);
-		dn = dn->next;
-	}
-	lua_pushfstring(L, "sm_directory size: %I\n", (lua_Integer)s);
-	luaL_addvalue(&b);
-	luaL_pushresult(&b);
-	return 1;
-}
-
-// stk: dir
-static int collect_directory(lua_State *L) {
-#ifdef SM_DEBUG	
-	printf("collect_directory attempt...");
-#endif	
-	return 0;
-}	
-
-static const struct luaL_Reg smdirectory_m [] = {
-	{"remove", directory_remove},
-	{"__tostring", directory_tostring},
-	{"__gc", collect_directory},
-	{NULL, NULL}
-};
-//]
-
-/*********************
- ****** SM.EXEC ******
- *********************/
-
-//singleton, created on init, exposed to Lua as global name "sm_exec"
-typedef struct SMExec {
-	sm_exec *native;
-} SMExec;
-
-#define check_sm_exec(L, POS) (SMExec *)luaL_checkudata((L), (POS), "sm.exec")
-
-//stk: size
-static int exec_init(lua_State *L) {
-	size_t size = (size_t)luaL_checkinteger(L, -1);
-	luaL_argcheck(L, size >= 0, 1, "wrong exec descriptor data size");
-	if (size == 0)
-		size = SM_EXEC_DATA_SIZE;
-	sm_directory *dir = sm_directory_create();
-	SMExec *e = (SMExec *)lua_newuserdata(L, sizeof(SMExec));
-	e->native = sm_exec_create(size, dir, NULL);
-	if(e->native == NULL)
-		return luaL_error(L, "@exec_init()");
-	luaL_getmetatable(L, "sm.exec");
-	lua_setmetatable(L, -2);
-	return 1;
-}
-
-// stk: exec
-static int collect_exec(lua_State *L) {
-#ifdef SM_DEBUG	
-	printf("collect_exec attempt ...");
-#endif		
-	return 0;
-}	
-
-// stk: exec
-static int exec_tostring(lua_State *L) {
-	SMExec *e = check_sm_exec(L, 1);
-	lua_pushfstring(L, "sm_exec @ %p, size = %I\n", 
-					e, (lua_Integer)e->native->data_size);
-	return 1;
-}
-
-// stk: exec, key
-static int get_exec_appdata(lua_State *L) {	
-	SMExec *ex = check_sm_exec(L, 1);
-	const char *key = luaL_checkstring(L, 2);
-	char *c0 = (char *)sm_chunk_find(ex->native->data, sm_ipstr_to_id(key));
-	if(c0 == NULL)
-		lua_pushnil(L);
-	else
-		lua_pushlstring(L, c0, SM_CHUNK_LENGTH((sm_chunk *)(c0 - sizeof(sm_chunk))));
-	return 1;
-}
-
-// stk: exec, key
-static int get_exec_DCB(lua_State *L) {	
-	SMExec *ex = check_sm_exec(L, 1);
-	const char *key = luaL_checkstring(L, 2);
-	SM_ID id = sm_ipstr_to_id(key);
-	sm_chunk *c = sm_chunk_find(ex->data, id);
-	if(c == NULL)
-		c = sm_chunk_open(ex->data, id);
-	push_DCB_handler(L, c);
-	return 1;
-}
-
-static const struct luaL_Reg smexec_m [] = {
-	{"init", exec_init},
-	{"getDCB", get_exec_DCB};
-	{"__index", get_exec_appdata},
-	{"__tostring", exec_tostring},
-	{"__gc", collect_exec},
-	{NULL, NULL}
-};
-
-
-/************************
- ******* SM.EVENT *******
- ************************/
-
-typedef struct SMEvent {
-	sm_event *native;
-	size_t linked;
-} SMEvent;
-
-#define check_sm_event(L, POS) (SMEvent *)luaL_checkudata((L), (POS), "sm.event")
-#define next(E1) (*((SMEvent **)((E1)->native->next->data \
-                               + (E1)->native->next->data_size \
-							   - sizeof(SMEvent *))))
-#define this(E1) (*((SMEvent **)((E1)->data + (E1)->data_size - sizeof(SMEvent *))))
-
-#define	sm_push_event(L, E) lua_pushfstring((L), "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)\n", \
-					(E)->native->id, (E), (E)->native, ((E)->native == NULL) ? NULL : (E)->native->next, \
-					(E)->linked, (E)->native->priority[0], (E)->native->priority[1]);
-
-static int push_event_handler(lua_State *L, sm_event *e) {
-	if(e == NULL)
-		return EXIT_FAILURE;
-	if(this(e) != NULL) { 		// handler was already created
-		lua_pushlightuserdata(L, e);					// lud
-		luaL_getmetatable(L, "sm.event");				// lud mt
-		lua_getfield(L, -1, "inventory");				// lud mt inventory
-		lua_rotate(L, -3, -1);							// mt inventory lud
-	}
-	else { 						// create new one
-		SMEvent *lua_e = (SMEvent *)lua_newuserdata(L, sizeof(SMEvent));	// ud
-		luaL_getmetatable(L, "sm.event");				// ud mt
-		lua_getfield(L, -1, "inventory");				// ud mt inventory
-		lua_rotate(L, -3, 1);							// inventory ud mt
-		lua_setmetatable(L, -2);						// inventory ud
-		lua_pushlightuserdata(L, e);					// inventory ud lud
-		lua_rotate(L, -2, -1);							// inventory lud ud
-		lua_settable(L, -3);							// inventory
-		lua_pushlightuserdata(L, e);					// inventory lud	
-		lua_e->native = e;
-		lua_e->linked = -1;
-		this(e) = lua_e;
-	}
-	lua_gettable(L, -2);								// ... inventory ud	
-	return EXIT_SUCCESS;	
-}
-
-// stk: id, plsize
-static int new_event(lua_State *L) {
-	size_t id = (size_t)luaL_checkinteger(L, 1);
-	luaL_argcheck(L, id >= 0, 1, "wrong event id");
-	size_t plsize = (size_t)luaL_checkinteger(L, 2);
-	luaL_argcheck(L, plsize >= 0, 1, "wrong event payload size");
-	sm_event *ne = sm_event_create(plsize + sizeof(SMEvent *));
-	if(ne == NULL){
-		//return luaL_error(L, "@new_event(%I)", (lua_Integer)plsize);
-		return luaL_error(L, "@new_event()");
-	}
-	ne->id = id;
-	//memset(ne->data, '\0', plsize);
-	sm_memory_init(ne->data, ne->data_size); // always use sm_memory chunks with Lua
-	this(ne) = NULL;
-	if(push_event_handler(L, ne) == EXIT_FAILURE) {
-		lua_pushnil(L);
-		return 1;
-	}
-	SMEvent *lua_e = check_sm_event(L, -1);
-	lua_e->linked = 0;
-	return 1;
-}
-
-// stk: e, data
-static int set_event(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	const char *s = luaL_checkstring(L, 2);
-	strncpy((char *)e->native->data, s, e->native->data_size - sizeof(SMEvent *) - 1);
-	return 0;
-}
-
-// stk: e, id
-static int set_event_id(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	e->native->id = (size_t)luaL_checkinteger(L, 2);
-	return 0;
-}
-
-// stk: e, priority[0], priority[1]
-static int set_event_priority(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	e->native->priority[0] = (size_t)luaL_checkinteger(L, 2);
-	e->native->priority[1] = (size_t)luaL_checkinteger(L, 3);
-	return 0;
-}
-
-// stk: e
-static int get_event(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	//lua_pushinteger(L, e->native->id);
-	lua_pushlstring(L, (char *)e->native->data, e->native->data_size - sizeof(SMEvent *));
-	return 1;
-}
-
-// stk: e, key
-static int get_event_appdata(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	const char *key = luaL_checkstring(L, 2);
-	char *c0 = (char *)sm_chunk_find(e->native->data, sm_ipstr_to_id(key));
-	if(c0 == NULL)
-		lua_pushnil(L);
-	else
-		lua_pushlstring(L, c0, SM_CHUNK_LENGTH((sm_chunk *)(c0 - sizeof(sm_chunk))));
-	return 1;
-}
-
-// stk: e
-static int get_event_id(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	lua_pushinteger(L, e->native->id);
-	return 1;
-}
-
-// stk: e
-static int get_event_priority(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	lua_pushinteger(L, e->native->priority[0]);
-	lua_pushinteger(L, e->native->priority[1]);
-	return 2;
-}
-
-// stk: event, key
-static int get_event_DCB(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	const char *key = luaL_checkstring(L, 2);
-	SM_ID id = sm_ipstr_to_id(key);
-	sm_chunk *c = sm_chunk_find(e->data, id);
-	if(c == NULL)
-		c = sm_chunk_open(e->data, id);
-	push_DCB_handler(L, c);
-	return 1;
-}
-
-// stk: e
-static int event_size(lua_State *L) {	
-	SMEvent *e = check_sm_event(L,1 );
-	lua_pushinteger(L, (lua_Integer)e->native->data_size - sizeof(SMEvent *));
-	return 1;
-}	
-
-// stk: e1, e2
-static int link_event(lua_State *L) {	
-	SMEvent *e1 = check_sm_event(L, 1);
-	SMEvent *e2 = check_sm_event(L, 2);
-	e1->native->next = e2->native;
-	next(e1)->linked++;
-	lua_pop(L, 1);
-	return 1;
-}
-
-// stk: e1
-static int unlink_event(lua_State *L) {	
-	SMEvent *e1 = check_sm_event(L, 1);
-	if(e1->native->next == NULL)
-		return 0;
-	next(e1)->linked--;
-	e1->native->next = NULL;
-	lua_pop(L, 1);
-	return 0;
-}
-
-// stk: e
-static int event_tostring(lua_State *L) {	
-	SMEvent *e = check_sm_event(L, 1);
-	sm_push_event(L, e);
-/*	lua_pushfstring(L, "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)", 
-					e->native->id, e, e->native, (e->native == NULL) ? NULL : e->native->next,
-					e->linked, e->native->priority[0], e->native->priority[1]);*/
-	return 1;
-}
-
-// stk: e
-static int next_event(lua_State *L) {
-	SMEvent *e = check_sm_event(L, 1);
-	if(e->native == NULL || e->native->next == NULL) {
-		lua_pushnil(L);
-		return 1;
-	}
-	if(push_event_handler(L, e->native->next) == EXIT_FAILURE) {
-		lua_pushnil(L);
-		return 1;
-	}
-	if(next(e)->linked == -1)
-		next(e)->linked = 1;
-	return 1;
-}
-
-// stk: e
-static int collect_event(lua_State *L) {
-#ifdef SM_DEBUG	
-	printf("collect_event ...");
-#endif	
-	SMEvent *e = check_sm_event(L, 1);
-	if(e->native == NULL) // is it a childfree? 
-		return 0;
-	if(e->linked > 0) { // is it linked-in otherwise?
-		this(e->native) = NULL; // no handler from now on
-		return 0;
-	}
-	if(e->native->next != NULL) // is it linked-out?
-		next(e)->linked--;
-	sm_event_free(e->native);
-	e->native = NULL; // for surviving or ressurected handler
-#ifdef SM_DEBUG	
-	printf(" ok\n");
-#endif
-	return 0;
-}
-	
-static const struct luaL_Reg smevent_m [] = {
-	{"set", set_event},
-	{"get", get_event},
-	{"setid", set_event_id},
-	{"getid", get_event_id},
-	{"setpriority", set_event_priority},
-	{"getpriority", get_event_priority},
-	{"getDCB", get_event_DCB},
-	{"__concat", link_event},
-	{"__unm", unlink_event},
-	{"next", next_event},
-	{"__len", event_size},
-	{"__index", get_event_appdata},
-	{"__tostring", event_tostring},
-	{"__gc", collect_event},
-	{NULL, NULL}
-};
-
-/************************
- ******* SM.QUEUE *******
- ************************/
-
-typedef struct SMQueue {
-	sm_queue *native;
-} SMQueue;
-
-#define check_sm_queue(L) (SMQueue *)luaL_checkudata(L, 1, "sm.queue")
 
 // stk: qsize, plsize, sync
 static int new_queue(lua_State *L) {
-	size_t qsize = (size_t)luaL_checkinteger(L, 1);
-	luaL_argcheck(L, qsize >= 0, 1, "wrong queue size");
-	size_t plsize = (size_t)luaL_checkinteger(L, 2);
-	luaL_argcheck(L, plsize >= 0, 1, "wrong event payload size");
-	bool sync;
-	if(lua_isboolean(L, 3))
-		 sync = (bool)lua_toboolean(L, 3);
-	else
-		return luaL_error(L, "wrong synchronized flag value");
-	SMQueue *q = (SMQueue *)lua_newuserdata(L, sizeof(SMQueue));
-	q->native = sm_queue_create(plsize + sizeof(SMEvent *), qsize, sync);
-	if(q->native == NULL){
-		//return luaL_error(L, "@new_queue(%I)", (lua_Integer)plsize);
-		return luaL_error(L, "@new_queue()");
-	}
-	luaL_getmetatable(L, "sm.queue");
-	lua_setmetatable(L, -2);
-	sm_event *e = sm_queue_top(q->native);
-	while(e->next != NULL) {
-		memset(e->data, '\0', plsize);	
-		*((SMEvent **)(e->data + plsize)) = NULL;
-		e = e->next;
-	}
-	return 1;
-}
-
 // stk: q
 static int queue_size(lua_State *L) {	
-	SMQueue *q = check_sm_queue(L);
-	lua_pushinteger(L, (lua_Integer)q->native->size);
-	return 1;
-}	
-
 // stk: q
 static int queue_tostring(lua_State *L) {
-	SMQueue *q = check_sm_queue(L);
-	luaL_Buffer b;
-	luaL_buffinit(L, &b);
-	lua_pushfstring(L, "sm_queue @ %p, size = %I, synchronized = %s\nEvents:\n", 
-					q, (lua_Integer)q->native->size, 
-					q->native->synchronized ? "true" : "false");
-	luaL_addvalue(&b);
-	sm_event *e = sm_queue_top(q->native);
-	SMEvent *lua_e;
-	while(e != NULL) {
-		lua_e = this(e);
-		sm_push_event(L, lua_e);
-/*		lua_pushfstring(L, "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)", 
-					e->native->id, e, e->native, (e->native == NULL) ? NULL : e->native->next,
-					e->linked, e->native->priority[0], e->native->priority[1]);	*/
-/*		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
-						lua_e, e, e->next, 
-						(lua_e == NULL) ? -1 : lua_e->linked);*/
-		luaL_addvalue(&b);
-		e = e->next;
-	}
-	luaL_pushresult(&b);
-	return 1;
-}
-
 // stk: q
 static int collect_queue(lua_State *L) {
-	SMQueue *q = check_sm_queue(L);
-	sm_event *e = sm_queue_dequeue(q->native);
-	while(e != NULL){
-		if(this(e) == NULL)
-			sm_event_free(e);
-		else
-			this(e)->linked--;
-		e = sm_queue_dequeue(q->native);
-	}
-	sm_queue_free(q->native);
-	return 0;
-}
-
 // stk: q
 static int queuetop(lua_State *L) {
-	SMQueue *q = check_sm_queue(L);
-	sm_event *top_e = sm_queue_top(q->native);	
-	if(top_e == NULL) {
-		lua_pushnil(L);
-		return 1;
-	}
-	if(push_event_handler(L, top_e) == EXIT_FAILURE) {
-		lua_pushnil(L);
-		return 1;
-	}
-	this(top_e)->linked = 1;
-	return 1;
-}
-
 // stk: q
 static int dequeue(lua_State *L) {
-	SMQueue *q = check_sm_queue(L);
-	sm_event *top_e = sm_queue_dequeue(q->native);	
-	if(top_e == NULL) {
-		lua_pushnil(L);
-		return 1;
-	}
-	if(push_event_handler(L, top_e) == EXIT_FAILURE) {
-		lua_pushnil(L);
-		return 1;
-	}
-	this(top_e)->linked = 1;
-	return 1;
-}
-
 // stk: q, e
 static int enqueue(lua_State *L) {
-	SMQueue *q = check_sm_queue(L);
-	if(q == NULL) {
-		return 0;
-	}
-	SMEvent *e = check_sm_event(L, 2);	
-	if(e == NULL) {
-		return 0;
-	}
-	sm_queue_enqueue(e->native, q->native);
-	e->linked++;
-	return 0;
-}
-
 // stk: queue, name
 static int dir_set_queue(lua_State *L) {
-	SMQueue *q = check_sm_queue(L);
-	const char *name = luaL_checkstring(L, 2);
-	lua_getglobal(L, "sm_exec");
-	SMExec *e = (SMExec *)lua_touserdata(L, -1);
-	e->native->dir = sm_directory_set(e->native->dir, name, (void *)q->native);
-	return 0;
-}
 
-static const struct luaL_Reg smqueue_m [] = {
 	{"top", queuetop},
 	{"enqueue", enqueue},
 	{"dequeue", dequeue},
@@ -655,11 +78,11 @@ static const struct luaL_Reg smqueue_m [] = {
 	{"__tostring", queue_tostring},
 	{"__gc", collect_queue},
 	{NULL, NULL}
-};
 
-/************************
- ******* SM.PQUEUE *******
- ************************/
+
+**** SM.PQUEUE
+
+
 
 typedef struct SMPQueue {
 	sm_pqueue *native;
@@ -1308,9 +731,7 @@ static int push_fsm_handler(lua_State *L, sm_fsm *f) {
 	lua_pushlightuserdata(L, f);						// mt inventory lud
 	lua_gettable(L, -2);								// mt inventory ud?
 	if(test_sm_fsm(L, 1) == NULL) { // create handler if not found
-					// -1 ??
 		lua_pop(L, 1);									// mt inventory
-					// -1 ??
 		SMFSM *lua_f = (SMFSM *)lua_newuserdata(L, sizeof(SMFSM)); // mt inventory ud
 		lua_rotate(L, -3, -1);							// inventory ud mt
 		lua_setmetatable(L, -2);						// inventory ud
@@ -1548,8 +969,8 @@ static int push_state_handler(lua_State *L, sm_state *s) {
 	lua_getfield(L, -1, "inventory");					// mt inventory
 	lua_pushlightuserdata(L, s);						// mt inventory lud
 	lua_gettable(L, -2);								// mt inventory ud?
-	if(test_sm_state(L, -1) == NULL) { // create handler if not found
-		lua_pop(L, -1);									// mt inventory
+	if(test_sm_state(L, 1) == NULL) { // create handler if not found
+		lua_pop(L, 1);									// mt inventory
 		SMState *lua_s = (SMState *)lua_newuserdata(L, sizeof(SMState)); // mt inventory ud
 		lua_rotate(L, -3, -1);							// inventory ud mt
 		lua_setmetatable(L, -2);						// inventory ud
@@ -1562,9 +983,7 @@ static int push_state_handler(lua_State *L, sm_state *s) {
 	return EXIT_SUCCESS;	
 }
 
-// stk: fsm plsize{
-	return sm_addr_align(addr, sizeof(int *)) + sizeof(int) * size;
-}
+// stk: fsm plsize
 static int new_state(lua_State *L) {
 	sm_state *s;
 	SMFSM *fsm = check_sm_fsm(L, 1);
@@ -1681,18 +1100,6 @@ static int state_get_id(lua_State *L) {
 	return 1;
 }
 
-// stk: state, key
-static int get_state_DCB(lua_State *L) {	
-	SMState *s = check_sm_state(L, 1);
-	const char *key = luaL_checkstring(L, 2);
-	SM_ID id = sm_ipstr_to_id(key);
-	sm_chunk *c = sm_chunk_find(s->data, id);
-	if(c == NULL)
-		c = sm_chunk_open(s->data, id);
-	push_DCB_handler(L, c);
-	return 1;
-}
-
 // stk: state
 static int collect_state(lua_State *L) {
 #ifdef SM_DEBUG	
@@ -1720,7 +1127,6 @@ static int purge_state(lua_State *L) {
 	return 0;
 }
 
-// stk: state, event
 static int apply_event(lua_State *L) {
 	SMState *s = check_sm_state(L, 1);
 	if(s == NULL)
@@ -1788,7 +1194,6 @@ static const struct luaL_Reg smstate_m [] = {
 	{"set", state_set},
 	{"getid", state_get_id},
 	{"setid", state_set_id},
-	{"getDCB", get_state_DCB},
 	{"purge", purge_state},
 	{"__index", get_state_appdata},
 	{"__tostring", state_tostring},
@@ -1969,18 +1374,6 @@ static int get_tx_appdata(lua_State *L) {
 }
 
 // stk: tx
-static int get_tx_DCB(lua_State *L) {	
-	SMTx *tx = check_sm_tx(L, 1);
-	const char *key = luaL_checkstring(L, 2);
-	SM_ID id = sm_ipstr_to_id(key);
-	sm_chunk *c = sm_chunk_find(tx->data, id);
-	if(c == NULL)
-		c = sm_chunk_open(tx->data, id);
-	push_DCB_handler(L, c);
-	return 1;
-}
-
-// stk: tx
 static int tx_tostring(lua_State *L) {
 	SMTx *tx = check_sm_tx(L, 1);
 	lua_pushfstring(L, "sm_tx @ %p, size = %I\n", 
@@ -1999,7 +1392,6 @@ static int collect_tx(lua_State *L) {
 static const struct luaL_Reg smtx_m [] = {
 	{"__index", get_tx_appdata},
 	{"run", run_tx},
-	{"getDCB", get_tx_DCB},
 	{"__tostring", tx_tostring},
 	{"__gc", collect_tx},
 	{NULL, NULL}
@@ -2030,7 +1422,7 @@ static const struct luaL_Reg smlib_f [] = {
 };
 
 int luaopen_sm (lua_State *L) {
-	
+
 	lua_pushinteger(L, (lua_Integer)0);
 	exec_init(L);
 	lua_setglobal(L, "sm_exec");
@@ -2107,13 +1499,6 @@ int luaopen_sm (lua_State *L) {
 	lua_pushvalue(L, -1);
 	lua_setfield(L, -2, "__index");
 	luaL_setfuncs(L, smtx_m, 0);
-	
-	luaL_newmetatable(L, "sm.DCB");
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -2, "__index");
-	luaL_setfuncs(L, smDCB_m, 0);
-	lua_newtable(L);
-	lua_setfield(L, -2, "inventory");
 	
 	luaL_newlib(L, smlib_f);
 	

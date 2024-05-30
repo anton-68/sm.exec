@@ -61,11 +61,12 @@ sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
         else 
 			memset(s->key, '\0', SM_STATE_HASH_KEYLEN);
     }
-    else
+    else {
         s->key = NULL;
-	s->process = NULL;
+	}
     s->key_length = 0;
     s->key_hash = 0;
+	s->exec = NULL;
 	s->trace = NULL;
 	return s;    
 }

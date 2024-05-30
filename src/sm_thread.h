@@ -1,9 +1,9 @@
 /* SM.EXEC
-   Process and thread-worker descriptors
+   FSM executor descriptor
    anton.bondarenko@gmail.com */
 
-#ifndef SM_THREAD_H
-#define SM_THREAD_H
+#ifndef SM_EXEC_H
+#define SM_EXEC_H
 
 #include <stdlib.h>
 #include "sm_sys.h"
@@ -15,26 +15,25 @@
       
 // process
 struct sm_thread_desc;
-typedef struct sm_process_desc {
-	struct sm_thread_desc *master_thread;
-	sm_app_table *app_table;
-	sm_fsm_table *fsm_table;
-	size_t context_size;
-	void *context;
-} sm_process_desc;
+typedef struct sm_exec {
+	struct sm_x *master_tx;
+	sm_directory *dir;
+	size_t data_size;
+	void *data;
+} sm_exec;
 
 // Public methods
-sm_process_desc *sm_process_create(size_t s, sm_app_table *a, sm_fsm_table *f);
-void sm_process_free(sm_process_desc *p);
+sm_exec *sm_process_create(size_t s, sm_app_table *a, sm_fsm_table *f);
+void sm_process_free(sm_exec *p);
 
-// thread
-typedef struct sm_thread_desc {
-	sm_process_desc *process;
-	sm_queue *input_queue;
+// Thread-worker descriptor
+typedef struct sm_tx {
+	sm_exec *exec;
+	sm_queue2 *input_queue;
 	sm_state *state;
-	size_t context_size;
-	void* context;
-} sm_thread_desc;
+	size_t data_size;
+	void* data;
+} sm_tx;
 
 // Public methods
 sm_thread_desc *sm_thread_create(sm_fsm **f, 
@@ -46,7 +45,7 @@ sm_thread_desc *sm_thread_create(sm_fsm **f,
 								 bool sync);
 void sm_thread_free(sm_thread_desc *p);
 
-// Thread-runner app
-void *sm_thread_runner(void *arg);
+// Thread-worker app
+void sm_tx_runner(void *arg);
 
-#endif //SM_THREAD_H 
+#endif //SM_EXEC_H 

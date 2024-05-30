@@ -14,7 +14,7 @@ LUA = ../../lua/
 SRC = ../../src/
 BJHASH = ../../lib/bj_hash/
 JSMN = ../../lib/jsmn/
-LUAINC = /usr/local/src/lua-5.3.4/
+LUAINC = /usr/local/src/lua-5.3.5/
 
 OBJS = 	$(LUA)sm.o \
 		$(SRC)sm_event.o \

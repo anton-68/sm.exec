@@ -57,16 +57,11 @@ sm_queue2 *sm_queue2_create(/*size_t event_size, unsigned num_of_events*/) {
         sm_queue2_free(q);
         return NULL;
     }    
-    if(pthread_mutex_init(&(q->queue0_lock),&attr) != EXIT_SUCCESS) {
+    if(pthread_mutex_init(&(q->lock),&attr) != EXIT_SUCCESS) {
         REPORT(ERROR, "pthread_mutex_init()");
         sm_queue2_free(q);
         return NULL;
     }
-    if(pthread_mutex_init(&(q->queue1_lock),&attr) != EXIT_SUCCESS) {
-        REPORT(ERROR, "pthread_mutex_init()");
-        sm_queue2_free(q);
-        return NULL;
-    }    
     if(pthread_cond_init(&(q->empty),NULL) != EXIT_SUCCESS) {
         REPORT(ERROR, "pthread_cond_init()");
         pthread_cond_signal(&q->empty);
@@ -90,8 +85,7 @@ void sm_queue2_free(sm_queue2 *q) {
         sm_event_free(e);
         e = tmp;
     }
-    pthread_mutex_destroy(&q->queue0_lock);
-    pthread_mutex_destroy(&q->queue1_lock);
+    pthread_mutex_destroy(&q->lock);
     pthread_cond_destroy(&q->empty);
     free(q);
 }
@@ -121,7 +115,7 @@ void sm_enqueue2_high(sm_event * e, sm_queue2 * q) {
 }
 
 int sm_lock_enqueue2(sm_event * e, sm_queue2 * q){
-    if(pthread_mutex_lock(&(q->queue1_lock)) != EXIT_SUCCESS) {
+    if(pthread_mutex_lock(&(q->lock)) != EXIT_SUCCESS) {
         REPORT(ERROR, "pthread_mutex_lock()");
         return EXIT_FAILURE;
     }
@@ -130,7 +124,7 @@ int sm_lock_enqueue2(sm_event * e, sm_queue2 * q){
         REPORT(ERROR, "pthread_cond_signal()");
         return EXIT_FAILURE;
     }
-    if(pthread_mutex_unlock(&(q->queue1_lock)) != EXIT_SUCCESS) {
+    if(pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS) {
         REPORT(ERROR, "pthread_mutex_unlock()");
         return EXIT_FAILURE;
     }
@@ -138,7 +132,7 @@ int sm_lock_enqueue2(sm_event * e, sm_queue2 * q){
 }
 
 int sm_lock_enqueue2_high(sm_event * e, sm_queue2 * q){
-    if(pthread_mutex_lock(&(q->queue0_lock)) != EXIT_SUCCESS) {
+    if(pthread_mutex_lock(&(q->lock)) != EXIT_SUCCESS) {
         REPORT(ERROR, "pthread_mutex_lock()");
         return EXIT_FAILURE;
     }
@@ -147,7 +141,7 @@ int sm_lock_enqueue2_high(sm_event * e, sm_queue2 * q){
         REPORT(ERROR, "pthread_cond_signal()");
         return EXIT_FAILURE;
     }
-    if(pthread_mutex_unlock(&(q->queue0_lock)) != EXIT_SUCCESS) {
+    if(pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS) {
         REPORT(ERROR, "pthread_mutex_unlock()");
         return EXIT_FAILURE;
     }
@@ -189,42 +183,31 @@ sm_event * sm_dequeue2(sm_queue2 * q) {
 
 sm_event * sm_lock_dequeue2(sm_queue2 * q) {
     sm_event * e;
-    if(q->h0->next != NULL)
-        if(q->h0->next->next != NULL)
-            e = sm_dequeue2_high(q);
-        else {
-            if(pthread_mutex_lock(&(q->queue0_lock)) != EXIT_SUCCESS) {
-                REPORT(ERROR, "pthread_mutex_lock()");
-                return NULL;
-            }
-            e = sm_dequeue2_high(q);
-            if(pthread_mutex_unlock(&(q->queue0_lock)) != EXIT_SUCCESS) {
+	if(pthread_mutex_lock(&(q->lock)) != EXIT_SUCCESS) {
+    	REPORT(ERROR, "pthread_mutex_lock()");
+        return NULL;
+    }
+	e = sm_dequeue2_high(q);
+	if(e != NULL) {
+		if(pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS) {
                 REPORT(ERROR, "pthread_mutex_unlock()");
                 sm_enqueue2_high(e, q);
                 e = NULL;
-            }
         }
-    else
-        if(q->h1->next != NULL && q->h1->next->next != NULL)
-            e = sm_dequeue2_low(q);
-        else {
-            if(pthread_mutex_lock(&(q->queue1_lock)) != EXIT_SUCCESS) {
-                REPORT(ERROR, "pthread_mutex_lock()");
-                return NULL;
-            }
-            while((e = sm_dequeue2_low(q)) == NULL) {
-                if (pthread_cond_wait(&(q->empty), &(q->queue1_lock)) != EXIT_SUCCESS) {
-                    REPORT(ERROR, "pthread_cond_wait()");
-                    return NULL;
-                }
-            }
-            if(pthread_mutex_unlock(&(q->queue1_lock)) != EXIT_SUCCESS) {
-                REPORT(ERROR, "pthread_mutex_unlock()");
-                sm_enqueue2(e, q);
-                e = NULL;
-            }
-        }
-    
+	}
+	else {
+   		while((e = sm_dequeue2_low(q)) == NULL) {
+			if (pthread_cond_wait(&(q->empty), &(q->lock)) != EXIT_SUCCESS) {
+        		REPORT(ERROR, "pthread_cond_wait()");
+        		return NULL;
+        	}
+    	}
+    	if(pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS) {
+    		REPORT(ERROR, "pthread_mutex_unlock()");
+        	sm_enqueue2(e, q);
+        	e = NULL;
+    	}
+	}
     return e;
 }
 

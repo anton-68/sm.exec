@@ -8,6 +8,7 @@
 #include <stdint.h>     // uint32_t
 #include "sm_sys.h"
 #include "sm_app.h"
+#include "sm_directory.h"
 
 /* sm_fsm */
 
@@ -49,12 +50,12 @@ typedef struct sm_fsm {
 
 // Public methods
 
-sm_fsm* sm_fsm_create(const char *f, sm_app_table *at, sm_fsm_type t);
+sm_fsm* sm_fsm_create(const char *f, sm_directory *at, sm_fsm_type t);
 void sm_fsm_free(sm_fsm *f);
 //SM_STATE_ID sm_get_initial_state(sm_fsm *f);  // deprecated
 char *sm_fsm_to_string(sm_fsm *f);
 
-
+// DEPRECATED [
 /* FSM registry */
 
 typedef struct sm_fsm_table {
@@ -72,5 +73,6 @@ sm_fsm_table *sm_fsm_table_set(sm_fsm_table *t, const char *name, sm_fsm *fsm);
 sm_fsm **sm_fsm_table_get_ref(sm_fsm_table *t, const char *name);
 void sm_fsm_table_remove(sm_fsm_table *t, const char *name);
 void sm_fsm_table_free(sm_fsm_table *t);
+// ]
 
 #endif //SM_EVENT_H

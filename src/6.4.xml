@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Notepadqq>
+    <View>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_app.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_directory.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_event.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_exec.h" cacheFilePath="" scrollX="0" scrollY="61" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_fsm.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_memory.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_pqueue.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_queue.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_queue2.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_state.h" cacheFilePath="" scrollX="0" scrollY="0" language="c" active="1"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_sys.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+    </View>
+    <View>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_app.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_directory.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_event.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_exec.c" cacheFilePath="" scrollX="0" scrollY="807" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_fsm.c" cacheFilePath="" scrollX="0" scrollY="1605" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_memory.c" cacheFilePath="" scrollX="0" scrollY="130" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_pqueue.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_queue.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_queue2.c" cacheFilePath="" scrollX="0" scrollY="1930" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_state.c" cacheFilePath="" scrollX="0" scrollY="523" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6_4/src/sm_sys.c" cacheFilePath="" scrollX="0" scrollY="0" language="c" active="1"/>
+    </View>
+</Notepadqq>

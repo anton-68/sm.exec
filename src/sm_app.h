@@ -1,5 +1,5 @@
 /* SM.EXEC
-   Some system utilities and definintions
+   Applications
    (c) anton.bondarenko@gmail.com */
 
 #ifndef SM_APP_H
@@ -13,6 +13,7 @@
 struct sm_state;
 typedef int (*sm_app) (sm_event *, struct sm_state *);
 
+// DEPRECATED [
 /* Application registry*/
 typedef struct sm_app_table {
 	char * name;
@@ -29,5 +30,5 @@ sm_app_table *sm_app_table_set(sm_app_table *t, const char *name, sm_app app);
 sm_app *sm_app_table_get_ref(sm_app_table *t, const char *name);
 void sm_app_table_remove(sm_app_table *t, const char *name);
 void sm_app_table_free(sm_app_table *t);
-
+	
 #endif //SM_APP_H

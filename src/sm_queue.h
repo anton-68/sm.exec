@@ -11,8 +11,7 @@
 /* sm_queue */
 
 typedef struct sm_queue {
-    pthread_mutex_t head_lock;
-    pthread_mutex_t tail_lock;
+    pthread_mutex_t lock;
     pthread_cond_t empty;
     sm_event * head;
     sm_event * tail;

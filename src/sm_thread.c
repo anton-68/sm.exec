@@ -88,9 +88,9 @@ void sm_thread_free(sm_thread_desc *td){
 }
 
 // Thread-runner app
-void *sm_thread_runner(void *arg) {
+void sm_thread_runner(void *arg) {
 	sm_thread_desc *tx = (sm_thread_desc *)arg;
-	sm_event *event;
+	sm_event *event = NULL;
 	if(tx->input_queue->synchronized) {
 		while(true) {
 			while(tx->state->id != (*tx->state->fsm)->final) {

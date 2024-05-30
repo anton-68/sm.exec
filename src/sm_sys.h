@@ -6,6 +6,7 @@
 #define SM_SYS_H
 
 #include <pthread.h>
+#include <stdint.h>
 
 /* event & state Ids */
 typedef size_t SM_EVENT_ID;
@@ -51,5 +52,26 @@ char sm_buffer[SM_OUTPUT_BUF_LEN];
 /* Thread ID */
 unsigned long get_tid();
 void get_tid_str(char *);
+
+/* Allocation boundary */
+#define SM_MEMORY_WORD 8
+
+/* SM ID */
+typedef uint32_t SM_ID;
+// public methods 
+void sm_id_to_ipstr(SM_ID id, char* const ip);
+SM_ID sm_ipstr_to_id(const char* const ip);
+
+/* SM Default exectutor descriptor data size */
+#define SM_EXEC_DATA_SIZE 4096
+
+/* SM Default thread-worker descriptor data size */
+#define SM_TX_DATA_SIZE 4096
+
+/* SM Default state descriptor data size */
+#define SM_STATE_DATA_SIZE 4096
+
+/* SM Default event descriptor data size */
+#define SM_EVENT_DATA_SIZE 4096
 
 #endif //SM_SYS_H

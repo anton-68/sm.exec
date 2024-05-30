@@ -42,3 +42,21 @@ unsigned long get_tid(){
     return utid;
 }
 #endif
+
+void sm_id_to_ipstr(SM_ID id, char* const ip) {
+	sprintf(ip, "%d.%d.%d.%d", (id >> 24) & 0xFF, (id >> 16) & 0xFF, (id >>  8) & 0xFF, 
+			(id) & 0xFF);
+}
+
+SM_ID sm_ipstr_to_id(const char* const ip) {
+	unsigned byte3, byte2, byte1, byte0;
+   	char dummyString[2];	
+   	if (sscanf (ip, "%u.%u.%u.%u%1s",
+			   &byte3, &byte2, &byte1, &byte0, dummyString) == 4){
+    	if (byte3 < 256 && byte2 < 256 && byte1 < 256 && byte0 < 256) {
+         	SM_ID id = (byte3 << 24) + (byte2 << 16) + (byte1 << 8) +  byte0;
+         	return id;
+      	}
+   	}
+   	return 0;
+}	

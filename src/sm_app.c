@@ -11,6 +11,7 @@
 #include "../oam/logger.h"
 #include "sm_app.h"
 
+// DEPRECATED [
 // Private methods
 
 static sm_app_table *find_record(sm_app_table *t, const char *name) {
@@ -102,3 +103,4 @@ void sm_app_table_free(sm_app_table *t) {
 		t = tmp;
 	}
 }
+//]

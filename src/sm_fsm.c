@@ -105,7 +105,7 @@ void sm_fsm_free(sm_fsm *f) {
 	}
 }
 
-sm_fsm *sm_fsm_create(const char *fsm_json, sm_app_table *at, sm_fsm_type t){
+sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *at, sm_fsm_type t){
 	sm_fsm *fsm;
 	char er[80];
     if((fsm = malloc(sizeof(sm_fsm))) == NULL) {
@@ -387,7 +387,7 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_app_table *at, sm_fsm_type t){
 							return cleanup(fsm, tokens);
 						}
 						parsed_transitions[idx].action = 
-									sm_app_table_get_ref(at, tok);
+									(sm_app *)sm_directory_get_ref(at, tok);
 						free(tok);
 					}
 					else {
@@ -600,6 +600,7 @@ char *sm_fsm_to_string(sm_fsm* f) {
 	return sm_buffer;
 }
 
+// DEPRECATED[
 /* FSM registry */
 
 // Private methods
@@ -681,3 +682,4 @@ void sm_fsm_table_free(sm_fsm_table *t) {
 		t = tmp;
 	}
 }
+// ]

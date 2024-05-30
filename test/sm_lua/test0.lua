@@ -9,7 +9,7 @@ sm = require("sm")
 
 at = sm.new_apptab()
 
-lib = sm.loadlib("/home/anton/lab/sm.exec/v6/test/sm_app/sm_test_apps.so")
+lib = sm.loadlib("sm_test_apps.so")
 
 print("\n")
 print("Applications:\n")

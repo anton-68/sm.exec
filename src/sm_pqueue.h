@@ -14,8 +14,7 @@ typedef struct sm_pqueue {
 	size_t capacity;
 	size_t size;
 	bool synchronized;
-    pthread_mutex_t enqueue_lock;
-	pthread_mutex_t dequeue_lock;
+    pthread_mutex_t lock;
 	pthread_cond_t empty;
 	sm_event **heap;
 } sm_pqueue;
