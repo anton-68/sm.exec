@@ -6,6 +6,7 @@
 #define LOGGER_H
 
 #include <syslog.h>
+#include <errno.h>
 
 #ifdef SM_DEBUG
     #define SM_LOG_TERM LOG_PERROR | LOG_CONS

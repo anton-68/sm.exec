@@ -99,6 +99,7 @@ sm_chunk *sm_chunk_prev(sm_chunk *this){
 
 // Simple C <-> Lua serialization: Read-Write-Allocate-Rewind-Skip
 
+// DEPRECATED -> moving to sm_sys
 void * sm_memory_align(void * addr, size_t align) {
 	//return (void *)((size_t)(char *)addr / align * align + (size_t)(char *)addr % align);
 	return 
@@ -114,6 +115,8 @@ size_t sm_memory_size_align(size_t size, size_t align) {
 void * sm_memory_add_addr(void * addr, size_t add) {
 	return (void *)((char *)addr + add);
 }
+// END OF DEPRECATED
+
 
 void * sm_memory_write_int(sm_chunk *c, void ** start, int value){
 	if(c == NULL || c->next == NULL || c->id == 0)

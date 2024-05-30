@@ -9,6 +9,7 @@
 #include "sm_sys.h"
 #include "sm_hash.h" 
 
+struct sm_queue;
 typedef	struct sm_event	{
 	struct sm_event *next;
 	uint32_t data_size;
@@ -24,35 +25,48 @@ typedef	struct sm_event	{
 		unsigned int /* reserved */		 :  0; // 2 bits
 	} ctl;
 } sm_event;
-typedef long long int sm_event_priority;
+typedef long int sm_event_priority;
 typedef sm_word_t sm_event_handle;
 
 /* Lifecycle */
-sm_event *sm_event_create(uint32_t data_size);
-sm_event *sm_event_ext_create(uint32_t data_size, bool disposable_flag, bool hash_key_flag, bool priority_flag, sm_queue * home);
+sm_event *sm_event_create(size_t data_size);
+sm_event *sm_event_ext_create(size_t data_size,
+							  bool disposable_flag,
+							  bool handle_flag, 
+						  	  bool hash_key_flag,
+						 	  bool priority_flag,
+						      struct sm_queue * home);
+sm_event *sm_event_ext_create_pool(size_t pool_size,
+								   size_t data_size,
+								   bool disposable_flag, 
+							  	   bool handle_flag,  
+								   bool hash_key_flag,
+								   bool priority_flag,
+								   struct sm_queue * home);
 void sm_event_free(sm_event *e);
 void sm_event_purge(sm_event *e);
 void sm_event_park(sm_event *e);
 bool sm_event_is_valid(sm_event *e);
 bool sm_event_is_disposable(sm_event *e);
 /* Chaining */
+sm_event *sm_event_tail_end(sm_event *e);
 void sm_event_link(sm_event *e1, sm_event *e2);
 sm_event *sm_event_unlink(sm_event *e);
 sm_event *sm_event_tail(sm_event *e);
 bool sm_event_is_linked(sm_event *e);
 /* Id */
-size_t sm_event_id(event *e);
-void sm_event_set_id(event *e, size_t id);
+size_t sm_event_id(sm_event *e);
+void sm_event_set_id(sm_event *e, size_t id);
 /* Data */
-size_t sm_event_data_size(event	*e) {return(size_t)e->data_size;}
-void *sm_event_data_ptr(event *e);
+size_t sm_event_data_size(sm_event *e);
+void *sm_event_data_ptr(sm_event *e);
 /* Home queue */
-sm_queue* sm_event_pool_ptr(sm_event *e);
+struct sm_queue *sm_event_pool_ptr(sm_event *e);
 /* Handle */
 void *sm_event_handle_ptr(sm_event *e);
 /* Hash key */
 sm_hash_key *sm_event_hash_key_ptr(sm_event *e);
 /* Priority */
-long long int *sm_event_priority_ptr(sm_event *e);
+sm_event_priority *sm_event_priority_ptr(sm_event *e);
 
 #endif //SM_EVENT_H

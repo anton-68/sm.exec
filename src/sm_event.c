@@ -4,10 +4,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "sm_sys.h"
+#include "sm_logger.h"
 #include "sm_event.h"
 #include "sm_queue.h"
-#include "sm_logger.h"
-#include "sm_memory.h"
 
 #define _head 2
 #define _pull(E) _head
@@ -16,13 +16,14 @@
 #define _prrt(E) (_hshk(E) + ((E)->ctl.hash_key_flag ? 2 : 0))
 
 sm_event *sm_event_create(size_t data_size) {
-	size_t size = sm_memory_size_align(data_size, SM_WORD)
+	size_t size = SM_ALIGN(data_size, SM_WORD);
 	if(size > UINT32_MAX) {
-		SM_LOG(SM_CORE, SM_ERR, "Event data size is too large");
+		SM_LOG(SM_CORE, SM_LOG_ERR, "Event data size is too large");
         return NULL;
     }
-	if((sm_event *e = malloc(2 * SM_WORD + size)) == NULL) {
-		SM_LOG(SM_CORE, SM_LOG_ERR, "malloc() failed to allocate sm_event");
+	sm_event *e;
+	if((e = malloc(2 * SM_WORD + size)) == NULL) {
+		SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to allocate event");
         return e;
     }
 	memset((void *)e, 0, 2 * SM_WORD + size);
@@ -30,13 +31,14 @@ sm_event *sm_event_create(size_t data_size) {
 return e;
 }
 
-sm_event *sm_event_ext_create(uint32_t data_size
-							  bool disposable_flag, 
+sm_event *sm_event_ext_create(size_t data_size,
+							  bool disposable_flag,
+							  bool handle_flag,
 						  	  bool hash_key_flag,
 						 	  bool priority_flag,
 						      sm_queue * home) {
-	size_t offset = 0;
-	if(pool_flag && home != NULL)
+	uint32_t offset = 0;
+	if(home != NULL)
 		offset += 1;
 	if(handle_flag)
 		offset += 1;
@@ -44,22 +46,70 @@ sm_event *sm_event_ext_create(uint32_t data_size
 		offset += 2;
 	if(priority_flag)
 		offset += 2;
-	if((sm_event *e = sm_event_create(data_size + offset * SM_WORD)) == NULL){
+	sm_event *e;
+	if((e = sm_event_create(data_size + offset * SM_WORD)) == NULL){
 		SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to create event");
         return e;
     }
 	e->data_size -= offset * SM_WORD;
 	e->ctl.data_offset += offset;
 	e->ctl.disposable_flag = disposable_flag;
+	e->ctl.handle_flag = handle_flag;
 	if(home != NULL) {
-		SM_EVENT_DEPOT(e) = home;
+		SM_OFFSET(sm_queue *, e, sm_word_t, 2) = home;
 		e->ctl.pool_flag = 1;
 	}
 	e->ctl.hash_key_flag = hash_key_flag;
 	e->ctl.priority_flag = priority_flag;									  
 return e;
 }
-    
+
+sm_event *sm_event_ext_create_pool(size_t pool_size,
+								   size_t data_size,
+								   bool disposable_flag, 
+							  	   bool handle_flag, 
+								   bool hash_key_flag,
+								   bool priority_flag,
+								   sm_queue * home) {
+	uint32_t offset = 0;
+	if(home != NULL)
+		offset += 1;
+	if(handle_flag)
+		offset += 1;
+	if(hash_key_flag)
+		offset += 2;
+	if(priority_flag)
+		offset += 2;
+	size_t size = SM_ALIGN(data_size, SM_WORD);
+	if(size > UINT32_MAX) {
+		SM_LOG(SM_CORE, SM_LOG_ERR, "Event data size is too large");
+        return NULL;
+    }
+	sm_event * epool;
+	if((epool = (sm_event *)calloc(pool_size, size + (_head + offset) * SM_WORD)) == NULL) {
+		SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to allocate event pool");
+        return epool;
+    }
+	sm_event *ehead = epool;
+	while(pool_size--) {
+		epool->next = SM_WOFFSET(sm_event *, epool, _head + offset + size / SM_WORD);
+		epool->data_size = (uint32_t)size + offset * SM_WORD;
+		epool->ctl.data_offset = offset;
+		epool->ctl.disposable_flag = disposable_flag;
+		epool->ctl.handle_flag = handle_flag;
+		if(home != NULL) {
+			SM_WOFFSET(sm_queue *, epool, 2) = home;
+			epool->ctl.pool_flag = 1;
+		}
+		epool->ctl.hash_key_flag = hash_key_flag;
+		epool->ctl.priority_flag = priority_flag;
+		epool = epool->next;
+	}
+	epool = SM_WOFFSET(sm_event *, epool, - (_head + offset + size / SM_WORD));
+	epool->next = ehead;
+	return epool;
+}
+	
 void sm_event_free(sm_event *e) {
 	sm_event *e1;
 	while(e != NULL) {
@@ -70,7 +120,7 @@ void sm_event_free(sm_event *e) {
 }
 
 static void purge(sm_event *e) {
-	memset((void *)e + SM_EVENT_HASH_KEY_OFFSET(e), 0, 
+	memset((void *)e + _hshk(e), 0, 
 		   (e->ctl.hash_key_flag + e->ctl.priority_flag) * 2 * SM_WORD 
 		    + sm_event_data_size(e));
 	e->ctl.id = 0;
@@ -88,10 +138,10 @@ void sm_event_purge(sm_event *e) {
 }
 
 void sm_event_park(sm_event *e) {
-	if(e->ctl->disposable_flag) {
-		if(e->ctl->pool_flag) {
+	if(e->ctl.disposable_flag) {
+		if(e->ctl.pool_flag) {
 			sm_event_purge(e);
-			sm_queue_enqueue(sm_event_pool_ptr(e), e);
+			sm_queue_enqueue(e, sm_event_pool_ptr(e));
 		}
 		else
 			sm_event_free(e);
@@ -102,9 +152,11 @@ bool sm_event_is_disposable(sm_event *e) {
 	return (bool)e->ctl.disposable_flag;
 }
 
-bool sm_event_is_valid(sm_event *e) {
-	return true;	
-} // e != NULL && ...
+sm_event *sm_event_tail_end(sm_event *e) {
+	while (e->ctl.tailed_flag)
+		e = e->next;
+	return e;
+}
 
 void sm_event_link(sm_event *e1, sm_event *e2) {
 	if(!e1->ctl.tailed_flag){
@@ -136,38 +188,38 @@ bool sm_event_is_linked(sm_event *e) {
 	return (bool)e->ctl.tailed_flag;
 }
 
-size_t sm_event_id(event *e) {
-	return (size_r)e->ctl.id;
+size_t sm_event_id(sm_event *e) {
+	return (size_t)e->ctl.id;
 }
 
-void sm_event_set_id(event *e, size_t id) {
-	if(1<<sizeof(e->ctl.id) < id)
+void sm_event_set_id(sm_event *e, size_t id) {
+	if(id > SM_EVENT_ID_MAX)
 		SM_LOG(SM_CORE, SM_LOG_DEBUG, "Event id value exceeds allowed maximum");
 	e->ctl.id = (uint16_t)id;
 }
 
-size_t sm_event_data_size(event	*e) {
+size_t sm_event_data_size(sm_event	*e) {
 	return (size_t)e->data_size;
 }
 
-void *sm_event_data_ptr(event *e) {
-	 return (void *)((sm_word_t *)e + (ptrdiff_t)(_head + e->ctl.data_offset));
+void *sm_event_data_ptr(sm_event *e) {
+	return SM_WOFFSET(void *, e, _head + e->ctl.data_offset);
 }
 
 sm_queue* sm_event_pool_ptr(sm_event *e) {
-	return (sm_queue *)(e->ctl.pool_flag ? (sm_word_t *)e + (ptrdiff_t)_pull(e) : NULL);
+	return e->ctl.pool_flag ? SM_WOFFSET(sm_queue *, e, _pull(e)) : NULL;
 }
 
 void *sm_event_handle_ptr(sm_event *e) {
-	return (void *)(e->ctl.handle_flag ? (sm_word_t *)e + (ptrdiff_t)_hndl(e) : NULL);
+	return e->ctl.handle_flag ? SM_WOFFSET(void *, e, _hndl(e)) : NULL;
 }
 
 sm_hash_key *sm_event_hash_key_ptr(sm_event *e) {
-	return (sm_hash_key *)(e->ctl.hash_key_flag ? (sm_word_t *)e + _hshk(e): NULL);
+	return e->ctl.hash_key_flag ? SM_WOFFSET(sm_hash_key *, e, _hshk(e)) : NULL;
 }
 
 sm_event_priority *sm_event_priority_ptr(sm_event *e){ 
-	return (sm_event_priority *)(e->ctl.priority_flag ? (sm_word_t *)e + _prrt(e) : NULL);
+	return e->ctl.priority_flag ? SM_WOFFSET(sm_event_priority *, e, _prrt(e)) : NULL;
 }
 
 

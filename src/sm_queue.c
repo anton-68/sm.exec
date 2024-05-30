@@ -2,70 +2,67 @@
    Queues   
    anton.bondarenko@gmail.com */
 
-#include <stdlib.h>			// malloc-free
-
+#include <stdlib.h>	
 #include "sm_queue.h"
 
-/* queue */
+static void enqueue(sm_event * e, sm_queue * q) {
+    q->tail->next = e;
+    q->tail = sm_event_tail_end(e);
+    q->tail->next = NULL;
+	q->size++;
+}
 
-// Private methods
+static sm_event *dequeue(sm_queue * q) {
+    sm_event * e = q->head->next;
+    if(e != NULL) {
+        q->head->next = sm_event_tail_end(q->head->next)->next;
+        if(sm_event_tail_end(e)->next == NULL)
+            q->tail = q->head;
+        else
+            sm_event_tail_end(e)->next = NULL;
+		q->size--;
+    }
+    return e;
+}
 
-static void enqueue(sm_event *e, sm_queue *q);
-static sm_event *dequeue(sm_queue *q);
+static void append(sm_queue * q1, sm_queue * q2) {
+	q1->tail = q2->tail;
+	q1->tail->next = q1->head->next;
+	q1->size = q1->size + q2->size;
+	q2->tail = q2->head;
+	q2->head->next = NULL;
+	q2->size = 0;
+	sm_queue_free(q2);
+}
 
-// Public methods
-
-sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchronized) {
-    sm_queue *q;
+sm_queue *sm_queue_create(size_t event_size, size_t num_of_events, bool synchronized,  
+						  bool handle_flag, bool hash_key_flag, bool priority_flag) {
+	sm_queue *q;
     if((q = malloc(sizeof(sm_queue))) == NULL) {
-        REPORT(ERROR, "malloc()");
+        SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to allocate queue header");
         return NULL;
-    }    
-    sm_event * e;
-    if((e = sm_event_create(TL_DUMMY_PAYLOAD_SIZE)) == NULL) {
-        REPORT(ERROR, "event_create()");
+    }   
+	sm_event *e;
+    if((e = sm_event_create(SM_DUMMY_PAYLOAD_SIZE)) == NULL) {
+        SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to create queue dummy event");
         free(q);
         return NULL;
     }
-    *((unsigned*)(e->data)) = TL_DUMMY_PAYLOAD;
-	e->home = NULL;
-    q->head = q->tail = e;
-	q->size = 0;
-    for(int i = 0; i < num_of_events; i++) {
-        if((e = sm_event_create(event_size)) == NULL) {
-            REPORT(ERROR, "event_create()");
-            sm_queue_free(q);
-            return NULL;
-        }
-		e->home = q;
-		e->disposable = true;
-		enqueue(e, q);
+    *((unsigned*)sm_event_data_ptr(e)) = SM_DUMMY_PAYLOAD;
+	q->head = q->tail = e;
+	sm_event *epool;
+	if((epool = sm_event_ext_create_pool(num_of_events,	event_size, 1, handle_flag,
+										 hash_key_flag,	priority_flag, q)) == NULL) {
+        SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to create event pool");
+        free(q);
+        return NULL;
     }
-	q->synchronized = synchronized;
-	if(q->synchronized){
-    	pthread_mutexattr_t attr;
-    	if(pthread_mutexattr_init(&attr) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutexattr_init()");
-        	sm_queue_free(q);
-        	return NULL;
-    	}
-    	if(pthread_mutexattr_settype(&attr, TL_MUTEX_TYPE) != EXIT_SUCCESS){
-        	REPORT(ERROR, "pthread_mutexattr_settype()");
-        	sm_queue_free(q);
-        	return NULL;
-    	}    
-    	if(pthread_mutex_init(&(q->lock), &attr) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_init()");
-        	sm_queue_free(q);
-        	return NULL;
-    	}
-    	if(pthread_cond_init(&(q->empty),NULL) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_cond_init()");
-        	pthread_cond_signal(&q->empty);
-        	sm_queue_free(q);
-        	return NULL;
-    	}
-	}
+	q->tail = epool;
+	q->head->next = epool->next;
+	epool->next = NULL;
+	q->size = num_of_events;
+	q->ctl->synchronized = synchronized;
+	SM_LOCK_INIT(q, sm_queue_free);
     return q;
 }
 
@@ -77,11 +74,15 @@ void sm_queue_free(sm_queue *q) {
         sm_event_free(e);
         e = tmp;
     }
-	if(q->synchronized){
-    	pthread_mutex_destroy(&q->lock);
-    	pthread_cond_destroy(&q->empty);
-    	free(q);
-	}
+	SM_LOCK_DESTROY(q);
+	free(q);
+}
+
+int sm_queue_append(sm_queue *q1, sm_queue *q2) {
+	SM_LOCK(q1);
+	append(q1, q2);
+	SM_SIGNAL_UNLOCK(q1);
+	return EXIT_SUCCESS;
 }
 
 size_t sm_queue_size(sm_queue * q) {
@@ -92,79 +93,15 @@ sm_event * sm_queue_top(const sm_queue * q) {
     return q->head->next;
 }
 
-void enqueue(sm_event * e, sm_queue * q) {
-    q->tail->next = e;
-    q->tail = e;
-    q->tail->next = NULL;
-	q->size++;
-}
-
 int sm_queue_enqueue(sm_event * e, sm_queue * q){
-	if(q->synchronized){
-    	if(pthread_mutex_lock(&(q->lock)) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_lock()");
-        	return EXIT_FAILURE;
-   		}
-	}
+	SM_LOCK(q);
     enqueue(e, q);
-	if(q->synchronized){
-    	if(pthread_cond_signal(&(q->empty)) != EXIT_SUCCESS) {
-       		REPORT(ERROR, "pthread_cond_signal()");
-        	return EXIT_FAILURE;
-    	}
-    	if(pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_unlock()");
-        	return EXIT_FAILURE;
-    	}
-	}
+	SM_SIGNAL_UNLOCK(q);
     return EXIT_SUCCESS;
-}
-
-sm_event *dequeue(sm_queue * q) {
-    sm_event * e = q->head->next;
-    if(e != NULL) {
-        q->head->next = q->head->next->next;
-        if(e->next == NULL)
-            q->tail = q->head;
-        else
-            e->next = NULL;
-		q->size--;
-    }
-    return e;
 }
 
 sm_event *sm_queue_dequeue(sm_queue * q) {
 	sm_event * e;
-	if(q->synchronized){
-    	int __tl_result = pthread_mutex_lock(&(q->lock));
-    	if(__tl_result != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_lock()");
-        	return NULL;
-    	}
-    	while((e = dequeue(q)) == NULL) {
-        	__tl_result = pthread_cond_wait(&(q->empty), &(q->lock));
-        	if (__tl_result != EXIT_SUCCESS) {
-            	REPORT(ERROR, "pthread_cond_wait()");
-            	return NULL;
-        	}
-    	}
-    	__tl_result = pthread_mutex_unlock(&(q->lock));
-    	if(__tl_result != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_unlock()");
-        	// enqueue(e, q); 
-			if (e != NULL){
-				e->next = q->head->next;
-				q->head->next = e;
-				if (q->tail == q->head)
-					q->tail = e;
-			}
-        	return NULL;
-    	}
-	}
-	else
-		e = dequeue(q);
+	SM_LOCK_WAIT(q, e = dequeue(q)); 
     return e;
 }
-
-
-

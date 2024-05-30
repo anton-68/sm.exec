@@ -1,4 +1,4 @@
-/* TrafficLab
+/* SM.EXEC
    anton.bondarenko@gmail.com 
    Hash function by Bob Jenkins: 
    http://burtleburtle.net/bob/c/lookup3.c */

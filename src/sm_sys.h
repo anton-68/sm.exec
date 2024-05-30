@@ -8,6 +8,7 @@
 #include <pthread.h> 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
 
 /* Program Name */
@@ -19,7 +20,7 @@
 #endif
 #endif
 
-/* bool */ 
+/* bool type */ 
 #if __STDC_VERSION__ >= 199901L
 	#include <stdbool.h>
 #else
@@ -38,22 +39,114 @@ typedef struct sm_timestamp{
 } sm_timestamp;
 sm_timestamp sm_get_timestamp();
 
+/* Maximal event id */
+#define SM_EVENT_ID_MAX UINT16_MAX
 
+/* Dummy event payload for queues*/
+#define SM_DUMMY_PAYLOAD 0x012357BD
+#define SM_DUMMY_PAYLOAD_SIZE sizeof SM_DUMMY_PAYLOAD
 
+/* Mutex type */
+#ifndef SM_DEBUG
+#define SM_MUTEX_TYPE PTHREAD_MUTEX_DEFAULT
+#else
+#define SM_MUTEX_TYPE PTHREAD_MUTEX_ERRORCHECK
+#endif
 
-
-
-
-
-
-
-
-
-
+/* Mutex operations */
+#define SM_LOCK_NAME lock
+#define SM_COND_NAME empty
+#define SM_ATTR_NAME attr
+#define SM_LOCK_INIT(q, _free) \
+	if((q)->ctl->synchronized){ \
+    	pthread_mutexattr_t SM_ATTR_NAME; \
+    	if(pthread_mutexattr_init(&SM_ATTR_NAME) != EXIT_SUCCESS) { \
+        	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to create queue mutex attribute"); \
+        	_free(q); \
+        	return NULL; \
+    	} \
+    	if(pthread_mutexattr_settype(&SM_ATTR_NAME, SM_MUTEX_TYPE) != EXIT_SUCCESS){ \
+        	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to set queue mutex attribute type"); \
+        	_free(q); \
+        	return NULL; \
+    	} \
+    	if(pthread_mutex_init(&((q)->SM_LOCK_NAME), &SM_ATTR_NAME) != EXIT_SUCCESS) { \
+        	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to initialize queue mutex"); \
+        	_free(q); \
+        	return NULL; \
+    	} \
+    	if(pthread_cond_init(&((q)->SM_COND_NAME),NULL) != EXIT_SUCCESS) { \
+        	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to initialize queue conditioinal"); \
+        	pthread_cond_signal(&(q)->SM_COND_NAME); \
+        	_free(q); \
+        	return NULL; \
+    	} \
+	}
+#define SM_LOCK_DESTROY(q) \
+	if((q)->ctl->synchronized){ \
+    	pthread_mutex_destroy(&(q)->SM_LOCK_NAME); \
+    	pthread_cond_destroy(&(q)->SM_COND_NAME); \
+	}
+#define SM_LOCK(q) \
+	if((q)->ctl->synchronized) { \
+    	if(pthread_mutex_lock(&((q)->SM_LOCK_NAME)) != EXIT_SUCCESS) { \
+			SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to lock mutex"); \
+        	return EXIT_FAILURE; \
+   		} \
+	}
+#define SM_SIGNAL_UNLOCK(q) \
+	if((q)->ctl->synchronized){ \
+    	if(pthread_cond_signal(&((q)->SM_COND_NAME)) != EXIT_SUCCESS) { \
+			SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to signal conditional"); \
+        	return EXIT_FAILURE; \
+    	} \
+    	if(pthread_mutex_unlock(&((q)->SM_LOCK_NAME)) != EXIT_SUCCESS) { \
+			SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to unlock mutex"); \
+        	return EXIT_FAILURE; \
+    	} \
+	}
+#define SM_LOCK_WAIT(q, _expr) \
+	if((q)->ctl->synchronized){ \
+    	int __tl_result = pthread_mutex_lock(&((q)->SM_LOCK_NAME)); \
+    	if(__tl_result != EXIT_SUCCESS) { \
+        	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to lock mutex"); \
+        	return NULL; \
+    	} \
+    	while((_expr) == NULL) { \
+        	__tl_result = pthread_cond_wait(&((q)->SM_COND_NAME), &((q)->lock)); \
+        	if (__tl_result != EXIT_SUCCESS) { \
+            	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed waiting conditional"); \
+            	return NULL; \
+        	} \
+    	} \
+    	__tl_result = pthread_mutex_unlock(&((q)->SM_LOCK_NAME)); \
+    	if(__tl_result != EXIT_SUCCESS) { \
+        	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to unlock mutex"); \
+        	return NULL; \
+    	} \
+	} \
+	else { \
+		_expr; \
+	}
 
 /* MIN & MAX */
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))  //--??
-#define MAX(X, Y) (((X) >= (Y)) ? (X) : (Y)) //--??
+#define SM_MIN(X, Y) (((X) < (Y)) ? (X) : (Y))  //--??
+#define SM_MAX(X, Y) (((X) >= (Y)) ? (X) : (Y)) //--??
+
+/* CEILING & FLOOR */
+#define SM_CEILING(X, Y) ((X) + (Y) - 1) / (Y)
+#define SM_FLOOR(X, Y) ((X) + ((X) + (Y)) / 2) / (Y)
+
+/* Alignment */
+#define SM_ALIGN(K, L) SM_CEILING((K), (L)) * (L)
+#define SM_OFFSET(T1, A, T2, O) *(T1*)((T2*)(A) + (ptrdiff_t)(O))
+#define SM_WOFFSET(T1, A, O) SM_OFFSET(T1, A, sm_word_t, O) 
+
+
+
+
+
+
 
 
 
@@ -65,13 +158,9 @@ sm_timestamp sm_get_timestamp();
 /* Multithreading */
 #define TL_MUTEX_DEBUG
 
-/* Mutex type */ 
-#define TL_MUTEX_TYPE PTHREAD_MUTEX_DEFAULT
-                   /* PTHREAD_MUTEX_ERRORCHECK */
 
-/* Dammy payload */
-#define TL_DUMMY_PAYLOAD 0x012357BD
-#define TL_DUMMY_PAYLOAD_SIZE sizeof TL_DUMMY_PAYLOAD
+
+
 
 /* State Array hash key length */
 #define SM_STATE_HASH_KEYLEN 256

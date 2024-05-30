@@ -5,29 +5,29 @@
 #ifndef SM_QUEUE2_H
 #define SM_QUEUE2_H
 
-#include "sm_event.h"
 #include "sm_logger.h"
+#include "sm_event.h"
+#include "sm_queue.h"
 
 typedef struct sm_queue2 {
     pthread_mutex_t lock;
     pthread_cond_t empty;
-    sm_event * h0;
-    sm_event * t0;
-    sm_event * h1;
-    sm_event * t1;
+    sm_event * h[2];
+    sm_event * t[2];
+	size_t size;
+	struct {
+		unsigned int synchronized		 :  1;
+		unsigned int /* reserved */		 :  0; // 31 bits
+	} ctl;
 } sm_queue2;
 
-sm_queue2 *sm_queue2_create(/*size_t event_size, unsigned num_of_events*/);
+sm_queue2 *sm_queue2_create(bool synchronized);
 void sm_queue2_free(sm_queue2 *q);
-bool sm_queue2_is_empty(sm_queue2 *q); // too artificial to exist, deprecate?
-
-sm_event *sm_queue2_get(const sm_queue2 *q);
-sm_event *sm_queue2_get_high(const sm_queue2 *q);
-void sm_enqueue2(sm_event *e, sm_queue2 *q);
-void sm_enqueue2_high(sm_event *e, sm_queue2 *q);
-int sm_lock_enqueue2(sm_event *e, sm_queue2 *q);
-int sm_lock_enqueue2_high(sm_event *e, sm_queue2 *q);
-sm_event *sm_dequeue2(sm_queue2 *q);
-sm_event *sm_lock_dequeue2(sm_queue2 *q);
+int sm_queue2_append(sm_queue2 *q1, sm_queue *q2);
+size_t sm_queue2_size(sm_queue2 *q);
+sm_event *sm_queue2_top(const sm_queue2 * q);
+int sm_queue2_enqueue_high(sm_queue2 * q, sm_event * e);
+int sm_queue2_enqueue_low(sm_queue2 * q, sm_event * e);
+sm_event *sm_queue2_dequeue(sm_queue2 *q);
 
 #endif //SM_QUEUE2_H

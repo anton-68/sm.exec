@@ -2,7 +2,6 @@
    Logger functions
    anton.bondarenko@gmail.com */
 
-#include <errno.h>
 #include <unistd.h>	
 #include <string.h>	
 #include <stdlib.h>	
@@ -22,10 +21,15 @@ int sm_logger_init() {
 	return setlogmask(LOG_UPTO(LOG_DEBUG));
 #else
 	return setlogmask(LOG_UPTO(LOG_ERR));
+#endif	
 }
 
 int sm_logger_report(sm_log_entity entity, int severity, int  error, int line, 
 					 const char *file, const char  *function, const char  *description){	
+
+	char hostname[256] = "\0";
+	gethostname(hostname, 256);	
+#ifdef SM_RFC5424	
 	char* sm_log_entity_name[] = {
 		"SM_EXEC.CORE",
 		"SM_EXEC.FSM",
@@ -42,9 +46,8 @@ int sm_logger_report(sm_log_entity entity, int severity, int  error, int line,
     	"debug"
     	"none"
 	};
-	char hostname[256] = "\0";
-	gethostname(hostname, 256);				 
 	sm_timestamp timestamp = sm_get_timestamp();
+#endif	
 	char procid[64] = "\0";
 	get_tid_str(procid);
 #ifdef SM_DEBUG

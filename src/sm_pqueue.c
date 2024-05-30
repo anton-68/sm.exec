@@ -2,13 +2,8 @@
    Priority queues
    anton.bondarenko@gmail.com */
 
-#include <stdlib.h>			// malloc-free
-
+#include <stdlib.h>	
 #include "sm_pqueue.h"
-
-/* pqueue */
-
-// Private methods
 
 static bool less(sm_pqueue * pq, size_t e1, size_t e2) {
 	for (size_t stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++) {
@@ -65,7 +60,7 @@ static sm_event *dequeue(sm_pqueue *pq) {
     return e;
 }
 
-// Public methods
+// Public methods ///////////////////////////////////////////////////////////////
 
 sm_pqueue *sm_pqueue_create(size_t capacity, bool synchronized) {
     sm_pqueue *pq;
@@ -75,7 +70,7 @@ sm_pqueue *sm_pqueue_create(size_t capacity, bool synchronized) {
     }
 	pq->capacity = capacity;
 	pq->size = 0;
-	pq->synchronized = synchronized;
+	pq->ctl->synchronized = synchronized;
 	if((pq->heap = calloc(capacity, sizeof(sm_event *))) == NULL) {
         REPORT(ERROR, "calloc()");
         return NULL;

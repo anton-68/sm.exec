@@ -1,4 +1,4 @@
-/* TrafficLab
+/* SM.EXEC
    anton.bondarenko@gmail.com 
    Hash function by Bob Jenkins: 
    http://burtleburtle.net/bob/c/lookup3.c */
@@ -7,11 +7,12 @@
 #define SM_HASH_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 typedef struct sm_hash_key {
 	void * key;
-	uint32 * key_length;
-	uint32 * key_hash;
+	uint32_t * key_length;
+	uint32_t * key_hash;
 } sm_hash_key;
 
 #define SM_HASH_SIZE(n) ((uint32_t)1<<(n))
