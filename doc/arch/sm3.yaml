@@ -1,0 +1,23 @@
+%YAML 1.2
+# SM Architecture
+# sm3: Two working threads pipeline
+process: 
+  id: 0
+  thread:
+    - id: 0
+      default_queue:
+        id: 0
+      default_state:
+        id: 0
+        fsm: 
+          id: FSM_0
+	  linked	  
+    - id: 1
+      default_queue:
+        id: 1
+      default_state:
+        id: 1
+        fsm: 
+          id: FSM_1
+        
+ 

@@ -1,0 +1,116 @@
+/* SM.EXEC
+   State
+   anton.bondarenko@gmail.com */
+
+#include <string.h> 		//memcmp
+#include "sm_state.h"
+#include "sm_queue.h"
+#include "sm_memory.h"
+
+/* sm_state */
+
+//public methods
+
+bool sm_state_key_match(sm_state *s, const void *key, size_t key_length){
+	if(key_length != s->key_length)
+		return false;
+	else
+		return memcmp(s->key, key, key_length);
+}
+
+int sm_state_set_key(sm_state *s, const void *key, size_t key_length) {
+	memset(s->key, '\0', SM_STATE_HASH_KEYLEN);
+	s->key_length = MIN(key_length, SM_STATE_HASH_KEYLEN);
+	memcpy(s->key, key, MIN(key_length, s->key_length));
+	return EXIT_SUCCESS;
+}
+	
+sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
+    sm_state *s;
+    if((s = malloc(sizeof(sm_state))) == NULL) {
+        REPORT(ERROR, "malloc()");
+        return s;
+    }
+	if(SM_MEMORY_MANAGER)
+		s->data_size = sm_memory_size_align(payload_size, sizeof(sm_chunk));
+	else
+		s->data_size = payload_size;
+    if(s->data_size > 0) {
+        if ((s->data = malloc(s->data_size)) == NULL) {
+            REPORT(ERROR, "malloc()");
+            free(s);
+            return NULL;
+        }
+        else
+			memset(s->data, '\0', s->data_size);
+    }
+    else {
+        s->data = NULL;
+    }
+	s->fsm = f;	
+	if(*f != NULL)
+		s->id = (*f)->initial;
+	else
+		s->id = 0;
+	s->next = NULL;
+	if(SM_STATE_HASH_KEYLEN > 0) {
+        if ((s->key = malloc(SM_STATE_HASH_KEYLEN)) == NULL) {
+            REPORT(ERROR, "malloc()");
+            free(s);
+            return NULL;
+        }
+        else 
+			memset(s->key, '\0', SM_STATE_HASH_KEYLEN);
+    }
+    else {
+        s->key = NULL;
+	}
+    s->key_length = 0;
+    s->key_hash = 0;
+	s->exec = NULL;
+	s->home = NULL;
+	s->tx = NULL;
+	s->trace = NULL;
+	return s;    
+}
+
+void sm_state_purge(sm_state *s) {
+	if(s == NULL)
+		return;
+	memset(s->key, '\0', SM_STATE_HASH_KEYLEN);
+    s->key_length = 0;
+    s->key_hash = 0;
+	s->id = 0;
+	s->fsm = NULL;
+	s->next = NULL; // ??
+	memset(s->data, '\0', s->data_size);
+	while(s->trace != NULL) {
+		sm_event *ne = s->trace->next;
+		s->trace->disposable = true;
+		for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
+			ne->priority[stage] = 0;
+		sm_queue_enqueue(s->trace, s->trace->home);
+		s->trace = ne;
+	}
+}
+
+void sm_state_free(sm_state * s) {
+	if(s == NULL)
+		return;
+	free(s->data);
+	while(s->trace != NULL) {
+		sm_event *ne = s->trace->next;
+		s->trace->disposable = true;
+		sm_queue_enqueue(s->trace, s->trace->home);
+		s->trace = ne;
+	}
+	free(s);
+}
+
+// DEPRECATED: backward compatibility
+/*
+void sm_apply_event(sm_state *s, sm_event *e){
+	if(sm_fsm_apply_event(s, e) != EXIT_SUCCESS)
+		SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Error invoking sm_fsm_apply_event", "(?) Misconfigured FSM");
+}
+*/

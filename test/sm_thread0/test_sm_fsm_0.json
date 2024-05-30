@@ -1,0 +1,100 @@
+{
+	"nodes": [
+		{
+			"id": 0,
+			"type": "initial"
+		},
+		{
+			"id": 1,
+			"type": "state"
+		},
+		{
+			"id": 2,
+			"type": "state"
+		},
+		{
+			"id": 3,
+			"type": "final"
+		},
+		{
+			"id": 4,
+			"type": "joint"
+		},
+		{
+			"id": 5,
+			"type": "joint"
+		},
+		{
+			"id": 6,
+			"type": "joint"
+		}
+	],
+	"events": [
+		{
+			"id": 1,
+			"type": "regular"
+		},
+		{
+			"id": 2,
+			"type": "regular"
+		},
+		{
+			"id": 3,
+			"type": "regular"
+		},
+		{
+			"id": 0,
+			"type": "default"
+		}
+	],
+	"transitions": [
+		{
+			"state": 0,
+			"event": 1,
+			"new_state": 4,
+			"action": "WAIT"
+		},
+		{
+			"state": 0,
+			"event": 0,
+			"new_state": 0,
+			"action": "NOAP"
+		},
+		{
+			"state": 4,
+			"event": 0,
+			"new_state": 1,
+			"action": "QUE0"
+		},
+		{
+			"state": 1,
+			"event": 2,
+			"new_state": 5,
+			"action": "WAIT"
+		},
+		{
+			"state": 1,
+			"event": 0,
+			"new_state": 1,
+			"action": "NOAP"
+		},
+		{
+			"state": 5,
+			"event": 0,
+			"new_state": 2,
+			"action": "QUE0"
+		},
+		{
+			"state": 2,
+			"event": 3,
+			"new_state": 6,
+			"action": "WAIT"
+		},
+		{
+			"state": 6,
+			"event": 0,
+			"new_state": 3,
+			"action": "QUE0"
+		}
+	]
+}

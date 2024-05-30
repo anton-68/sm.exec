@@ -1,0 +1,82 @@
+# SM.EXEC
+# General Makefile
+# anton.bondarenko@gmail.com 
+
+# SM_DEBUG 		- Detailed log
+# SM_CONSOLE	- Print erors also to console
+# SM_RFC5424	- [Experimental] RFC 5424 Syslog format
+
+SM_NAME = sm
+SM_APP = sm_test_apps
+SM_ROBOT = sm_robot_demo_apps
+SM_TEST = test_sm_2
+
+CC = gcc
+CFLAGS = -fPIC -O2 -g -Wall -pthread
+DFLAGS = -fPIC -O0 -ggdb -Wall -Werror -pthread -DSM_DEBUG 
+LFLAGS = -pthread -shared
+LIBS = -lpthread -ljsmn -lm
+
+OAM = oam/
+LUA = lua/
+SRC = src/
+APP	= app/
+TEST = test/sm_thread0/
+BJHASH = lib/bj_hash/
+JSMN = lib/jsmn/
+LUAINC = /usr/local/src/lua-5.3.5/
+INCLUDE	= /usr/local/include
+
+OBJS = 	$(SRC)sm_app.o \
+		$(SRC)sm_array.o \
+		$(SRC)sm_directory.o \
+		$(SRC)sm_event.o \
+		$(SRC)sm_exec.o \
+		$(SRC)sm_fsm.o \
+		$(SRC)sm_memory.o \
+		$(SRC)sm_pqueue.o \
+		$(SRC)sm_queue.o \
+		$(SRC)sm_queue2.o \
+		$(SRC)sm_state.o \
+		$(SRC)sm_sys.o \
+		$(BJHASH)bj_hash.o \
+		$(JSMN)jsmn.o \
+		$(OAM)logger.o
+		
+LUA_OBJS = 	$(OBJS) $(LUA)sm.o
+APP_OBJS =	$(OBJS) $(APP)sm_test_apps.o
+ROBOT_OBJS = $(APP_OBJS) $(APP)$(SM_ROBOT).o
+TEST_OBJS = $(OBJS) $(TEST)test_sm_2.o
+
+lua : $(SM_NAME).so
+
+$(SM_NAME).so : $(LUA_OBJS)
+	$(CC) -shared $(LUA_OBJS) $(LIBS) -o $(LUA)$(SM_NAME).so
+
+app : $(SM_APP).so
+	
+$(SM_APP).so : $(APP_OBJS)
+	$(CC) $(LFLAGS) $(APP_OBJS) $(LIBS) -o $(APP)$(SM_APP).so
+	
+robot : $(SM_ROBOT).so
+	
+$(SM_ROBOT).so : $(ROBOT_OBJS)
+	$(CC) $(LFLAGS) $(ROBOT_OBJS) $(LIBS) -o $(APP)$(SM_ROBOT).so
+
+test : $(SM_TEST)
+	
+$(SM_TEST) : $(TEST_OBJS)
+	$(CC) -lpthread $(TEST_OBJS) $(LIBS) -ldl -o $(TEST)$(SM_TEST)
+
+%.o : %.c
+	$(CC) -c $< -o $@ $(DFLAGS) -I$(LUAINC) -I$(INCLUDE)
+	
+.PHONY : clean
+clean :
+	rm -f $(OBJS)
+	rm -f $(LUA)sm.o
+	rm -f $(APP)sm_test_apps.o
+	rm -f $(APP)$(SM_ROBOT).o
+	rm -f $(TEST)test_sm_2.o
+
+all	: lua app robot test clean

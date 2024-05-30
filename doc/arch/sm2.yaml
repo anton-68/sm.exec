@@ -1,0 +1,28 @@
+%YAML 1.2
+# SM Architecture
+# sm1: Minimal with compound FSM
+process: 
+  id: 0
+  process_thread:
+    id: 0
+    default_queue:
+      id: 0
+    default_state:
+      id: 0
+      fsms: 
+        - FSM_0
+        - FSM_1
+ 
+ process: 
+  id: 0
+  process_thread:
+    id: 0
+    default_queue:
+      id: 0
+    default_state:
+      id: 0
+      fsm:
+        type: combined
+        fsms:
+          - FSM_0
+          - FSM_1
