@@ -10,11 +10,7 @@
 #include "sm_event.h"
 #include "sm_fsm.h"
 #include "../oam/logger.h"
-
-                        
-
-
-
+                 
 // state
 typedef struct sm_state {
 	SM_STATE_ID id;
@@ -30,7 +26,7 @@ typedef struct sm_state {
 
 // Public methods
 bool sm_state_key_match(sm_state *c, const void *key, size_t key_length);
-int sm_state_set_key(sm_state *c, const void *key);
+int sm_state_set_key(sm_state *c, const void *key, size_t key_length);
 sm_state *sm_state_create(sm_fsm *f, size_t payload_size);
 void sm_state_purge(sm_state *c);
 void sm_state_free(sm_state *c);

@@ -2,12 +2,9 @@
    Queues   
    anton.bondarenko@gmail.com */
 
-#include "sm_queue.h"
 #include <stdlib.h>			// malloc-free
 
-
-
-
+#include "sm_queue.h"
 
 /* queue */
 
@@ -15,7 +12,6 @@
 
 static void enqueue(sm_event *e, sm_queue *q);
 static sm_event *dequeue(sm_queue *q);
-
 
 // Public methods
 
@@ -129,7 +125,7 @@ int sm_queue_enqueue(sm_event * e, sm_queue * q){
     return EXIT_SUCCESS;
 }
 
-sm_event * dequeue(sm_queue * q) {
+sm_event *dequeue(sm_queue * q) {
     sm_event * e = q->head->next;
     if(e != NULL) {
         q->head->next = q->head->next->next;
@@ -142,7 +138,7 @@ sm_event * dequeue(sm_queue * q) {
     return e;
 }
 
-sm_event * sm_queue_dequeue(sm_queue * q) {
+sm_event *sm_queue_dequeue(sm_queue * q) {
 	sm_event * e;
 	if(q->synchronized){
     	int __tl_result = pthread_mutex_lock(&(q->head_lock));

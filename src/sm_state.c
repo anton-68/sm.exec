@@ -8,40 +8,24 @@
 
 #include <stdio.h>
 
-
 /* sm_state */
 
 //public methods
 
-bool sm_state_key_match(sm_state *c, const void *key, size_t key_length){
-	if(key_length != c->key_length)
+bool sm_state_key_match(sm_state *s, const void *key, size_t key_length){
+	if(key_length != s->key_length)
 		return false;
 	else
-		return memcmp(c->key, key, key_length);
+		return memcmp(s->key, key, key_length);
 }
 
-int sm_state_set_key(sm_state *s, const void *key) {
-	size_t key_length = strlen((char *)key);
-	if(s->key == NULL) {
-		if((s->key = malloc(key_length)) == NULL) {
-        	REPORT(ERROR, "malloc()");
-        	return EXIT_FAILURE;
-    	}
-	}	
-	else {
-		if(s->key_length != key_length) {
-			free(s->key);
-			if((s->key = malloc(key_length)) == NULL) {
-        		REPORT(ERROR, "malloc()");
-        		return EXIT_FAILURE;
-			}
-		}
-	}
-	memcpy(s->key, key, key_length + 1);
-	s->key_length = key_length;
+int sm_state_set_key(sm_state *s, const void *key, size_t key_length) {
+	memset(s->key, '\0', SM_STATE_HASH_KEYLEN);
+	s->key_length = MIN(key_length, SM_STATE_HASH_KEYLEN);
+	memcpy(s->key, key, MIN(key_length, s->key_length));
 	return EXIT_SUCCESS;
 }
-		   
+	
 sm_state *sm_state_create(sm_fsm *f, size_t payload_size) {
     sm_state *s;
     if((s = malloc(sizeof(sm_state))) == NULL) {
@@ -49,17 +33,14 @@ sm_state *sm_state_create(sm_fsm *f, size_t payload_size) {
         return s;
     }
 	s->data_size = payload_size;
-	char *str;
     if(s->data_size > 0) {
         if ((s->data = malloc(s->data_size)) == NULL) {
             REPORT(ERROR, "malloc()");
             free(s);
             return NULL;
         }
-        else {
-			str = (char *)(s->data);
-			str[0] = '\0';
-		}
+        else
+			memset(s->data, '\0', s->data_size);
     }
     else {
         s->data = NULL;
@@ -71,43 +52,54 @@ sm_state *sm_state_create(sm_fsm *f, size_t payload_size) {
 	else
 		s->id = 0;
 	s->next = NULL;
-	s->key = NULL;
-	//str = (char *)(s->key);
-	//str[0] = '\0';	
+	if(SM_STATE_HASH_KEYLEN > 0) {
+        if ((s->key = malloc(SM_STATE_HASH_KEYLEN)) == NULL) {
+            REPORT(ERROR, "malloc()");
+            free(s);
+            return NULL;
+        }
+        else 
+			memset(s->key, '\0', SM_STATE_HASH_KEYLEN);
+    }
+    else
+        s->key = NULL;
     s->key_length = 0;
     s->key_hash = 0;
 	s->trace = NULL;
 	return s;    
 }
 
-void sm_state_purge(sm_state *c) {
-	if(c == NULL)
+void sm_state_purge(sm_state *s) {
+	if(s == NULL)
 		return;
-	c->key = NULL;
-    c->key_length = 0;
-    c->key_hash = 0;
-	c->id = 0;
-	c->fsm = NULL;
-	c->next = NULL; // ??
-	while(c->trace != NULL) {
-		sm_event *ne = c->trace->next;
-		c->trace->to_keep = false;
-		sm_queue_enqueue(c->trace, c->trace->home);
-		c->trace = ne;
+	memset(s->key, '\0', SM_STATE_HASH_KEYLEN);
+    s->key_length = 0;
+    s->key_hash = 0;
+	s->id = 0;
+	s->fsm = NULL;
+	s->next = NULL; // ??
+	memset(s->data, '\0', s->data_size);
+	while(s->trace != NULL) {
+		sm_event *ne = s->trace->next;
+		s->trace->to_keep = false;
+		for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
+			ne->priority[stage] = 0;
+		sm_queue_enqueue(s->trace, s->trace->home);
+		s->trace = ne;
 	}
 }
 
-void sm_state_free(sm_state * c) {
-	if(c == NULL)
+void sm_state_free(sm_state * s) {
+	if(s == NULL)
 		return;
-	free(c->data);
-	while(c->trace != NULL) {
-		sm_event *ne = c->trace->next;
-		c->trace->to_keep = false;
-		sm_queue_enqueue(c->trace, c->trace->home);
-		c->trace = ne;
+	free(s->data);
+	while(s->trace != NULL) {
+		sm_event *ne = s->trace->next;
+		s->trace->to_keep = false;
+		sm_queue_enqueue(s->trace, s->trace->home);
+		s->trace = ne;
 	}
-	free(c);
+	free(s);
 }
 
 void sm_apply_event(sm_state *s, sm_event *e){

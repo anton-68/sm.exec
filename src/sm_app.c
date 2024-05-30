@@ -7,12 +7,9 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdio.h>
+
 #include "../oam/logger.h"
 #include "sm_app.h"
-
-
-
-
 
 // Private methods
 
@@ -23,7 +20,6 @@ sm_app_table *find_record(sm_app_table *t, const char *name) {
 	}
 	return r;
 }
-
 
 // Public methods
 

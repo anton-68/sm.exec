@@ -4,28 +4,18 @@
 
 #include "sm_array.h"
 
-
-
-
-
-
 /* State Array */
 
 // Private methods
 
-static sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length);
-static sm_state *sm_array_get_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length);
-static sm_state *sm_array_pop(sm_array *d);
-static int sm_array_push(sm_array *d, sm_state *c);
-static void sm_array_table_free(sm_array *d);
-static void sm_array_stack_free(sm_array *d); 
-static int sm_array_insert_into_hash(sm_array *d, sm_state *c); 
-static int sm_array_remove_from_hash(sm_array *d, sm_state *c); 
-
-
-
-
-
+static sm_state *find_by_hash(sm_array *d, HASH_TYPE h, const void* key, size_t key_length);
+static sm_state *get_by_hash(sm_array *d, HASH_TYPE h, const void * key, size_t key_length);
+static sm_state *pop(sm_array *d);
+static int push(sm_array *d, sm_state *c);
+static void table_free(sm_array *d);
+static void stack_free(sm_array *d); 
+static int insert_into_hash(sm_array *d, sm_state *c); 
+static int remove_from_hash(sm_array *d, sm_state *c); 
 
 // Public methods
 
@@ -53,10 +43,10 @@ sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm *fsm, boo
 	for(i = 0; i < d->stack_size; i++) {
         if((c = sm_state_create(fsm, state_size)) == NULL) {
             REPORT(ERROR, "state_create()");
-            sm_array_stack_free(d);
+            stack_free(d);
             return NULL;
         }
-        sm_array_push(d, c);
+        push(d, c);
     }
 	// Initialize pointer for stack of state IDs   
 	d->next_free = 0;
@@ -109,36 +99,34 @@ void sm_array_free(sm_array *d){
     	pthread_mutex_destroy(&d->table_lock);
 	if(d->synchronized)
     	pthread_mutex_destroy(&d->stack_lock); 
-	sm_array_table_free(d);	
+	table_free(d);	
     free(d->table);
-	sm_array_stack_free(d);
+	stack_free(d);
 	free(d->stack);	
     free(d);
 }
 
-//size_t sm_array_stack_size(sm_array *q) {}
-
-sm_state *sm_array_find_state(sm_array *d, void *const key, size_t key_length){
+sm_state *sm_array_find_state(sm_array *d, const void *key, size_t key_length){
     HASH_TYPE h = d->hash_function(key, key_length, d->last_hash_value) & d->hash_mask;
 	d->last_hash_value = h;
-	return sm_array_find_by_hash(d, h, key, key_length);
+	return find_by_hash(d, h, key, key_length);
 }
 
-sm_state *sm_array_get_state(sm_array *d, void *const key, size_t key_length){
+sm_state *sm_array_get_state(sm_array *d, const void *key, size_t key_length){
 	HASH_TYPE h = d->hash_function(key, key_length, d->last_hash_value) & d->hash_mask;
 	d->last_hash_value = h;
-	return sm_array_get_by_hash(d, h, key, key_length);	
+	return get_by_hash(d, h, key, key_length);	
 }
 		
 void sm_array_release_state(sm_array *d, sm_state *c){
-	sm_array_remove_from_hash(d, c);
+	remove_from_hash(d, c);
 	sm_state_purge(c);
-	sm_array_push(d, c);
+	push(d, c);
 }	
 		
 // Private methods
 		
-static sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length){
+static sm_state *find_by_hash(sm_array *d, HASH_TYPE h, const void *key, size_t key_length){
 	if (d->synchronized)
 		if(pthread_mutex_lock(&(d->table_lock)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_mutex_lock()");
@@ -155,22 +143,21 @@ static sm_state *sm_array_find_by_hash(sm_array *d, HASH_TYPE h, void *const key
 	return c;
 }
 		
-static sm_state *sm_array_get_by_hash(sm_array *d, HASH_TYPE h, void *const key, size_t key_length){	 
-	sm_state *c = sm_array_find_by_hash(d, h, key, key_length);
-	if (c == NULL) {
-		sm_state *c = sm_array_pop(d);
-		c->key_hash = h;
-		c->key = key;
-		c->key_length = key_length;
+static sm_state *get_by_hash(sm_array *d, HASH_TYPE h, const void *key, size_t key_length){	 
+	sm_state *s = find_by_hash(d, h, key, key_length);
+	if (s == NULL) {
+		sm_state *s = pop(d);
+		s->key_hash = h;
+		sm_state_set_key(s, key, key_length);
 	}
-	if(sm_array_insert_into_hash(d, c) != EXIT_SUCCESS){
-		sm_array_push(d, c); 
+	if(insert_into_hash(d, s) != EXIT_SUCCESS){
+		push(d, s); 
 		return NULL;
 	}
-	return c;
+	return s;
 }		
 		
-static sm_state *sm_array_pop(sm_array *d){
+static sm_state *pop(sm_array *d){
 	if (d->synchronized) {
 		if(pthread_mutex_lock(&(d->stack_lock)) != EXIT_SUCCESS){
         	REPORT(ERROR, "pthread_mutex_lock()");
@@ -192,7 +179,7 @@ static sm_state *sm_array_pop(sm_array *d){
 	return c; 
 }	
 
-static int sm_array_push(sm_array *d, sm_state *c){
+static int push(sm_array *d, sm_state *c){
 	if(d->next_free == 0)	
 		return EXIT_FAILURE;
 	if(d->synchronized)
@@ -215,7 +202,7 @@ static int sm_array_push(sm_array *d, sm_state *c){
     return EXIT_SUCCESS;	
 }
 
-static void sm_array_table_free(sm_array *d){
+static void table_free(sm_array *d){
 	int i;
 	sm_state *c;
 	for(i = 0; i < d->hash_size; i++){
@@ -227,14 +214,14 @@ static void sm_array_table_free(sm_array *d){
 	}
 }			
 
-static void sm_array_stack_free(sm_array *d){
+static void stack_free(sm_array *d){
 	while(d->next_free > 0) {
 		sm_state_free(d->stack[d->next_free]);
 		d->next_free--;
 	}	
 }	
 		
-static int sm_array_insert_into_hash(sm_array *d, sm_state *c){
+static int insert_into_hash(sm_array *d, sm_state *c){
 	if(c == NULL) 
     	return EXIT_FAILURE;
 	if (d->synchronized)
@@ -252,7 +239,7 @@ static int sm_array_insert_into_hash(sm_array *d, sm_state *c){
 	return EXIT_SUCCESS;
 }		
 
-static int sm_array_remove_from_hash(sm_array *d, sm_state *c){	
+static int remove_from_hash(sm_array *d, sm_state *c){	
 	if (d->synchronized)
 		if(pthread_mutex_lock(&(d->table_lock)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_mutex_lock()");

@@ -11,11 +11,6 @@
 #include "../lib/bj_hash/bj_hash.h"
 #include "../oam/logger.h"
 
-
-
-
-
-
 /* State Array */
 
 typedef uint32_t HASH_TYPE;
@@ -40,13 +35,10 @@ typedef struct sm_array {
 // Public methods
 sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm *fsm, bool synchronized);
 void sm_array_free(sm_array *a);
-size_t sm_array_stack_size(sm_array *a);
 
-sm_state *sm_array_find_state(sm_array *, void *const, size_t);
-sm_state *sm_array_get_state(sm_array *, void *const, size_t);
+sm_state *sm_array_find_state(sm_array *, const void *, size_t);
+sm_state *sm_array_get_state(sm_array *, const void *, size_t);
 void sm_array_release_state(sm_array *, sm_state *);  
-
-
 
 #endif //SM_ARRAY_H
 

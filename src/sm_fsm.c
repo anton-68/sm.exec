@@ -5,12 +5,12 @@
 #include <stdlib.h>			// malloc-free
 #include <string.h>
 #include <stdio.h>			// sprintf
+
 #include "sm_sys.h"
 #include "sm_fsm.h"
 #include "sm_app.h"
 #include "jsmn.h"
 #include "../oam/logger.h"
-
 
 /* sm_fsm */
 
@@ -46,7 +46,6 @@ static transition* parsed_transitions = NULL;
 
 static bool *oflags = NULL;
 static bool **tflags = NULL;
-
 
 // Private methods
 
@@ -105,12 +104,6 @@ void sm_fsm_free(sm_fsm *f) {
 	free(f);
 	}
 }
-
-/*
-SM_STATE_ID sm_get_initial_state(sm_fsm *f) {
-	return f->initial;
-}
-*/
 
 sm_fsm *sm_fsm_create(const char *fsm_json, sm_app_table *at, sm_fsm_type t){
 	sm_fsm *fsm;

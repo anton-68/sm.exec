@@ -9,8 +9,6 @@
 #include "sm_sys.h"
 #include "sm_app.h"
 
-
-
 /* sm_fsm */
 
 typedef enum sm_fsm_node_type {
@@ -46,7 +44,6 @@ typedef struct sm_fsm {
 	SM_EVENT_ID omega;
 	sm_fsm_type type;
 } sm_fsm;
-
 
 // Public methods
 

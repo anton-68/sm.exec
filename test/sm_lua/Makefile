@@ -19,6 +19,7 @@ LUAINC = /usr/local/src/lua-5.3.4/
 OBJS = 	$(LUA)sm.o \
 		$(SRC)sm_event.o \
 		$(SRC)sm_queue.o \
+		$(SRC)sm_pqueue.o \
 		$(SRC)sm_queue2.o \
 		$(SRC)sm_app.o \
 		$(SRC)sm_sys.o \

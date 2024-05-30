@@ -8,10 +8,6 @@
 #include "sm_event.h"
 #include "../oam/logger.h"
 
-
-
-
-
 /* sm_queue2 */
 
 typedef struct sm_queue2 {

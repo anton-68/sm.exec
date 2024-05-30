@@ -2,12 +2,9 @@
    2-priority queue
    anton.bondarenko@gmail.com */
 
-#include "sm_queue2.h"
 #include <stdlib.h>			// malloc-free
 
-
-
-
+#include "sm_queue2.h"
 
 /* sm_queue2 */
 

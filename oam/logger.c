@@ -9,13 +9,10 @@
 #include "../src/sm_sys.h"
 #include "logger.h"
 
+/* report */
 
-
-
-
-//////// report
-
-int report(severity_t severity, const char *message, const char *file, int line, const char *function) {
+int report(severity_t severity, const char *message, const char *file, 
+		   int line, const char *function) {
     if(severity == ERROR) 
         fprintf (stderr, "[ SEVERITY ] ERROR\n"); 
     else

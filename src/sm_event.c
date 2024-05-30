@@ -3,13 +3,10 @@
    (c) anton.bondarenko@gmail.com */
 
 #include <stdlib.h>			// malloc(), free(), NULL, size_t, 
+
 #include "../oam/logger.h"
 #include "sm_event.h"
 #include "sm_queue.h"
-
-
-
-
 
 /* sm_event */
 
@@ -35,6 +32,8 @@ sm_event *sm_event_create(size_t payload_size) {
     e->next = NULL;
 	e->id = 0;
 	e->to_keep = false;
+	for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
+		e->priority[stage] = 0;
 	e->home = NULL;
     return e;    
 }

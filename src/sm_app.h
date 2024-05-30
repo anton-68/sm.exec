@@ -8,8 +8,6 @@
 #include "sm_sys.h"
 #include "sm_event.h"
 
-
-
 /* Application prototype */ 
 typedef int (*sm_app) (sm_event *);
 

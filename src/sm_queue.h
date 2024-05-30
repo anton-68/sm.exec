@@ -8,10 +8,6 @@
 #include "sm_event.h"
 #include "../oam/logger.h"
 
-
-
-
-
 /* sm_queue */
 
 typedef struct sm_queue {
@@ -24,7 +20,6 @@ typedef struct sm_queue {
 	size_t size;
 } sm_queue;
 
-
 // Public methods
 
 sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchronized);
@@ -34,6 +29,5 @@ size_t sm_queue_size(sm_queue *q);
 sm_event * sm_queue_top(const sm_queue * q);
 int sm_queue_enqueue(sm_event *e, sm_queue *q);
 sm_event *sm_queue_dequeue(sm_queue *q);
-
 
 #endif //SM_QUEUE_H

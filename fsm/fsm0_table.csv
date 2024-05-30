@@ -1,5 +1,0 @@
-state,event,action,new_state
-1,1,IPPP,2
-2,2,UDPP,3
-2,3,TCPP,3
-3,3,BASE,4

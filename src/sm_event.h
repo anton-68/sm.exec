@@ -8,8 +8,6 @@
 #include <stdint.h>     // uint32_t
 #include "sm_sys.h"
 
-
-
 struct sm_queue;
 
 // sm_event
@@ -19,6 +17,7 @@ typedef struct sm_event {
 	size_t data_size;
     void *data;
 	bool to_keep;
+	long long priority[SM_NUM_OF_PRIORITY_STAGES];
 	struct sm_queue *home;
 } sm_event;
 

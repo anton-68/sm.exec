@@ -7,10 +7,6 @@
 
 #include <pthread.h>
 
-
-
-
-
 /* event & state Ids */
 typedef size_t SM_EVENT_ID;
 typedef size_t SM_STATE_ID;
@@ -31,24 +27,28 @@ typedef size_t SM_STATE_ID;
 //#define SM_FSM_NUM_OF_TOKENS 4096
 #define SM_FSM_JSON_STRLEN 256
 
-/* multithreading */
+/* Multithreading */
 #define TL_MUTEX_DEBUG
 
 /* Mutex type */ 
 #define TL_MUTEX_TYPE PTHREAD_MUTEX_DEFAULT
                    /* PTHREAD_MUTEX_ERRORCHECK */
 
+/* Number of priority stages*/
+#define SM_NUM_OF_PRIORITY_STAGES 2
+
 /* DUMMY_PAYLOAD */
 #define TL_DUMMY_PAYLOAD 0x012357BD
 #define TL_DUMMY_PAYLOAD_SIZE sizeof TL_DUMMY_PAYLOAD
 
-/* Thread ID */
-unsigned long get_tid();
-void get_tid_str(char *);
+/* State Array hash key length */
+#define SM_STATE_HASH_KEYLEN 256
 
 /* FSM pretty print buffer */
 #define OUTPUT_BUF_LEN (1024 * 32)
 
-#define SM_RTLD_FLAG RTLD_NOW | RTLD_GLOBAL
+/* Thread ID */
+unsigned long get_tid();
+void get_tid_str(char *);
 
 #endif //SM_SYS_H

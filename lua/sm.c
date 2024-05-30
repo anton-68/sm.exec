@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
+/* dlopen() flag */
+#define SM_LUA_RTLD_FLAG RTLD_NOW | RTLD_GLOBAL
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -16,6 +18,7 @@
 #include "../src/sm_sys.h"
 #include "../src/sm_event.h"
 #include "../src/sm_queue.h"
+#include "../src/sm_pqueue.h"
 #include "../src/sm_queue2.h"
 #include "../src/sm_app.h"
 #include "../src/sm_fsm.h"
@@ -37,11 +40,15 @@ typedef struct SMEvent {
 							   - sizeof(SMEvent *))))
 #define this(E1) (*((SMEvent **)((E1)->data + (E1)->data_size - sizeof(SMEvent *))))
 
+#define	sm_push_event(L, E) lua_pushfstring((L), "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)\n", \
+					(E)->native->id, (E), (E)->native, ((E)->native == NULL) ? NULL : (E)->native->next, \
+					(E)->linked, (E)->native->priority[0], (E)->native->priority[1]);
+
 static int push_event_handler(lua_State *L, sm_event *e) {
 	if(e == NULL)
 		return EXIT_FAILURE;
 	if(this(e) != NULL) { 		// handler was already created
-		lua_pushlightuserdata(L, e->next);				// lud
+		lua_pushlightuserdata(L, e);					// lud
 		luaL_getmetatable(L, "sm.event");				// lud mt
 		lua_getfield(L, -1, "inventory");				// lud mt inventory
 		lua_rotate(L, -3, -1);							// mt inventory lud
@@ -71,8 +78,10 @@ static int new_event(lua_State *L) {
 	size_t plsize = (size_t)luaL_checkinteger(L, 2);
 	luaL_argcheck(L, plsize >= 0, 1, "wrong event payload size");
 	sm_event *ne = sm_event_create(plsize + sizeof(SMEvent *));
-	if(ne == NULL)
-		return luaL_error(L, "@malloc(%I)", (lua_Integer)plsize);
+	if(ne == NULL){
+		//return luaL_error(L, "@new_event(%I)", (lua_Integer)plsize);
+		return luaL_error(L, "@new_event()");
+	}
 	ne->id = id;
 	memset(ne->data, '\0', plsize);	
 	this(ne) = NULL;
@@ -100,6 +109,14 @@ static int set_event_id(lua_State *L) {
 	return 0;
 }
 
+// stk: e, priority[0], priority[1]
+static int set_event_priority(lua_State *L) {	
+	SMEvent *e = check_sm_event(L, 1);
+	e->native->priority[0] = (size_t)luaL_checkinteger(L, 2);
+	e->native->priority[1] = (size_t)luaL_checkinteger(L, 3);
+	return 0;
+}
+
 // stk: e
 static int get_event(lua_State *L) {	
 	SMEvent *e = check_sm_event(L, 1);
@@ -116,6 +133,14 @@ static int get_event_id(lua_State *L) {
 }
 
 // stk: e
+static int get_event_priority(lua_State *L) {	
+	SMEvent *e = check_sm_event(L, 1);
+	lua_pushinteger(L, e->native->priority[0]);
+	lua_pushinteger(L, e->native->priority[1]);
+	return 2;
+}
+
+// stk: e
 static int event_size(lua_State *L) {	
 	SMEvent *e = check_sm_event(L,1 );
 	lua_pushinteger(L, (lua_Integer)e->native->data_size - sizeof(SMEvent *));
@@ -125,7 +150,7 @@ static int event_size(lua_State *L) {
 // stk: e1, e2
 static int link_event(lua_State *L) {	
 	SMEvent *e1 = check_sm_event(L, 1);
-	SMEvent *e2 = (SMEvent *)luaL_checkudata(L, 2, "sm.event");
+	SMEvent *e2 = check_sm_event(L, 2);
 	e1->native->next = e2->native;
 	next(e1)->linked++;
 	lua_pop(L, 1);
@@ -146,8 +171,10 @@ static int unlink_event(lua_State *L) {
 // stk: e
 static int event_tostring(lua_State *L) {	
 	SMEvent *e = check_sm_event(L, 1);
-	lua_pushfstring(L, "sm_event id %I @ %p : %p -> %p, linked = %I", e->native->id, e,  
-					e->native, (e->native == NULL) ? NULL : e->native->next, e->linked);
+	sm_push_event(L, e);
+/*	lua_pushfstring(L, "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)", 
+					e->native->id, e, e->native, (e->native == NULL) ? NULL : e->native->next,
+					e->linked, e->native->priority[0], e->native->priority[1]);*/
 	return 1;
 }
 
@@ -188,6 +215,8 @@ static const struct luaL_Reg smevent_m [] = {
 	{"get", get_event},
 	{"setid", set_event_id},
 	{"getid", get_event_id},
+	{"setpriority", set_event_priority},
+	{"getpriority", get_event_priority},
 	{"__concat", link_event},
 	{"__unm", unlink_event},
 	{"next", next_event},
@@ -220,8 +249,10 @@ static int new_queue(lua_State *L) {
 		return luaL_error(L, "wrong synchronized flag value");
 	SMQueue *q = (SMQueue *)lua_newuserdata(L, sizeof(SMQueue));
 	q->native = sm_queue_create(plsize + sizeof(SMEvent *), qsize, sync);
-	if(q->native == NULL)
-		return luaL_error(L, "@malloc(%I)", (lua_Integer)plsize);
+	if(q->native == NULL){
+		//return luaL_error(L, "@new_queue(%I)", (lua_Integer)plsize);
+		return luaL_error(L, "@new_queue()");
+	}
 	luaL_getmetatable(L, "sm.queue");
 	lua_setmetatable(L, -2);
 	sm_event *e = sm_queue_top(q->native);
@@ -253,9 +284,13 @@ static int queue_tostring(lua_State *L) {
 	SMEvent *lua_e;
 	while(e != NULL) {
 		lua_e = this(e);
-		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
+		sm_push_event(L, lua_e);
+/*		lua_pushfstring(L, "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)", 
+					e->native->id, e, e->native, (e->native == NULL) ? NULL : e->native->next,
+					e->linked, e->native->priority[0], e->native->priority[1]);	*/
+/*		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
 						lua_e, e, e->next, 
-						(lua_e == NULL) ? -1 : lua_e->linked);
+						(lua_e == NULL) ? -1 : lua_e->linked);*/
 		luaL_addvalue(&b);
 		e = e->next;
 	}
@@ -335,6 +370,140 @@ static const struct luaL_Reg smqueue_m [] = {
 	{NULL, NULL}
 };
 
+/************************
+ ******* SM.PQUEUE *******
+ ************************/
+
+typedef struct SMPQueue {
+	sm_pqueue *native;
+} SMPQueue;
+
+#define check_sm_pqueue(L) (SMPQueue *)luaL_checkudata(L, 1, "sm.pqueue")
+
+// stk: qsize, plsize, sync
+static int new_pqueue(lua_State *L) {
+	size_t cap = (size_t)luaL_checkinteger(L, 1);
+	luaL_argcheck(L, cap >= 0, 1, "wrong capacity value");
+	bool sync;
+	if(lua_isboolean(L, 2))
+		 sync = (bool)lua_toboolean(L, 3);
+	else
+		return luaL_error(L, "wrong synchronized flag value");
+	SMPQueue *pq = (SMPQueue *)lua_newuserdata(L, sizeof(SMPQueue));
+	pq->native = sm_pqueue_create(cap, sync);
+	if(pq->native == NULL)
+		return luaL_error(L, "@new_pqueue()");
+	luaL_getmetatable(L, "sm.pqueue");
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
+// stk: q
+static int pqueue_size(lua_State *L) {	
+	SMPQueue *pq = check_sm_pqueue(L);
+	lua_pushinteger(L, (lua_Integer)pq->native->size);
+	return 1;
+}	
+
+
+// stk: q
+static int pqueue_tostring(lua_State *L) {
+	SMPQueue *pq = check_sm_pqueue(L);
+	luaL_Buffer b;
+	luaL_buffinit(L, &b);
+	lua_pushfstring(L, "sm_pqueue @ %p, size = %I, synchronized = %s\nEvents:\n", 
+					pq, (lua_Integer)pq->native->size, 
+					pq->native->synchronized ? "true" : "false");
+	luaL_addvalue(&b);
+	sm_event *e;
+	SMEvent *lua_e;
+	for(size_t i = 0; i < pq->native->size; i++) {
+		e = pq->native->heap[i];
+		lua_e = this(e);
+		sm_push_event(L, lua_e);
+/*		lua_pushfstring(L, "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)", 
+					e->native->id, e, e->native, (e->native == NULL) ? NULL : e->native->next,
+					e->linked, e->native->priority[0], e->native->priority[1]);*/		
+/*		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
+						lua_e, e, e->next, 
+						(lua_e == NULL) ? -1 : lua_e->linked);*/
+		luaL_addvalue(&b);
+	}	
+	luaL_pushresult(&b);
+	return 1;
+}
+
+// stk: q
+static int collect_pqueue(lua_State *L) {
+	SMPQueue *pq = check_sm_pqueue(L);
+	sm_event *e;
+	for(size_t i = 0; i < pq->native->size; i++) {
+		e = sm_pqueue_dequeue(pq->native);
+		if(this(e) == NULL)
+			sm_event_free(e);
+		else
+			this(e)->linked--;
+	}
+	sm_pqueue_free(pq->native);
+	return 0;
+}
+
+// stk: q
+static int pqueuetop(lua_State *L) {
+	SMPQueue *pq = check_sm_pqueue(L);
+	sm_event *e = sm_pqueue_top(pq->native);	
+	if(e == NULL) {
+		lua_pushnil(L);
+		return 1;
+	}
+	if(push_event_handler(L, e) == EXIT_FAILURE) {
+		lua_pushnil(L);
+		return 1;
+	}
+	this(e)->linked = 1;
+	return 1;
+}
+
+// stk: q
+static int pdequeue(lua_State *L) {
+	SMPQueue *pq = check_sm_pqueue(L);
+	sm_event *e = sm_pqueue_dequeue(pq->native);	
+	if(e == NULL) {
+		lua_pushnil(L);
+		return 1;
+	}
+	if(push_event_handler(L, e) == EXIT_FAILURE) {
+		lua_pushnil(L);
+		return 1;
+	}
+	this(e)->linked = 1;
+	return 1;
+}
+
+// stk: q, e
+static int penqueue(lua_State *L) {
+	SMPQueue *pq = check_sm_pqueue(L);
+	if(pq == NULL) {
+		return 0;
+	}
+	SMEvent *e = check_sm_event(L, 2);	
+	if(e == NULL) {
+		return 0;
+	}
+	sm_pqueue_enqueue(e->native, pq->native);
+	e->linked++;
+	return 0;
+}
+
+static const struct luaL_Reg smpqueue_m [] = {
+	{"top", pqueuetop},
+	{"enqueue", penqueue},
+	{"dequeue", pdequeue},
+	{"__len", pqueue_size},
+	{"__tostring", pqueue_tostring},
+	{"__gc", collect_pqueue},
+	{NULL, NULL}
+};
 
 /************************
  ******* SM.QUEUE2 *******
@@ -356,7 +525,7 @@ static int new_queue2(lua_State *L) {
 	q->native = sm_queue2_create(/*plsize + sizeof(SMEvent *), qsize*/);
 	if(q->native == NULL)
 		//return luaL_error(L, "@malloc(%I)", (lua_Integer)plsize);
-		return luaL_error(L, "@malloc()");
+		return luaL_error(L, "@new_queue2()");
 	luaL_getmetatable(L, "sm.queue2");
 	lua_setmetatable(L, -2);
 /*	sm_event *e = sm_queue2_get(q->native);
@@ -388,9 +557,13 @@ static int queue2_tostring(lua_State *L) {
 	sm_event *e = sm_queue2_get(q->native);
 	while(e != NULL) {
 		lua_e = this(e);
-		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
+		sm_push_event(L, lua_e);
+/*		lua_pushfstring(L, "sm_event id %I @ %p : %p -> %p, linked = %I, priority = (%I, %I)", 
+					e->native->id, e, e->native, (e->native == NULL) ? NULL : e->native->next,
+					e->linked, e->native->priority[0], e->native->priority[1]);	*/
+/*		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
 						lua_e, e, e->next, 
-						(lua_e == NULL) ? -1 : lua_e->linked);
+						(lua_e == NULL) ? -1 : lua_e->linked);*/
 		luaL_addvalue(&b);
 		e = e->next;
 	}
@@ -399,9 +572,10 @@ static int queue2_tostring(lua_State *L) {
 	e = sm_queue2_get_high(q->native);
 	while(e != NULL) {
 		lua_e = this(e);
-		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
+		sm_push_event(L, lua_e);
+/*		lua_pushfstring(L, "sm_event @ %p : %p -> %p, linked = %I\n", 
 						lua_e, e, e->next, 
-						(lua_e == NULL) ? -1 : lua_e->linked);
+						(lua_e == NULL) ? -1 : lua_e->linked);*/
 		luaL_addvalue(&b);
 		e = e->next;
 	}
@@ -572,6 +746,7 @@ typedef struct SMApp {
 } SMApp;
 
 #define check_sm_app(L, POS) (SMApp *)luaL_checkudata((L), (POS), "sm.app")
+#define test_sm_app(L, POS) (SMApp *)luaL_testudata((L), (POS), "sm.app")
 
 static int push_app_handler(lua_State *L, sm_app a) {
 	if(a == NULL)
@@ -580,7 +755,7 @@ static int push_app_handler(lua_State *L, sm_app a) {
 	lua_getfield(L, -1, "inventory");					// mt inventory
 	lua_pushlightuserdata(L, a);						// mt inventory lud
 	lua_gettable(L, -2);								// mt inventory ud?
-	if(check_sm_app(L, 1) == NULL) { // create handler if not found
+	if(test_sm_app(L, 1) == NULL) { // create handler if not found
 		lua_pop(L, 1);									// mt inventory
 		SMApp *lua_a = (SMApp *)lua_newuserdata(L, sizeof(SMApp)); // mt inventory ud
 		lua_rotate(L, -3, -1);							// inventory ud mt
@@ -601,7 +776,7 @@ static int lookup_app(lua_State *L) { // not too much reentrant for the same app
 		return luaL_error(L, "@lookup_app: lua_touserdata() returns NULL");
 	const char *name = luaL_checkstring(L, 2);
 	sm_app a = dlsym(handle, name);
-	if(!push_app_handler(L, a)) // love this function name))
+	if(push_app_handler(L, a)) // love this function name))
 		lua_pushnil(L);
 	return 1;
 }
@@ -634,7 +809,7 @@ static const struct luaL_Reg smapp_m [] = {
 // stk: file
 static int load_applib(lua_State *L) {
 	const char *fn = luaL_checkstring(L, 1);
-	lua_pushlightuserdata(L, dlopen(fn, SM_RTLD_FLAG));
+	lua_pushlightuserdata(L, dlopen(fn, SM_LUA_RTLD_FLAG));
 	return 1;
 }
 
@@ -774,7 +949,7 @@ static int new_fsm(lua_State *L) {
 	}
 	f->native = sm_fsm_create(fsmj, at->native, t);
 	if(f->native == NULL)
-		return luaL_error(L, "@malloc()");
+		return luaL_error(L, "@sm_fsm_create()");
 	luaL_getmetatable(L, "sm.fsm");
 	lua_setmetatable(L, -2);
 	return 1;
@@ -840,7 +1015,7 @@ static int new_state(lua_State *L) {
 	size_t plsize = (size_t)lua_tointeger(L, 2);
 	sm_state *s = sm_state_create(fsm->native, plsize);
 	if(s == NULL)
-		return luaL_error(L, "@malloc()");
+		return luaL_error(L, "@new_state()");
 	if(!push_state_handler(L, s)) {
 		lua_pushnil(L);
 		return 1;
@@ -881,14 +1056,35 @@ static int state_trace_get(lua_State *L) {
 	return 1;
 }
 
-// stk: state keystring keylen
+// stk: state data
+static int state_set(lua_State *L) {	
+	SMState *s = check_sm_state(L, 1);
+	if(s == NULL || s->native == NULL) // empty or childless
+		return luaL_error(L, "empty state handler");
+	const char *data = luaL_checkstring(L, 2);
+	memset(s->native->data, '\0', s->native->data_size);
+	char *d = (char *)s->native->data;
+	memcpy(d, data, MIN(strlen(data), s->native->data_size));
+	return 0;
+}
+
+// stk: state
+static int state_get(lua_State *L) {	
+	SMState *s = check_sm_state(L, 1);
+	if(s == NULL || s->native == NULL) // empty or childless
+		return luaL_error(L, "empty state handler");
+	lua_pushlstring(L, (char *)s->native->data, s->native->data_size);
+	return 1;
+}
+
+// stk: state keystring
 static int state_set_key(lua_State *L) {	
 	SMState *s = check_sm_state(L, 1);
 	if(s == NULL || s->native == NULL) // empty or childless
 		return luaL_error(L, "empty state handler");
 	const char *key = luaL_checkstring(L, 2);
-	//size_t keylen = luaL_checkinteger(L, 3);
-	sm_state_set_key(s->native, key/*, keylen*/);
+	size_t keylen = luaL_checkinteger(L, 3);
+	sm_state_set_key(s->native, key, keylen);
 	return 0;
 }
 
@@ -897,23 +1093,8 @@ static int state_get_key(lua_State *L) {
 	SMState *s = check_sm_state(L, 1);
 	if(s == NULL || s->native == NULL) // empty or childless
 		return luaL_error(L, "empty state handler");
-	//lua_pushlstring(L, (char *)s->native->key, s->native->key_length);
-	//lua_pushinteger(L, s->native->key_length);
-	//return 2;
-	lua_pushfstring(L, (char *)s->native->key);
+	lua_pushlstring(L, (char *)s->native->key, s->native->key_length);
 	return 1;
-}
-
-// stk: state data
-static int state_set(lua_State *L) {	
-	SMState *s = check_sm_state(L, 1);
-	if(s == NULL || s->native == NULL) // empty or childless
-		return luaL_error(L, "empty state handler");
-	const char *data = luaL_checkstring(L, 2);
-	char *d = (char *)s->native->data;
-	memcpy(d, data, MIN(strlen(data), s->native->data_size));
-	d[strlen(data)] = '\0';
-	return 0;
 }
 
 // stk: state SM_STATE_ID
@@ -923,15 +1104,6 @@ static int state_set_id(lua_State *L) {
 		return luaL_error(L, "empty state handler");
 	s->native->id = luaL_checkinteger(L, 2);
 	return 0;
-}
-
-// stk: state
-static int state_get(lua_State *L) {	
-	SMState *s = check_sm_state(L, 1);
-	if(s == NULL || s->native == NULL) // empty or childless
-		return luaL_error(L, "empty state handler");
-	lua_pushfstring(L, (char *)s->native->data);
-	return 1;
 }
 
 // stk: state
@@ -963,7 +1135,7 @@ static int purge_state(lua_State *L) {
 	return 0;
 }
 
-static int apply_event(lua_State *L) {	
+static int apply_event(lua_State *L) {
 	SMState *s = check_sm_state(L, 1);
 	if(s == NULL)
 		return 0;
@@ -991,7 +1163,7 @@ static int state_tostring(lua_State *L) {
 	lua_pushfstring(L, ", data = ");
 	luaL_addvalue(&b);
 	if(s->native->data_size != 0)
-		lua_pushfstring(L, (const char *)s->native->data);
+		lua_pushfstring(L, (char *)s->native->data);
 	else
 		lua_pushfstring(L, "");
 	luaL_addvalue(&b);
@@ -1003,11 +1175,10 @@ static int state_tostring(lua_State *L) {
 
 static const struct luaL_Reg smstate_m [] = {
 	{"apply", apply_event},
-	{"purge", purge_state},
-	{"trace_add", state_trace_add},
-	{"trace_get", state_trace_get},
-	{"get_key", state_get_key},
-	{"set_key", state_set_key},
+	{"traceadd", state_trace_add},
+	{"traceget", state_trace_get},
+	{"getkey", state_get_key},
+	{"setkey", state_set_key},
 	{"get", state_get},
 	{"set", state_set},
 	{"getid", state_get_id},
@@ -1045,8 +1216,10 @@ static int new_array(lua_State *L) {
 		return luaL_error(L, "wrong synchronized flag value");
 	SMArray *a = (SMArray *)lua_newuserdata(L, sizeof(SMArray));
 	a->native = sm_array_create(stsize, plsize, fsm->native, sync);
-	if(a->native == NULL)
-		return luaL_error(L, "@malloc(%I)", (lua_Integer)plsize);
+	if(a->native == NULL) {
+		//return luaL_error(L, "@new_array(%I)", (lua_Integer)plsize);
+		return luaL_error(L, "@new_array()");
+	}
 	luaL_getmetatable(L, "sm.array");
 	lua_setmetatable(L, -2);
 	return 1;
@@ -1066,16 +1239,12 @@ static int array_size(lua_State *L) {
 	return 1;
 }
 
-// stk: array, key, keylen
+// stk: array, key
 static int array_find_state(lua_State *L) {	
 	SMArray *a = check_sm_array(L, 1);
-	void *key;
-	if(lua_islightuserdata(L, 2))
-		key = lua_touserdata(L, 2);
-	else
-		return luaL_error(L, "ligh userdata expected");
-	size_t keylen = (size_t)luaL_checkinteger(L, 3);
-	sm_state *s = sm_array_find_state(a->native, key, keylen);
+	const char *key = luaL_checkstring(L, 2);
+	size_t keylen = strlen(key);
+	sm_state *s = sm_array_find_state(a->native, (void *const)key, keylen);
 	if(!push_state_handler(L, s)) {
 		lua_pushnil(L);
 		return 1;
@@ -1085,15 +1254,11 @@ static int array_find_state(lua_State *L) {
 	return 1;
 }
 
-// stk: array, key, keylen
+// stk: array, key
 static int array_get_state(lua_State *L) {	
 	SMArray *a = check_sm_array(L, 1);
-	void * key;
-	if(lua_islightuserdata(L, 2))
-		key = lua_touserdata(L, 2);
-	else
-		return luaL_error(L, "ligh userdata expected");
-	size_t keylen = (size_t)luaL_checkinteger(L, 3);
+	const char *key = luaL_checkstring(L, 2);
+	size_t keylen = strlen(key);
 	sm_state *s = sm_array_find_state(a->native, key, keylen);
 	if(!push_state_handler(L, s)) {
 		lua_pushnil(L);
@@ -1138,6 +1303,7 @@ static const struct luaL_Reg smarray_m [] = {
 static const struct luaL_Reg smlib_f [] = {
 	{"new_event", new_event},
 	{"new_queue", new_queue},
+	{"new_pqueue", new_pqueue},
 	{"new_queue2", new_queue2},
 	{"loadlib", load_applib},
 	{"lookup", lookup_app}, 
@@ -1160,6 +1326,11 @@ int luaopen_sm (lua_State *L) {
 	lua_pushvalue(L, -1);
 	lua_setfield(L, -2, "__index");
 	luaL_setfuncs(L, smqueue_m, 0);
+	
+	luaL_newmetatable(L, "sm.pqueue");
+	lua_pushvalue(L, -1);
+	lua_setfield(L, -2, "__index");
+	luaL_setfuncs(L, smpqueue_m, 0);
 
 	luaL_newmetatable(L, "sm.queue2");
 	lua_pushvalue(L, -1);

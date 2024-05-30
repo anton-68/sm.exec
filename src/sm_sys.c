@@ -11,11 +11,7 @@
 #include <unistd.h>
 
 #include "sm_sys.h"
-
-
-
     
-     
 /* thread id */
 
 #ifdef __linux__

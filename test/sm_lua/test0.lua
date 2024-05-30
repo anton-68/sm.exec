@@ -7,9 +7,9 @@ end
 
 sm = require("sm")
 
-lib = sm.loadlib("/home/anton/lab/sm.exec/v5/test/sm_app/sm_test_apps.so")
-
 at = sm.new_apptab()
+
+lib = sm.loadlib("/home/anton/lab/sm.exec/v6/test/sm_app/sm_test_apps.so")
 
 print("\n")
 print("Applications:\n")

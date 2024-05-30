@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Notepadqq>
+    <View>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_sys.h" cacheFilePath="" scrollX="0" scrollY="73" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_event.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_app.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_queue.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_queue2.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_fsm.h" cacheFilePath="" scrollX="0" scrollY="225" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_state.h" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_array.h" cacheFilePath="" scrollX="0" scrollY="130" language="c" active="1"/>
+    </View>
+    <View>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_sys.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/oam/logger.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_event.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_queue.c" cacheFilePath="" scrollX="0" scrollY="1860" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_queue2.c" cacheFilePath="" scrollX="0" scrollY="0" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_app.c" cacheFilePath="" scrollX="0" scrollY="120" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_fsm.c" cacheFilePath="" scrollX="0" scrollY="10656" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_state.c" cacheFilePath="" scrollX="0" scrollY="300" language="c"/>
+        <Tab filePath="/home/anton/lab/sm.exec/v6/src/sm_array.c" cacheFilePath="" scrollX="0" scrollY="0" language="c" active="1"/>
+    </View>
+</Notepadqq>
