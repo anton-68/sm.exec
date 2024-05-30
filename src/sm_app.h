@@ -26,5 +26,6 @@ sm_app_table *sm_app_table_create();
 sm_app_table *sm_app_table_set(sm_app_table *t, const char *name, sm_app app);
 sm_app *sm_app_table_get_ref(sm_app_table *t, const char *name);
 void sm_app_table_remove(sm_app_table *t, const char *name);
+void sm_app_table_free(sm_app_table *t);
 
 #endif //SM_APP_H

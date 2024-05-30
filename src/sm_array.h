@@ -33,9 +33,8 @@ typedef struct sm_array {
 } sm_array;
 
 // Public methods
-sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm *fsm, bool synchronized);
+sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm **fsm, bool synchronized);
 void sm_array_free(sm_array *a);
-
 sm_state *sm_array_find_state(sm_array *, const void *, size_t);
 sm_state *sm_array_get_state(sm_array *, const void *, size_t);
 void sm_array_release_state(sm_array *, sm_state *);  

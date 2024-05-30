@@ -19,7 +19,7 @@ static int remove_from_hash(sm_array *d, sm_state *c);
 
 // Public methods
 
-sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm *fsm, bool synchronized){
+sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm **fsm, bool synchronized){
 	// Allocate depot main structure
     sm_array *d;
     if((d = malloc(sizeof(sm_array))) == NULL) {

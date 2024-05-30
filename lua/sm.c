@@ -25,6 +25,10 @@
 #include "../src/sm_state.h"
 #include "../src/sm_array.h"
 
+#ifndef SM_DEBUG
+#define SM_DEBUG 
+#endif
+
 /************************
  ******* SM.EVENT *******
  ************************/
@@ -196,6 +200,9 @@ static int next_event(lua_State *L) {
 
 // stk: e
 static int collect_event(lua_State *L) {
+#ifdef SM_DEBUG	
+	printf("collect_event ...");
+#endif	
 	SMEvent *e = check_sm_event(L, 1);
 	if(e->native == NULL) // is it a childfree? 
 		return 0;
@@ -207,6 +214,9 @@ static int collect_event(lua_State *L) {
 		next(e)->linked--;
 	sm_event_free(e->native);
 	e->native = NULL; // for surviving or ressurected handler
+#ifdef SM_DEBUG	
+	printf(" ok\n");
+#endif
 	return 0;
 }
 	
@@ -411,8 +421,9 @@ static int pqueue_tostring(lua_State *L) {
 	SMPQueue *pq = check_sm_pqueue(L);
 	luaL_Buffer b;
 	luaL_buffinit(L, &b);
-	lua_pushfstring(L, "sm_pqueue @ %p, size = %I, synchronized = %s\nEvents:\n", 
-					pq, (lua_Integer)pq->native->size, 
+	lua_pushfstring(L, 
+					"sm_pqueue @ %p, size = %I, capacity = %I, synchronized = %s\nEvents:\n", 
+					pq, (lua_Integer)pq->native->size, (lua_Integer)pq->native->capacity, 
 					pq->native->synchronized ? "true" : "false");
 	luaL_addvalue(&b);
 	sm_event *e;
@@ -776,7 +787,7 @@ static int lookup_app(lua_State *L) { // not too much reentrant for the same app
 		return luaL_error(L, "@lookup_app: lua_touserdata() returns NULL");
 	const char *name = luaL_checkstring(L, 2);
 	sm_app a = dlsym(handle, name);
-	if(push_app_handler(L, a)) // love this function name))
+	if(push_app_handler(L, a) != EXIT_SUCCESS) // love this function name))
 		lua_pushnil(L);
 	return 1;
 }
@@ -796,9 +807,28 @@ static int call_app(lua_State *L) {
 	return 0;
 }
 
+// stk: app
+static int collect_app(lua_State *L) {	
+#ifdef SM_DEBUG	
+	printf("collect_app ...");
+#endif	
+	SMApp *app = check_sm_app(L, 1);
+	if(app == NULL) {
+#ifdef SM_DEBUG		
+		printf(" already\n");
+#endif
+		return 0;
+	}
+#ifdef SM_DEBUG	
+	printf(" ok\n");
+#endif	
+	return 0;
+}	
+
 static const struct luaL_Reg smapp_m [] = {
 	{"__tostring", app_tostring},
 	{"__call", call_app},
+	{"__gc", collect_app},
 	{NULL, NULL}
 };
 
@@ -842,7 +872,7 @@ static int apptab_get(lua_State *L) {
 	SMAppTable *at = check_sm_apptab(L, 1);
 	const char *name = luaL_checkstring(L, 2);
 	sm_app na = *(sm_app_table_get_ref(at->native, name));
-	if(!push_app_handler(L, na)) 
+	if(push_app_handler(L, na) != EXIT_SUCCESS) 
 		lua_pushnil(L);
 	return 1;
 }
@@ -896,7 +926,10 @@ static int apptab_tostring(lua_State *L) {
 }	
 
 // stk: at
-static int collect_apptab(lua_State *L) {	
+static int collect_apptab(lua_State *L) {
+#ifdef SM_DEBUG	
+	printf("collect_apptab ...");
+#endif	
 	SMAppTable *at = check_sm_apptab(L, 1);
 	if(at == NULL)
 		return 0;
@@ -905,9 +938,11 @@ static int collect_apptab(lua_State *L) {
 	while(ac != NULL) {
 		acn = ac;
 		ac = ac->next;
-		free(ac);
-		ac = acn;
+		free(acn);
 	}
+#ifdef SM_DEBUG	
+	printf(" ok\n");
+#endif	
 	return 0;
 }	
 
@@ -956,18 +991,26 @@ static int new_fsm(lua_State *L) {
 }	
 
 // stk: fsm
-static int collect_fsm(lua_State *L) {	
+static int collect_fsm(lua_State *L) {
+#ifdef SM_DEBUG	
+	printf("collect_fsm ...");
+#endif	
 	SMFSM *f = check_sm_fsm(L, 1);
 	if(f == NULL)
 		return 0;
 	sm_fsm_free(f->native);
+#ifdef SM_DEBUG	
+	printf(" ok\n");
+#endif	
 	return 0;
 }	
 
 // stk: fsm
 static int fsm_tostring(lua_State *L) {	
 	SMFSM *f = check_sm_fsm(L, 1);
-	lua_pushfstring(L, "sm_fsm %p -> %p:\n%s\n", f, f->native, sm_fsm_to_string(f->native));
+	lua_pushfstring(L, "sm_fsm %p -> %p -> (this)%p -> (ref)%p:\n%s\n", 
+					f, f->native, f->native->this, f->native->ref, 
+					sm_fsm_to_string(f->native));
 	return 1;
 }	
 
@@ -987,6 +1030,7 @@ typedef struct SMState {
 } SMState;
 
 #define check_sm_state(L, POS) (SMState *)luaL_checkudata((L), (POS), "sm.state")
+#define test_sm_state(L, POS) (SMState *)luaL_testudata((L), (POS), "sm.state")
 
 static int push_state_handler(lua_State *L, sm_state *s) {
 	if(s == NULL)
@@ -995,7 +1039,7 @@ static int push_state_handler(lua_State *L, sm_state *s) {
 	lua_getfield(L, -1, "inventory");					// mt inventory
 	lua_pushlightuserdata(L, s);						// mt inventory lud
 	lua_gettable(L, -2);								// mt inventory ud?
-	if(check_sm_state(L, 1) == NULL) { // create handler if not found
+	if(test_sm_state(L, 1) == NULL) { // create handler if not found
 		lua_pop(L, 1);									// mt inventory
 		SMState *lua_s = (SMState *)lua_newuserdata(L, sizeof(SMState)); // mt inventory ud
 		lua_rotate(L, -3, -1);							// inventory ud mt
@@ -1013,14 +1057,14 @@ static int push_state_handler(lua_State *L, sm_state *s) {
 static int new_state(lua_State *L) {
 	SMFSM *fsm = check_sm_fsm(L, 1);
 	size_t plsize = (size_t)lua_tointeger(L, 2);
-	sm_state *s = sm_state_create(fsm->native, plsize);
+	sm_state *s = sm_state_create(fsm->native->ref, plsize);
 	if(s == NULL)
 		return luaL_error(L, "@new_state()");
-	if(!push_state_handler(L, s)) {
+	if(push_state_handler(L, s) != EXIT_SUCCESS) {
 		lua_pushnil(L);
 		return 1;
 	}
-	SMState *lua_s = check_sm_state(L, -1);
+	SMState *lua_s = check_sm_state(L, -1);;
 	lua_s->standalone = true;
 	return 1;
 }	
@@ -1116,13 +1160,19 @@ static int state_get_id(lua_State *L) {
 }
 
 // stk: state
-static int collect_state(lua_State *L) {	
+static int collect_state(lua_State *L) {
+#ifdef SM_DEBUG	
+	printf("collect_state ...");
+#endif	
 	SMState *s = check_sm_state(L, 1);
 	if(s == NULL || s->native == NULL) // empty or childless
 		return 0;
 	if(s->standalone)
 		sm_state_free(s->native);
 	s->native = NULL;
+#ifdef SM_DEBUG	
+	printf(" ok\n");
+#endif	
 	return 0;
 }
 
@@ -1151,16 +1201,16 @@ static int state_tostring(lua_State *L) {
 	SMState *s = check_sm_state(L, 1);
 	luaL_Buffer b;
 	luaL_buffinit(L, &b);
-	lua_pushfstring(L, "sm_state id %I @ %p -> %p:\n", s->native->id, s, s->native);
+	lua_pushfstring(L, "state %p -> %p:\n", s, s->native);
 	luaL_addvalue(&b);
-	lua_pushfstring(L, "fsm %I @ %p, key = ");
+	lua_pushfstring(L, "state fsm @ %p", *s->native->fsm);
 	luaL_addvalue(&b);
 	if(s->native->key_length != 0)
-		lua_pushfstring(L, "%s", (char *)s->native->key);
+		lua_pushfstring(L, ", key = %s", (char *)s->native->key);
 	else
-		lua_pushfstring(L, "");
+		lua_pushfstring(L, ", key is not set");
 	luaL_addvalue(&b);
-	lua_pushfstring(L, ", data = ");
+	lua_pushfstring(L, ", data: ");
 	luaL_addvalue(&b);
 	if(s->native->data_size != 0)
 		lua_pushfstring(L, (char *)s->native->data);
@@ -1170,6 +1220,13 @@ static int state_tostring(lua_State *L) {
 	lua_pushfstring(L, "\n");
 	luaL_addvalue(&b);
 	luaL_pushresult(&b);
+	return 1;
+}
+					
+// stk: state
+static int state_getid(lua_State *L) {	
+	SMState *s = check_sm_state(L, 1);
+	lua_pushfstring(L, "state ID: %I\n", (lua_Integer)s->native->id);
 	return 1;
 }
 
@@ -1185,6 +1242,7 @@ static const struct luaL_Reg smstate_m [] = {
 	{"setid", state_set_id},
 	{"purge", purge_state},
 	{"__tostring", state_tostring},
+	{"id", state_getid},
 	{"__gc", collect_state},
 	{NULL, NULL}
 };
@@ -1215,7 +1273,7 @@ static int new_array(lua_State *L) {
 	else
 		return luaL_error(L, "wrong synchronized flag value");
 	SMArray *a = (SMArray *)lua_newuserdata(L, sizeof(SMArray));
-	a->native = sm_array_create(stsize, plsize, fsm->native, sync);
+	a->native = sm_array_create(stsize, plsize, fsm->native->ref, sync);
 	if(a->native == NULL) {
 		//return luaL_error(L, "@new_array(%I)", (lua_Integer)plsize);
 		return luaL_error(L, "@new_array()");
@@ -1245,7 +1303,7 @@ static int array_find_state(lua_State *L) {
 	const char *key = luaL_checkstring(L, 2);
 	size_t keylen = strlen(key);
 	sm_state *s = sm_array_find_state(a->native, (void *const)key, keylen);
-	if(!push_state_handler(L, s)) {
+	if(push_state_handler(L, s) != EXIT_SUCCESS) {
 		lua_pushnil(L);
 		return 1;
 	}
@@ -1260,7 +1318,7 @@ static int array_get_state(lua_State *L) {
 	const char *key = luaL_checkstring(L, 2);
 	size_t keylen = strlen(key);
 	sm_state *s = sm_array_find_state(a->native, key, keylen);
-	if(!push_state_handler(L, s)) {
+	if(push_state_handler(L, s) != EXIT_SUCCESS) {
 		lua_pushnil(L);
 		return 1;
 	}

@@ -26,7 +26,7 @@ int sm_state_set_key(sm_state *s, const void *key, size_t key_length) {
 	return EXIT_SUCCESS;
 }
 	
-sm_state *sm_state_create(sm_fsm *f, size_t payload_size) {
+sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
     sm_state *s;
     if((s = malloc(sizeof(sm_state))) == NULL) {
         REPORT(ERROR, "malloc()");
@@ -47,8 +47,8 @@ sm_state *sm_state_create(sm_fsm *f, size_t payload_size) {
         s->data_size = 0;
     }
 	s->fsm = f;	
-	if(s->fsm != NULL)
-		s->id = f->initial;
+	if(*f != NULL)
+		s->id = (*f)->initial;
 	else
 		s->id = 0;
 	s->next = NULL;
@@ -104,15 +104,14 @@ void sm_state_free(sm_state * s) {
 
 void sm_apply_event(sm_state *s, sm_event *e){
 	do {
-		if(s->fsm->type == SM_MEALY) {
-			s->id = s->fsm->table[s->id][e->id].new_node;
-			sm_app *a = s->fsm->table[s->id][e->id].action;
+		sm_app *a = FSM(s)->table[s->id][e->id].action;
+		if(FSM(s)->type == SM_MEALY) {
+			s->id = FSM(s)->table[s->id][e->id].new_node;
 			if(a != NULL) (*a)(e);
 		}
 		else {
-			sm_app *a = s->fsm->table[s->id][e->id].action;
 			if(a != NULL) (*a)(e);
-			s->id = s->fsm->table[s->id][e->id].new_node;
+			s->id = FSM(s)->table[s->id][e->id].new_node;
 		}
-	} while(s->fsm->nodes[s->id] == SM_JOINT);
+	} while(FSM(s)->nodes[s->id] == SM_JOINT);
 }

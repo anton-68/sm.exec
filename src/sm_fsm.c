@@ -112,6 +112,8 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_app_table *at, sm_fsm_type t){
         REPORT(ERROR, "malloc()");
         return NULL;
     }
+	fsm->this = fsm;
+	fsm->ref = &fsm->this;
 	fsm->type = t;
 	jsmn_parser parser;
 	jsmn_init(&parser);
@@ -483,12 +485,12 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_app_table *at, sm_fsm_type t){
 		return cleanup(fsm, tokens);
 	}
 	// allocate and fill in fsm table
-	if((fsm->table = calloc(fsm->num_of_nodes, sizeof(sm_fsm_table *))) == NULL) {
+	if((fsm->table = calloc(fsm->num_of_nodes, sizeof(sm_fsm_transition *))) == NULL) {
 		REPORT(ERROR, "calloc()");
 		return cleanup(fsm, tokens);
 	}
 	for(int i = 0; i < fsm->num_of_nodes; i++)
-		if((fsm->table[i] = calloc(fsm->num_of_events, sizeof(sm_fsm_table))) == NULL) {
+		if((fsm->table[i] = calloc(fsm->num_of_events, sizeof(sm_fsm_transition))) == NULL) {
 			REPORT(ERROR, "calloc()");
 			return cleanup(fsm, tokens);
 		}
@@ -549,7 +551,7 @@ char *sm_fsm_to_string(sm_fsm* f) {
 	}
 	char line[1024];
 	char *node_type[] = {"undefined", "state", "initial", "final", "joint"};
-	sprintf(output, "FSM:\n");
+	//sprintf(output, "FSM:\n");
 	sprintf(line, "max number of node :  %lu\n", f->num_of_nodes - 1);
 	strcat(output, line);
     sprintf(line, "max number of event :  %lu\n", f->num_of_events - 1);
@@ -595,6 +597,84 @@ char *sm_fsm_to_string(sm_fsm* f) {
 	return output;
 }
 
+/* FSM registry */
 
+// Private methods
 
+static sm_fsm_table *find_record(sm_fsm_table *t, const char *name) {
+	sm_fsm_table *r = t;
+	while (r != NULL && strcmp(r->name, name)){
+		r = r->next;
+	}
+	return r;
+}
 
+// Public methods
+
+sm_fsm_table *sm_fsm_table_create() { return NULL; }
+
+sm_fsm_table *sm_fsm_table_set(sm_fsm_table *t, const char *name, sm_fsm *fsm) {
+	sm_fsm_table *r;
+	if(t == NULL)
+		r = NULL;
+	else 
+		r = find_record(t, name);
+	if (r == NULL) {
+		if((r = malloc(sizeof(sm_fsm_table))) == NULL) {
+        	REPORT(ERROR, "malloc()");
+        	return NULL;
+		}
+		if((r->name = malloc(strlen(name))) == NULL) {
+        	REPORT(ERROR, "malloc()");
+			free(r);
+			return NULL;
+    	}
+		strcpy(r->name, name);
+		r->ref = &(r->fsm);
+		r->fsm = fsm;
+		r->prev = NULL;
+		r->next = t;
+		if(t != NULL)
+			r->next->prev = r;
+		t = r;
+    }
+	else {
+		char *r_n = r->name;
+		if((r->name = malloc(strlen(name))) == NULL) {
+        	REPORT(ERROR, "malloc()");
+			r->name = r_n;
+			return NULL;
+    	}
+		free(r_n);
+		strcpy(r->name, name);
+		r->fsm = fsm;
+	}
+	return t;		
+}
+
+sm_fsm **sm_fsm_table_get_ref(sm_fsm_table *t, const char *name) {	
+	sm_fsm_table *tr = find_record(t, name);
+	if (tr == NULL)
+		return NULL;
+	else
+		return tr->ref;
+}
+
+void sm_fsm_table_remove(sm_fsm_table *t, const char *name) {
+	sm_fsm_table *tr = find_record(t, name);
+	if (tr != NULL) {
+		tr->prev->next = tr->next;
+		tr->next->prev = tr->prev;
+		free(tr->name);
+		free(tr);
+	}
+}
+
+void sm_fsm_table_free(sm_fsm_table *t) {
+	sm_fsm_table *tmp;
+	while(t != NULL) {
+		tmp = t->next;
+		free(t);
+		t = tmp;
+	}
+}

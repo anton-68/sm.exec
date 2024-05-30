@@ -13,7 +13,7 @@
 
 // Private methods
 
-sm_app_table *find_record(sm_app_table *t, const char *name) {
+static sm_app_table *find_record(sm_app_table *t, const char *name) {
 	sm_app_table *r = t;
 	while (r != NULL && strcmp(r->name, name)){
 		r = r->next;
@@ -91,5 +91,14 @@ void sm_app_table_remove(sm_app_table *t, const char *name) {
 		tr->next->prev = tr->prev;
 		free(tr->name);
 		free(tr);
+	}
+}
+
+void sm_app_table_free(sm_app_table *t) {
+	sm_app_table *tmp;
+	while(t != NULL) {
+		tmp = t->next;
+		free(t);
+		t = tmp;
 	}
 }

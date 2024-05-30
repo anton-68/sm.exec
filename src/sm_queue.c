@@ -69,7 +69,8 @@ sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchr
         	sm_queue_free(q);
         	return NULL;
     	}
-	}	
+	}
+	q->size = 0;
     return q;
 }
 
