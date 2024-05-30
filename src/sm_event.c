@@ -3,10 +3,12 @@
    (c) anton.bondarenko@gmail.com */
 
 #include <stdlib.h>			// malloc(), free(), NULL, size_t, 
+#include <string.h>			// memset()
 
 #include "../oam/logger.h"
 #include "sm_event.h"
 #include "sm_queue.h"
+#include "sm_memory.h"
 
 /* sm_event */
 
@@ -16,22 +18,24 @@ sm_event *sm_event_create(size_t payload_size) {
         REPORT(ERROR, "malloc()");
         return e;
     }
-    if(payload_size > 0) {
-        if ((e->data = malloc(payload_size)) == NULL) {
+	if(SM_MEMORY_MANAGER)
+		e->data_size = sm_memory_size_align(payload_size, sizeof(sm_chunk));
+	else
+		e->data_size = payload_size;
+    if(e->data_size > 0) {
+        if ((e->data = malloc(e->data_size)) == NULL) {
             REPORT(ERROR, "malloc()");
             free(e);
             return NULL;
         }
-        else
-            e->data_size = payload_size;
+		memset(e->data, 0, e->data_size);
     }
     else {
         e->data = NULL;
-        e->data_size = 0;
-    }
+	}
     e->next = NULL;
 	e->id = 0;
-	e->disposable = true;
+	e->disposable = false;
 	for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
 		e->priority[stage] = 0;
 	e->home = NULL;

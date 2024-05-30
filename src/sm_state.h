@@ -10,13 +10,15 @@
 #include "sm_event.h"
 #include "sm_app.h"
 #include "sm_fsm.h"
-#include "sm_exec.h"
+//#include "sm_exec.h"
 #include "../oam/logger.h"
                  
-#define FSM(S) (*(S)->fsm)
-
+#define SM_STATE_FSM(S) (*(S)->fsm)
+#define SM_STATE_EVENT_ID(s, e) (e)->id >= SM_STATE_FSM(s)->num_of_nodes ? SM_STATE_FSM(s)->omega : (e)->id
+ 
 // state
 struct sm_exec;
+struct sm_tx;
 typedef struct sm_state {
 	SM_STATE_ID id;
     struct sm_state *next;
@@ -25,6 +27,7 @@ typedef struct sm_state {
 	sm_event *trace;
 	size_t key_length;
     uint32_t key_hash;
+	struct sm_tx *tx;
 	struct sm_exec *exec;
 	size_t data_size;
     void *data;

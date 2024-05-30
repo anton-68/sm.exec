@@ -5,8 +5,7 @@
 #include <string.h> 		//memcmp
 #include "sm_state.h"
 #include "sm_queue.h"
-
-#include <stdio.h>
+#include "sm_memory.h"
 
 /* sm_state */
 
@@ -32,7 +31,10 @@ sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
         REPORT(ERROR, "malloc()");
         return s;
     }
-	s->data_size = payload_size;
+	if(SM_MEMORY_MANAGER)
+		s->data_size = sm_memory_size_align(payload_size, sizeof(sm_chunk));
+	else
+		s->data_size = payload_size;
     if(s->data_size > 0) {
         if ((s->data = malloc(s->data_size)) == NULL) {
             REPORT(ERROR, "malloc()");
@@ -44,7 +46,6 @@ sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
     }
     else {
         s->data = NULL;
-        s->data_size = 0;
     }
 	s->fsm = f;	
 	if(*f != NULL)
@@ -67,6 +68,7 @@ sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
     s->key_length = 0;
     s->key_hash = 0;
 	s->exec = NULL;
+	s->tx = NULL;
 	s->trace = NULL;
 	return s;    
 }
@@ -105,18 +107,21 @@ void sm_state_free(sm_state * s) {
 }
 
 void sm_apply_event(sm_state *s, sm_event *e){
-	SM_EVENT_ID eid = e->id;
-	if(eid >= FSM(s)->num_of_nodes)
-		eid = FSM(s)->omega;
+	//SM_EVENT_ID eid = e->id;
+	//if(eid >= SM_STATE_FSM(s)->num_of_nodes)
+	//	eid = SM_STATE_FSM(s)->omega;
+	SM_EVENT_ID eid;
 	do {
-		sm_app *a = FSM(s)->table[s->id][eid].action;
-		if(FSM(s)->type == SM_MEALY) {
-			s->id = FSM(s)->table[s->id][eid].new_node;
+		eid = SM_STATE_EVENT_ID(s, e);
+		sm_app *a = SM_STATE_FSM(s)->table[s->id][eid].action;
+		if(SM_STATE_FSM(s)->type == SM_MEALY) {
+			s->id = SM_STATE_FSM(s)->table[s->id][eid].new_node;
 			if(a != NULL) (*a)(e, s);
 		}
 		else {
 			if(a != NULL) (*a)(e, s);
-			s->id = FSM(s)->table[s->id][eid].new_node;
+			eid = SM_STATE_EVENT_ID(s, e); // can be another FSM at this point
+			s->id = SM_STATE_FSM(s)->table[s->id][eid].new_node;
 		}
-	} while(FSM(s)->nodes[s->id] == SM_JOINT);
+	} while(SM_STATE_FSM(s)->nodes[s->id] == SM_JOINT);
 }

@@ -1,0 +1,23 @@
+%include "json.abnf"
+
+fsm-json = {
+  "name" : string,
+  "type" : "mealy" | "moore",
+  "initialState" : string,
+  "finalState" : string,
+  "states" : [ state *(, state)]
+}
+
+state = {
+  "name" : string,
+  "type" : "switch" | "state",
+  "transitions" : [ transition *(, transition)]
+}
+
+transition = { 
+  "appliedOnEvent" : int | "any",
+  ["name" : string,]
+  "targetState" : string,
+  ["setEventId" : int,]
+  "invokeOnTransition" : string
+}

@@ -90,6 +90,4 @@ typedef struct sm_timestamp{
 
 sm_timestamp sm_get_timestamp();
 
-#define SM_SYSLOG_STRING_LEN 4096
-
 #endif //SM_SYS_H

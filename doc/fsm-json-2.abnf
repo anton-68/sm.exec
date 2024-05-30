@@ -1,0 +1,41 @@
+%include "json.abnf"
+
+fsm-json = {
+  "name" : string,
+  "type" : "mealy" | "moore",
+  "initialState" : string,
+  "finalState" : string,
+  "states" : [ state *(, state)]
+}
+
+state = {
+  "name" : string,
+  "type" : "switch" | "state",
+  "transitions" : [ transition *(, transition)]
+}
+
+transition = regular_transition | sync_cascading | hierarchical_fsm_linking 
+
+regular_transition = { 
+  "appliedOnEvent" : int,
+  ["name" : string,]
+  "targetState" : string,
+  ["setEventId" : int,]
+  "invokeOnTransition" : string
+}
+
+sync_cascading = {
+  "appliedOnEvent" : int,
+  ["name" : string,]
+  "stateArrayName" : string,
+  ["setEventId" : int,]
+  "invokeOnTransition" : string
+}
+
+hierarchical_fsm_linking = { 
+  "appliedOnEvent" : int,
+  ["name" : string,]
+  "linkedFsmName" : string,
+  ["setEventId" : int,]
+  "invokeOnTransition" : string
+}

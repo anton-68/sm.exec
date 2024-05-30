@@ -9,7 +9,9 @@
 #include "../oam/logger.h"
 #include "sm_fsm.h"
 #include "sm_event.h"
+#include "sm_state.h"
 #include "sm_exec.h"
+#include "sm_memory.h"
 
 // Executor
 
@@ -21,13 +23,16 @@ sm_exec *sm_exec_create(size_t size, sm_directory *dir, sm_tx *tx) {
         REPORT(ERROR, "malloc()");
         return NULL;
     }
-	if((exec->data = malloc(size)) == NULL) {
+	if(SM_MEMORY_MANAGER)
+		exec->data_size = sm_memory_size_align(size, sizeof(sm_chunk));
+	else
+		exec->data_size = size;
+	if((exec->data = malloc(exec->data_size)) == NULL) {
 		free(exec);
         REPORT(ERROR, "malloc()");
         return NULL;
     }
 	exec->master_tx = tx;
-	exec->data_size = size;
 	exec->dir = dir;
 	return exec;
 }
@@ -73,8 +78,11 @@ sm_tx *sm_tx_create(sm_exec *exec,
         return NULL;
 	}
 	td->state->exec = exec;
-	td->data_size = size;
-	if((td->data = malloc(size)) == NULL) {
+	if(SM_MEMORY_MANAGER)
+		td->data_size = sm_memory_size_align(size, sizeof(sm_chunk));
+	else
+		td->data_size = size;
+	if((td->data = malloc(size + sizeof(sm_state *))) == NULL) {
 		if(td->input_queue_ptr)
 			sm_queue2_free(td->input_queue_ptr);
 		free(td->data);
@@ -82,6 +90,7 @@ sm_tx *sm_tx_create(sm_exec *exec,
         REPORT(ERROR, "malloc()");
         return NULL;
     }
+	*SM_TX_STACK_POINTER(td) = NULL;
 	return td;
 }
 
@@ -120,4 +129,21 @@ void *sm_tx_runner(void *arg) {
 		}
 	}
 	return 0;
+}
+
+// State stack push
+int sm_tx_push_state(sm_tx * tx, sm_state * s){
+	if(tx->data_size < sizeof(sm_state *))
+		return EXIT_FAILURE;
+	tx->data_size -= sizeof(sm_state *);
+	*SM_TX_STACK_POINTER(tx) = tx->state;
+	tx->state = s;	
+	return EXIT_SUCCESS; 
+}
+
+// State pop
+int sm_tx_pop_state(sm_tx * tx){
+	tx->state = *SM_TX_STACK_POINTER(tx);
+	tx->data_size += sizeof(sm_state *);	
+	return EXIT_SUCCESS; 
 }

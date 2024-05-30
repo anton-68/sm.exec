@@ -1,0 +1,30 @@
+%YAML 1.2
+# FSM Default Option 1: translated JSON
+sm: 
+  name: default
+  type: mealy
+  initialState: eventReceived
+  finalState: done
+  states:
+    - state: &id_e001
+        name: eventReceived
+        transitions:
+          - transition: &id_t001
+              name: omega
+              onEvent: any
+              target: neighbourhoodChecked
+              mapID: [0]
+              onTransition: check_neighbours
+    - state: &id_e002 
+        name: neighbourhoodChecked
+        transitions:
+          - transition: &id_t002
+              onEvent: 2
+              target: done
+              mapID: [0]
+              onTransition: noap
+          - transition: &id_t003
+              onEvent: any
+              target: neighbourhoodChecked
+              mapID: [0]
+              onTransition: switch_fsm

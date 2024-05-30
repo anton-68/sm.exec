@@ -4,13 +4,14 @@
 
 SM_NAME = sm
 SM_APP = sm_test_apps
+SM_ROBOT = sm_robot_demo_apps
 SM_TEST = test_sm_2
 
 CC = gcc
 CFLAGS = -fPIC -O2 -g -Wall -pthread
-DFLAGS = -fPIC -Og -ggdb -Wall -Werror -pthread
+DFLAGS = -fPIC -O0 -ggdb -Wall -Werror -pthread
 LFLAGS = -pthread -shared
-LIBS = -lpthread -ljsmn
+LIBS = -lpthread -ljsmn -lm
 
 OAM = oam/
 LUA = lua/
@@ -40,6 +41,7 @@ OBJS = 	$(SRC)sm_app.o \
 		
 LUA_OBJS = 	$(OBJS) $(LUA)sm.o
 APP_OBJS =	$(OBJS) $(APP)sm_test_apps.o
+ROBOT_OBJS = $(APP_OBJS) $(APP)$(SM_ROBOT).o
 TEST_OBJS = $(OBJS) $(TEST)test_sm_2.o
 
 lua : $(SM_NAME).so
@@ -51,6 +53,11 @@ app : $(SM_APP).so
 	
 $(SM_APP).so : $(APP_OBJS)
 	$(CC) $(LFLAGS) $(APP_OBJS) $(LIBS) -o $(APP)$(SM_APP).so
+	
+robot : $(SM_ROBOT).so
+	
+$(SM_ROBOT).so : $(ROBOT_OBJS)
+	$(CC) $(LFLAGS) $(ROBOT_OBJS) $(LIBS) -o $(APP)$(SM_ROBOT).so
 
 test : $(SM_TEST)
 	
@@ -65,6 +72,7 @@ clean :
 	rm -f $(OBJS)
 	rm -f $(LUA)sm.o
 	rm -f $(APP)sm_test_apps.o
+	rm -f $(APP)$(SM_ROBOT).o
 	rm -f $(TEST)test_sm_2.o
 
-all	: lua app test clean
+all	: lua app robot test clean

@@ -6,12 +6,13 @@
 #define SM_EXEC_H
 
 #include <stdlib.h>
-#include "sm_sys.h"
+#include "sm_sys.h"	
 #include "sm_queue2.h"
 #include "sm_state.h"
 #include "sm_directory.h"
 #include "../oam/logger.h"
       
+#define SM_TX_STACK_POINTER(tx) (sm_state **)((char *)(tx)->data + (tx)->data_size /*- sizeof(sm_state **) */) 
 
 // Executor
 struct sm_tx;
@@ -50,5 +51,9 @@ void sm_tx_free(sm_tx *tx);
 
 // Thread-worker app
 void *sm_tx_runner(void *arg);
+
+// State stack
+int sm_tx_push_state(sm_tx * tx, sm_state *s);
+int sm_tx_pop_state(sm_tx * tx);
 
 #endif //SM_EXEC_H 

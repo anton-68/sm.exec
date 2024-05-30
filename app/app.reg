@@ -9,6 +9,13 @@ RFC1918 name	number 		largest CIDR block (subnet mask)	host id size	mask bits	Co
 
 10.255.255.0/24 Test zone Lua 0 (Golly)
 
-10.255.255.1 Set map
-10.255.255.2 Move
-10.255.255.3 Set state
+10.255.255.1 Map // pattern (tx) or heat-map (state), goal:{X, Y}=>key (state)
+10.255.255.2 Bot // position:{X, Y}, goal:{X, Y}, neighbourhood:{}
+...
+10.255.255.128 Move		Move bot to position X, Y
+10.255.255.129 Set		Set bot state to S
+10.255.255.130 Plan		Process queued Move events
+10.255.255.131 Step		Make another spatial iteration
+
+
+10.255.255.1/24

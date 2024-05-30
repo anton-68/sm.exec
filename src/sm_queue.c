@@ -30,15 +30,16 @@ sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchr
     *((unsigned*)(e->data)) = TL_DUMMY_PAYLOAD;
 	e->home = NULL;
     q->head = q->tail = e;
-    int i;   
-    for(i = 0; i < num_of_events; i++) {
+	q->size = 0;
+    for(int i = 0; i < num_of_events; i++) {
         if((e = sm_event_create(event_size)) == NULL) {
             REPORT(ERROR, "event_create()");
             sm_queue_free(q);
             return NULL;
         }
 		e->home = q;
-        enqueue(e, q);
+		e->disposable = true;
+		enqueue(e, q);
     }
 	q->synchronized = synchronized;
 	if(q->synchronized){
@@ -65,7 +66,6 @@ sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchr
         	return NULL;
     	}
 	}
-	q->size = 0;
     return q;
 }
 

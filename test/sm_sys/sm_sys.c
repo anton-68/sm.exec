@@ -64,10 +64,12 @@ SM_ID sm_ipstr_to_id(const char* const ip) {
 
 sm_timestamp sm_get_timestamp() {
     char   timebuffer[32]     = {0};
+    struct timeval  tv        = {0};
     struct tm      *tmval     = NULL;
     struct tm       gmtval    = {0};
     struct timespec curtime   = {0};
     sm_timestamp timestamp;
+    int i = 0;
     clock_gettime(CLOCK_REALTIME, &curtime);
     timestamp.seconds      = curtime.tv_sec;
     timestamp.microseconds = round(curtime.tv_nsec/1.0e3);

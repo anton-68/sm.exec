@@ -25,6 +25,19 @@ void *worker_f (void* t_data) {
 
 int main(void)
 {   
+	
+	int i = 0;
+    struct timespec sleeptime = {0, 5000000L};
+
+    sm_imestamp timestamp;
+
+    for (i=0; i < 20; i++)
+    {
+        timestamp = getTimestamp();
+        printf("Time is: %s \n", timestamp.timestring);
+        nanosleep(&sleeptime, NULL);
+    }
+	
     //fprintf (stdout, "[    DEBUG ] tid of the process: %lu\n", get_tid());
 	fprintf(stdout,
 		"test0\n"

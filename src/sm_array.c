@@ -32,36 +32,22 @@ sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm **fsm, bo
 	// Calculate mask 
 	d->hash_mask = hashmask(d->stack_size);
 	// Allocate stack of state addresses
-	if((d->stack = calloc(d->hash_size, sizeof(sm_state *))) == NULL) {
-        REPORT(ERROR, "calloc()");
-        free(d);
-        return NULL;
-    }
-	// Allocate state bodies
-	int i;
-	sm_state *c;
-	for(i = 0; i < d->stack_size; i++) {
-        if((c = sm_state_create(fsm, state_size)) == NULL) {
-            REPORT(ERROR, "state_create()");
-            stack_free(d);
-            return NULL;
-        }
-        push(d, c);
-    }
-	// Initialize pointer for stack of state IDs   
-	d->next_free = 0;
-	// Allocate hash array state pointers   
-	if((d->table = calloc(d->hash_size, sizeof(sm_state *))) == NULL) {
-        REPORT(ERROR, "calloc()");
-        free(d);
-        return NULL;
-    }
 	// Initialize hash function	
 	d->hash_function = &hashlittle;
 	// Initialize 'previous' hash value	
-	d->last_hash_value = 0;
-	// Initialize sybchronization flag	
+	d->last_hash_value = 0;	
+	if((d->stack = calloc(d->stack_size, sizeof(sm_state *))) == NULL) {
+        REPORT(ERROR, "calloc()");
+        free(d);
+        return NULL;
+    }
+	// Initialize pointer for stack of state IDs   
+	d->next_free = d->stack_size - 1;
+	// Allocate state bodies
+	int i;
+	sm_state *c;
 	d->synchronized = synchronized;
+	// Initialize sybchronization flag	
 	if(d->synchronized) {
 		pthread_mutexattr_t attr;	
     	if(pthread_mutexattr_init(&attr) != EXIT_SUCCESS) {
@@ -91,6 +77,20 @@ sm_array *sm_array_create(size_t stack_size, size_t state_size, sm_fsm **fsm, bo
         	return NULL;
     	}
 	}
+	for(i = 0; i < d->stack_size; i++) {
+        if((c = sm_state_create(fsm, state_size)) == NULL) {
+            REPORT(ERROR, "state_create()");
+            stack_free(d);
+            return NULL;
+        }
+        push(d, c);
+    }
+	// Allocate hash array state pointers   
+	if((d->table = calloc(d->hash_size, sizeof(sm_state *))) == NULL) {
+        REPORT(ERROR, "calloc()");
+        free(d);
+        return NULL;
+    }
     return d;
 }
 
@@ -146,7 +146,8 @@ static sm_state *find_by_hash(sm_array *d, HASH_TYPE h, const void *key, size_t 
 static sm_state *get_by_hash(sm_array *d, HASH_TYPE h, const void *key, size_t key_length){	 
 	sm_state *s = find_by_hash(d, h, key, key_length);
 	if (s == NULL) {
-		sm_state *s = pop(d);
+		if((s = pop(d)) == NULL)
+			return NULL;
 		s->key_hash = h;
 		sm_state_set_key(s, key, key_length);
 	}
@@ -158,19 +159,24 @@ static sm_state *get_by_hash(sm_array *d, HASH_TYPE h, const void *key, size_t k
 }		
 		
 static sm_state *pop(sm_array *d){
+	if(d->next_free == d->stack_size - 1)
+		return NULL;
 	if (d->synchronized) {
 		if(pthread_mutex_lock(&(d->stack_lock)) != EXIT_SUCCESS){
         	REPORT(ERROR, "pthread_mutex_lock()");
         	return NULL;
     	}
-		while(d->next_free >= d->hash_size) 
+		while(d->next_free >= d->stack_size) 
         	if (pthread_cond_wait(&(d->empty), &(d->stack_lock)) != EXIT_SUCCESS){
             	REPORT(ERROR, "pthread_cond_wait()");
             	return NULL;
         	}
 	}
-	sm_state *c = d->stack[d->next_free];	
+	else
+		if(d->next_free > d->stack_size - 1)
+			return NULL;
 	d->next_free++;
+	sm_state *c = d->stack[d->next_free];	
 	if (d->synchronized)
 		if(pthread_mutex_unlock(&(d->stack_lock)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_mutex_unlock()");
@@ -180,16 +186,17 @@ static sm_state *pop(sm_array *d){
 }	
 
 static int push(sm_array *d, sm_state *c){
-	if(d->next_free == 0)	
+	if(d->next_free == -1)	
 		return EXIT_FAILURE;
-	if(d->synchronized)
+	if(d->synchronized) {
 		if(pthread_mutex_lock(&(d->stack_lock)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_mutex_lock()");
         	return EXIT_FAILURE;
     	}
-	d->next_free--;
+	}
 	d->stack[d->next_free] = c;
-	if (d->synchronized)	{
+	d->next_free--;
+	if (d->synchronized) {
   		if(pthread_cond_signal(&(d->empty)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_cond_signal()");
         	return EXIT_FAILURE;
