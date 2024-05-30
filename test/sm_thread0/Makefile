@@ -27,7 +27,7 @@ all						:
 							$(SRC)sm_thread.c \
 							$(OAM)logger.c \
 							$(BJHASH)bj_hash.c \
-							test_sm_1.c \
+							test_sm_2.c \
 							$(LFLAGS) \
 							$(LIBS)
 

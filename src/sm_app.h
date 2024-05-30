@@ -7,9 +7,11 @@
 
 #include "sm_sys.h"
 #include "sm_event.h"
+//#include "sm_state.h"
 
 /* Application prototype */ 
-typedef int (*sm_app) (sm_event *);
+struct sm_state;
+typedef int (*sm_app) (sm_event *, struct sm_state *);
 
 /* Application registry*/
 typedef struct sm_app_table {

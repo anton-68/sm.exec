@@ -31,7 +31,7 @@ sm_event *sm_event_create(size_t payload_size) {
     }
     e->next = NULL;
 	e->id = 0;
-	e->to_keep = false;
+	e->disposable = true;
 	for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
 		e->priority[stage] = 0;
 	e->home = NULL;

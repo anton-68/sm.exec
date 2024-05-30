@@ -542,59 +542,62 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_app_table *at, sm_fsm_type t){
 /* fsm pretty print */
 
 char *sm_fsm_to_string(sm_fsm* f) {
+	extern char sm_buffer[];
+	sm_buffer[0] = '\0';
+//	extern char *sm_buffer = sm_buffer;
 	if(f == NULL) 
 		return "";
-	char *output;
-	if((output = malloc(OUTPUT_BUF_LEN)) == NULL) {
-		REPORT(ERROR, "malloc()");
-		exit(0);
-	}
+//	char sm_buffer[] = "\n";
+//	if((sm_buffer = malloc(SM_sm_buffer_BUF_LEN)) == NULL) {
+//		REPORT(ERROR, "malloc()");
+//		exit(0);
+//	}
+
 	char line[1024];
 	char *node_type[] = {"undefined", "state", "initial", "final", "joint"};
-	//sprintf(output, "FSM:\n");
 	sprintf(line, "max number of node :  %lu\n", f->num_of_nodes - 1);
-	strcat(output, line);
+	strcat(sm_buffer, line);
     sprintf(line, "max number of event :  %lu\n", f->num_of_events - 1);
-	strcat(output, line);
-	sprintf(line, "initial event Id :  %lu\n", f->initial);
-	strcat(output, line);
-	sprintf(line, "final event Id :  %lu\n", f->final);
-	strcat(output, line);
+	strcat(sm_buffer, line);
+	sprintf(line, "initial state Id :  %lu\n", f->initial);
+	strcat(sm_buffer, line);
+	sprintf(line, "final state Id :  %lu\n", f->final);
+	strcat(sm_buffer, line);
 	sprintf(line, "default event Id :  %lu\n", f->omega);
-	strcat(output, line);
+	strcat(sm_buffer, line);
 	sprintf(line, "nodes :\n");
-	strcat(output, line);
-	for(size_t i; i < f->num_of_nodes; i++){
+	strcat(sm_buffer, line);
+	for(size_t i = 0; i < f->num_of_nodes; i++){
 		sprintf(line, "node Id: %lu, node type: %s\n", i, node_type[f->nodes[i]]);
-		strcat(output, line);
+		strcat(sm_buffer, line);
 	}
 	sprintf(line, "transition function :\n");	
-	strcat(output, line);
+	strcat(sm_buffer, line);
 	for(size_t i = 0; i < f->num_of_nodes; i++){
 		sprintf(line, "node Id: %lu, transitions:", i);
-		strcat(output, line);
+		strcat(sm_buffer, line);
 		for(size_t j = 0; j < f->num_of_events; j++){
 			sprintf(line, " %lu", f->table[i][j].new_node);
-			strcat(output, line);
+			strcat(sm_buffer, line);
 		}
 		sprintf(line, "\n");
-		strcat(output, line);
+		strcat(sm_buffer, line);
 	}
-	sprintf(line, "output function (actions) :\n");	
-	strcat(output, line);
+	sprintf(line, "sm_buffer function (actions) :\n");	
+	strcat(sm_buffer, line);
 	
 	for(size_t i = 0; i < f->num_of_nodes; i++){
 		sprintf(line, "node Id: %lu, actions:", i);
-		strcat(output, line);
+		strcat(sm_buffer, line);
 		for(size_t j = 0; j < f->num_of_events; j++){
 			void *ptr = (void *)f->table[i][j].action;
 			sprintf(line, " %p", ptr == NULL ? NULL : (void *)*((sm_app *)ptr));
-			strcat(output, line);
+			strcat(sm_buffer, line);
 		}
 		sprintf(line, "\n");	
-		strcat(output, line);
+		strcat(sm_buffer, line);
 	}
-	return output;
+	return sm_buffer;
 }
 
 /* FSM registry */

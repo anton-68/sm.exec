@@ -25,7 +25,7 @@ typedef struct sm_process_desc {
 
 // Public methods
 sm_process_desc *sm_process_create(size_t s, sm_app_table *a, sm_fsm_table *f);
-void *sm_process_free(sm_process_desc *p);
+void sm_process_free(sm_process_desc *p);
 
 // thread
 typedef struct sm_thread_desc {
@@ -44,10 +44,9 @@ sm_thread_desc *sm_thread_create(sm_fsm **f,
 								 size_t es,
 						    	 sm_process_desc *p,
 								 bool sync);
-void *sm_thread_free(sm_thread_desc *p);
-
+void sm_thread_free(sm_thread_desc *p);
 
 // Thread-runner app
-void sm_thread_runner(void *arg);
+void *sm_thread_runner(void *arg);
 
 #endif //SM_THREAD_H 

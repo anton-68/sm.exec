@@ -63,6 +63,7 @@ sm_state *sm_state_create(sm_fsm **f, size_t payload_size) {
     }
     else
         s->key = NULL;
+	s->process = NULL;
     s->key_length = 0;
     s->key_hash = 0;
 	s->trace = NULL;
@@ -81,7 +82,7 @@ void sm_state_purge(sm_state *s) {
 	memset(s->data, '\0', s->data_size);
 	while(s->trace != NULL) {
 		sm_event *ne = s->trace->next;
-		s->trace->to_keep = false;
+		s->trace->disposable = true;
 		for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
 			ne->priority[stage] = 0;
 		sm_queue_enqueue(s->trace, s->trace->home);
@@ -95,7 +96,7 @@ void sm_state_free(sm_state * s) {
 	free(s->data);
 	while(s->trace != NULL) {
 		sm_event *ne = s->trace->next;
-		s->trace->to_keep = false;
+		s->trace->disposable = true;
 		sm_queue_enqueue(s->trace, s->trace->home);
 		s->trace = ne;
 	}
@@ -103,15 +104,18 @@ void sm_state_free(sm_state * s) {
 }
 
 void sm_apply_event(sm_state *s, sm_event *e){
+	SM_EVENT_ID eid = e->id;
+	if(eid >= FSM(s)->num_of_nodes)
+		eid = FSM(s)->omega;
 	do {
-		sm_app *a = FSM(s)->table[s->id][e->id].action;
+		sm_app *a = FSM(s)->table[s->id][eid].action;
 		if(FSM(s)->type == SM_MEALY) {
-			s->id = FSM(s)->table[s->id][e->id].new_node;
-			if(a != NULL) (*a)(e);
+			s->id = FSM(s)->table[s->id][eid].new_node;
+			if(a != NULL) (*a)(e, s);
 		}
 		else {
-			if(a != NULL) (*a)(e);
-			s->id = FSM(s)->table[s->id][e->id].new_node;
+			if(a != NULL) (*a)(e, s);
+			s->id = FSM(s)->table[s->id][eid].new_node;
 		}
 	} while(FSM(s)->nodes[s->id] == SM_JOINT);
 }

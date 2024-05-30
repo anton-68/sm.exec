@@ -45,7 +45,8 @@ typedef size_t SM_STATE_ID;
 #define SM_STATE_HASH_KEYLEN 256
 
 /* FSM pretty print buffer */
-#define OUTPUT_BUF_LEN (1024 * 32)
+#define SM_OUTPUT_BUF_LEN (1024 * 32)
+char sm_buffer[SM_OUTPUT_BUF_LEN];
 
 /* Thread ID */
 unsigned long get_tid();

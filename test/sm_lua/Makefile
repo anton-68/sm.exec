@@ -26,6 +26,7 @@ OBJS = 	$(LUA)sm.o \
 		$(SRC)sm_fsm.o \
 		$(SRC)sm_state.o \
 		$(SRC)sm_array.o \
+		$(SRC)sm_thread.o \
 		$(BJHASH)bj_hash.o \
 		$(JSMN)jsmn.o \
 		$(OAM)logger.o

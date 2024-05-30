@@ -803,7 +803,8 @@ static int app_tostring(lua_State *L) {
 static int call_app(lua_State *L) {	
 	SMApp *a = check_sm_app(L, 1);
 	SMEvent *e = check_sm_event(L, 2);
-	(*(a->native))(e->native);
+	SMState *s = check_sm_state(L, 3);
+	(*(a->native))(e->native, s->native);
 	return 0;
 }
 
@@ -933,13 +934,7 @@ static int collect_apptab(lua_State *L) {
 	SMAppTable *at = check_sm_apptab(L, 1);
 	if(at == NULL)
 		return 0;
-	sm_app_table *ac = at->native;
-	sm_app_table *acn;
-	while(ac != NULL) {
-		acn = ac;
-		ac = ac->next;
-		free(acn);
-	}
+	sm_app_table_free(at->native);
 #ifdef SM_DEBUG	
 	printf(" ok\n");
 #endif	
@@ -962,9 +957,33 @@ static const struct luaL_Reg smapptable_m [] = {
 
 typedef struct SMFSM {
 	sm_fsm *native;
+	bool lock;
 } SMFSM;
 
 #define check_sm_fsm(L, POS) (SMFSM *)luaL_checkudata((L), (POS), "sm.fsm")
+#define test_sm_fsm(L, POS) (SMFSM *)luaL_testudata((L), (POS), "sm.fsm")
+
+static int push_fsm_handler(lua_State *L, sm_fsm *f) {
+	if(f == NULL)
+		return EXIT_FAILURE;
+	luaL_getmetatable(L, "sm.fsm");						// mt
+	lua_getfield(L, -1, "inventory");					// mt inventory
+	lua_pushlightuserdata(L, f);						// mt inventory lud
+	lua_gettable(L, -2);								// mt inventory ud?
+	if(test_sm_fsm(L, 1) == NULL) { // create handler if not found
+		lua_pop(L, 1);									// mt inventory
+		SMFSM *lua_f = (SMFSM *)lua_newuserdata(L, sizeof(SMFSM)); // mt inventory ud
+		lua_rotate(L, -3, -1);							// inventory ud mt
+		lua_setmetatable(L, -2);						// inventory ud
+		lua_pushvalue(L, -1);							// inventory ud ud
+		lua_pushlightuserdata(L, f);					// inventory ud ud lud
+		lua_rotate(L, -2, -1);							// inventory ud lud ud
+		lua_settable(L, -4);							// inventory ud
+		lua_f->native = f;
+		lua_f->lock = false;
+	}	
+	return EXIT_SUCCESS;	
+}
 
 // stk: fsmj, at, type
 // type = {"mealy" | "moore"}
@@ -972,7 +991,7 @@ static int new_fsm(lua_State *L) {
 	const char *fsmj = luaL_checkstring(L, 1);
 	SMAppTable *at = check_sm_apptab(L, 2);
 	const char *mm = luaL_checkstring(L, 3);
-	SMFSM *f = (SMFSM *)lua_newuserdata(L, sizeof(SMFSM));
+	//SMFSM *f = (SMFSM *)lua_newuserdata(L, sizeof(SMFSM));
 	sm_fsm_type t;
 	if(!strcmp(mm, "mealy")) 
 		t = SM_MEALY; 
@@ -982,12 +1001,21 @@ static int new_fsm(lua_State *L) {
 		else 
 			return luaL_error(L, "wrong automata type: %s", mm);
 	}
-	f->native = sm_fsm_create(fsmj, at->native, t);
-	if(f->native == NULL)
+	sm_fsm *f = sm_fsm_create(fsmj, at->native, t);
+	if(f == NULL)
 		return luaL_error(L, "@sm_fsm_create()");
-	luaL_getmetatable(L, "sm.fsm");
-	lua_setmetatable(L, -2);
+	if(push_fsm_handler(L, f) != EXIT_SUCCESS)
+		lua_pushnil(L);
 	return 1;
+}	
+
+// stk: fsm
+static int unlock_fsm(lua_State *L) {
+	SMFSM *f = check_sm_fsm(L, 1);
+	if(f == NULL)
+		return 0;
+	f->lock = false;
+	return 0;
 }	
 
 // stk: fsm
@@ -997,6 +1025,8 @@ static int collect_fsm(lua_State *L) {
 #endif	
 	SMFSM *f = check_sm_fsm(L, 1);
 	if(f == NULL)
+		return 0;
+	if(f->lock)
 		return 0;
 	sm_fsm_free(f->native);
 #ifdef SM_DEBUG	
@@ -1008,15 +1038,128 @@ static int collect_fsm(lua_State *L) {
 // stk: fsm
 static int fsm_tostring(lua_State *L) {	
 	SMFSM *f = check_sm_fsm(L, 1);
-	lua_pushfstring(L, "sm_fsm %p -> %p -> (this)%p -> (ref)%p:\n%s\n", 
-					f, f->native, f->native->this, f->native->ref, 
-					sm_fsm_to_string(f->native));
+	lua_pushfstring(L, "sm_fsm %p -> %p, linked = %s\n%s\n", f, f->native, 
+					f->lock?"true":"false", sm_fsm_to_string(f->native));
 	return 1;
 }	
 
 static const struct luaL_Reg smfsm_m [] = {
 	{"__tostring", fsm_tostring},
+	{"unlock", unlock_fsm},
 	{"__gc", collect_fsm},
+	{NULL, NULL}
+};
+
+
+/**********************
+ **** SM.FSM_TABLE ****
+ **********************/
+
+typedef struct SMFSMTable {
+	sm_fsm_table *native;
+} SMFSMTable;
+
+#define check_sm_fsmtab(L, POS) (SMFSMTable *)luaL_checkudata((L), (POS), "sm.fsmtable")
+
+// stk:
+static int new_fsmtab(lua_State *L) {
+	SMFSMTable *ft = (SMFSMTable *)lua_newuserdata(L, sizeof(SMFSMTable));
+	ft->native = sm_fsm_table_create();
+	luaL_getmetatable(L, "sm.fsmtable");
+	lua_setmetatable(L, -2);
+	return 1;
+}	
+
+// stk: ft, fsm, name
+static int fsmtab_set(lua_State *L) {
+	SMFSMTable *ft = check_sm_fsmtab(L, 1);
+	SMFSM *f = check_sm_fsm(L, 2);
+	const char *name = luaL_checkstring(L, 3);
+	ft->native = sm_fsm_table_set(ft->native, name, f->native);
+	f->lock = true;
+	return 0;
+}	
+
+// stk: ft, name
+static int fsmtab_get(lua_State *L) {
+	SMFSMTable *ft = check_sm_fsmtab(L, 1);
+	const char *name = luaL_checkstring(L, 2);
+	sm_fsm *f = *(sm_fsm_table_get_ref(ft->native, name));
+	if(push_fsm_handler(L, f) != EXIT_SUCCESS) 
+		lua_pushnil(L);
+	return 1;
+}
+
+// stk: ft, name
+static int fsmtab_remove(lua_State *L) {
+	SMFSMTable *ft = check_sm_fsmtab(L, 1);
+	const char *name = luaL_checkstring(L, 2);
+	sm_fsm_table_remove(ft->native, (char *)name);
+	return 0;
+}	
+
+// stk: ft, name
+static int fsmtab_size(lua_State *L) {	
+	SMFSMTable *ft = check_sm_fsmtab(L, 1);
+	if(ft == NULL){
+		lua_pushinteger(L, (lua_Integer)0);
+		return 1;
+	}
+	size_t s = 0;
+	sm_fsm_table *nft = ft->native;
+	while(nft != NULL) {
+		s++;
+		nft = nft->next;
+	}
+	lua_pushinteger(L, (lua_Integer)s);
+	return 1;
+}
+
+// stk: ft
+static int fsmtab_tostring(lua_State *L) {	
+	SMFSMTable *ft = check_sm_fsmtab(L, 1);
+	size_t s = 0;
+	luaL_Buffer b;
+	luaL_buffinit(L, &b);
+	lua_pushfstring(L, "sm_fsm_table @ %p\n", ft);
+	luaL_addvalue(&b);
+	lua_pushfstring(L, "State machines:\n");
+	luaL_addvalue(&b);
+	sm_fsm_table *nft = ft->native;
+	while(nft != NULL) {
+		s++;
+		lua_pushfstring(L, "sm_fsm %s @ %p -> %p\n", nft->name, nft->ref, *nft->ref);
+		luaL_addvalue(&b);
+		nft = nft->next;
+	}
+	lua_pushfstring(L, "sm_fsm_table size: %I\n", (lua_Integer)s);
+	luaL_addvalue(&b);
+	luaL_pushresult(&b);
+	return 1;
+}	
+
+// stk: ft
+static int collect_fsmtab(lua_State *L) {
+#ifdef SM_DEBUG	
+	printf("collect_fsmtab ...");
+#endif	
+	SMFSMTable *ft = check_sm_fsmtab(L, 1);
+	if(ft == NULL)
+		return 0;
+	sm_fsm_table_free(ft->native);
+#ifdef SM_DEBUG	
+	printf(" ok\n");
+#endif	
+	return 0;
+}	
+
+static const struct luaL_Reg smfsmtable_m [] = {
+	{"set", fsmtab_set},
+	{"get", fsmtab_get},
+	{"remove", fsmtab_remove},
+	{"__len", fsmtab_size},
+	{"__tostring", fsmtab_tostring},
+	{"__gc", collect_fsmtab},
 	{NULL, NULL}
 };
 
@@ -1058,6 +1201,7 @@ static int new_state(lua_State *L) {
 	SMFSM *fsm = check_sm_fsm(L, 1);
 	size_t plsize = (size_t)lua_tointeger(L, 2);
 	sm_state *s = sm_state_create(fsm->native->ref, plsize);
+	fsm->lock = true;
 	if(s == NULL)
 		return luaL_error(L, "@new_state()");
 	if(push_state_handler(L, s) != EXIT_SUCCESS) {
@@ -1178,10 +1322,11 @@ static int collect_state(lua_State *L) {
 
 // stk: state
 static int purge_state(lua_State *L) {	
-	SMState *f = check_sm_state(L, 1);
-	if(f == NULL)
+	SMState *s = check_sm_state(L, 1);
+	if(s == NULL)
 		return 0;
-	sm_state_purge(f->native);
+	sm_state_purge(s->native);
+	s->standalone = false;
 	return 0;
 }
 
@@ -1367,6 +1512,7 @@ static const struct luaL_Reg smlib_f [] = {
 	{"lookup", lookup_app}, 
 	{"new_apptab", new_apptab},
 	{"new_fsm", new_fsm},
+	{"new_fsmtab", new_fsmtab},
 	{"new_state", new_state},
 	{"new_array", new_array},
 	{NULL, NULL}
@@ -1411,6 +1557,13 @@ int luaopen_sm (lua_State *L) {
 	lua_pushvalue(L, -1);
 	lua_setfield(L, -2, "__index");
 	luaL_setfuncs(L, smfsm_m, 0);
+	lua_newtable(L);
+	lua_setfield(L, -2, "inventory");
+	
+	luaL_newmetatable(L, "sm.fsmtable");
+	lua_pushvalue(L, -1);
+	lua_setfield(L, -2, "__index");
+	luaL_setfuncs(L, smfsmtable_m, 0);
 
 	luaL_newmetatable(L, "sm.state");
 	lua_pushvalue(L, -1);

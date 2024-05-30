@@ -33,6 +33,9 @@ fsm = sm.new_fsm(fsm_str, at, "moore")
 print("FSM:\n")
 print(fsm)
 
+ft = sm.new_fsmtab()
+ft:set(fsm, "fsm0")
+print(ft)
 
 s = sm.new_state(fsm, 16)
 print("State:\n")

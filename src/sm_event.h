@@ -14,7 +14,7 @@ struct sm_queue;
 typedef struct sm_event {
 	SM_EVENT_ID id;
 	struct sm_event *next;
-	bool to_keep;
+	bool disposable;
 	struct sm_queue *home;
 	long long priority[SM_NUM_OF_PRIORITY_STAGES];
 	size_t data_size;

@@ -8,12 +8,14 @@
 #include <stdlib.h>
 #include "sm_sys.h"
 #include "sm_event.h"
+#include "sm_app.h"
 #include "sm_fsm.h"
 #include "../oam/logger.h"
                  
 #define FSM(S) (*(S)->fsm)
 
 // state
+struct sm_process_desc;
 typedef struct sm_state {
 	SM_STATE_ID id;
     struct sm_state *next;
@@ -22,6 +24,7 @@ typedef struct sm_state {
 	sm_event *trace;
 	size_t key_length;
     uint32_t key_hash;
+	struct sm_process_desc *process;
 	size_t data_size;
     void *data;
 } sm_state;
