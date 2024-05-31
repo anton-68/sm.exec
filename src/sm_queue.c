@@ -4,10 +4,11 @@
 
 #include <stdlib.h>	
 #include "sm_queue.h"
+#include "sm_logger.h"
 
 static void enqueue(sm_event * e, sm_queue * q) {
     q->tail->next = e;
-    q->tail = sm_event_tail_end(e);
+    q->tail = e;
     q->tail->next = NULL;
 	q->size++;
 }
@@ -15,11 +16,11 @@ static void enqueue(sm_event * e, sm_queue * q) {
 static sm_event *dequeue(sm_queue * q) {
     sm_event * e = q->head->next;
     if(e != NULL) {
-        q->head->next = sm_event_tail_end(q->head->next)->next;
-        if(sm_event_tail_end(e)->next == NULL)
+        q->head->next = q->head->next->next;
+        if(e->next == NULL)
             q->tail = q->head;
         else
-            sm_event_tail_end(e)->next = NULL;
+            e->next = NULL;
 		q->size--;
     }
     return e;
@@ -61,7 +62,7 @@ sm_queue *sm_queue_create(size_t event_size, size_t num_of_events, bool synchron
 	q->head->next = epool->next;
 	epool->next = NULL;
 	q->size = num_of_events;
-	q->ctl->synchronized = synchronized;
+	q->ctl.synchronized = synchronized;
 	SM_LOCK_INIT(q, sm_queue_free);
     return q;
 }

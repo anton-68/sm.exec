@@ -11,10 +11,6 @@
 #include <unistd.h>
 #include <time.h>
 
-#include <dlfcn.h>
-/* dlopen() flag */
-#define SM_LUA_RTLD_FLAG RTLD_NOW | RTLD_GLOBAL
-
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
@@ -169,6 +165,7 @@ static int DCB_allocate_2d_int_array(lua_State *L) {
 static int DCB_int2d_get(lua_State *L) {
 	SMDCB *dcb = check_sm_DCB(L, 1);
 	void *start = lua_touserdata(L, 2);
+//	if(start < (void *)(dcb->chunk + 1) ||
 	if(start < SM_CHUNK_DATA(dcb->chunk) || 
 	   sm_memory_add_addr(start, sizeof(int)) >= (void *)dcb->chunk->next)
 		return luaL_error(L, "Array start address is outside of chunk boundaries: %p << [%p %p] >> %p",
@@ -1217,7 +1214,7 @@ static int lookup_app(lua_State *L) { // not too much reentrant for the same app
 	if((handle = lua_touserdata(L, 1)) == NULL)
 		return luaL_error(L, "@lookup_app: lua_touserdata() returns NULL");
 	const char *name = luaL_checkstring(L, 2);
-	sm_app a = dlsym(handle, name);
+	sm_app a = sm_app_lookup(handle, name);
 	if(push_app_handler(L, a) != EXIT_SUCCESS) // love this function name))
 		lua_pushnil(L);
 	return 1;
@@ -1290,7 +1287,7 @@ static const struct luaL_Reg smapp_m [] = {
 // stk: file
 static int load_applib(lua_State *L) {
 	const char *fn = luaL_checkstring(L, 1);
-	lua_pushlightuserdata(L, dlopen(fn, SM_LUA_RTLD_FLAG));
+	lua_pushlightuserdata(L, sm_app_loadlib(fn));
 	return 1;
 }
 

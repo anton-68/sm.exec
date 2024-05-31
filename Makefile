@@ -23,28 +23,23 @@ JSMN = lib/jsmn/
 LUAINC = /usr/local/src/lua-5.3.5/
 INCLUDE	= /usr/local/include
 
-#OBJS = 	$(SRC)sm_app.o \
+
 #		$(SRC)sm_array.o \
-#		$(SRC)sm_directory.o \
-#		$(SRC)sm_event.o \
 #		$(SRC)sm_exec.o \
 #		$(SRC)sm_fsm.o \
-#		$(SRC)sm_hash.o \
-#		$(SRC)sm_logger.o \
-#		$(SRC)sm_memory.o \
-#		$(SRC)sm_pqueue.o \
-#		$(SRC)sm_queue.o \
-#		$(SRC)sm_queue2.o \
 #		$(SRC)sm_state.o \
-#		$(SRC)sm_sys.o \
-#		$(JSMN)jsmn.o
 
-OBJS = 	$(SRC)sm_event.o \
+OBJS = 	$(SRC)sm_app.o \
+		$(SRC)sm_directory.o \
+		$(SRC)sm_event.o \
 		$(SRC)sm_hash.o \
 		$(SRC)sm_logger.o \
+		$(SRC)sm_partition.o \
+		$(SRC)sm_pqueue.o \
 		$(SRC)sm_queue.o \
 		$(SRC)sm_queue2.o \
 		$(SRC)sm_sys.o \
+		$(SRC)sm_tape.o \
 		$(JSMN)jsmn.o
 
 comp : $(OBJS)		

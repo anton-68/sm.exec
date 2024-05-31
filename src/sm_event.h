@@ -16,7 +16,7 @@ typedef	struct sm_event	{
 	struct {
 		unsigned int id					 : 16;
 		unsigned int data_offset		 :  8; // in x64 words
-		unsigned int tailed_flag		 :  1;
+		unsigned int tailed_flag		 :  1; // managed by apps
 		unsigned int disposable_flag	 :  1;
 		unsigned int pool_flag		 	 :  1;
 		unsigned int handle_flag		 :  1; // managed by 'handler'
@@ -46,14 +46,7 @@ sm_event *sm_event_ext_create_pool(size_t pool_size,
 void sm_event_free(sm_event *e);
 void sm_event_purge(sm_event *e);
 void sm_event_park(sm_event *e);
-bool sm_event_is_valid(sm_event *e);
 bool sm_event_is_disposable(sm_event *e);
-/* Chaining */
-sm_event *sm_event_tail_end(sm_event *e);
-void sm_event_link(sm_event *e1, sm_event *e2);
-sm_event *sm_event_unlink(sm_event *e);
-sm_event *sm_event_tail(sm_event *e);
-bool sm_event_is_linked(sm_event *e);
 /* Id */
 size_t sm_event_id(sm_event *e);
 void sm_event_set_id(sm_event *e, size_t id);

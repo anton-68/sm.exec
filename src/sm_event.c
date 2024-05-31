@@ -56,8 +56,8 @@ sm_event *sm_event_ext_create(size_t data_size,
 	e->ctl.disposable_flag = disposable_flag;
 	e->ctl.handle_flag = handle_flag;
 	if(home != NULL) {
-		SM_OFFSET(sm_queue *, e, sm_word_t, 2) = home;
 		e->ctl.pool_flag = 1;
+		*SM_WOFFSET(sm_queue *, e, 2) = home;
 	}
 	e->ctl.hash_key_flag = hash_key_flag;
 	e->ctl.priority_flag = priority_flag;									  
@@ -91,50 +91,39 @@ sm_event *sm_event_ext_create_pool(size_t pool_size,
         return epool;
     }
 	sm_event *ehead = epool;
-	while(pool_size--) {
-		epool->next = SM_WOFFSET(sm_event *, epool, _head + offset + size / SM_WORD);
+	pool_size++;
+	while(--pool_size) {
+		epool->next = SM_WOFFSET(sm_event, epool, _head + offset + size / SM_WORD);
 		epool->data_size = (uint32_t)size + offset * SM_WORD;
 		epool->ctl.data_offset = offset;
 		epool->ctl.disposable_flag = disposable_flag;
 		epool->ctl.handle_flag = handle_flag;
 		if(home != NULL) {
-			SM_WOFFSET(sm_queue *, epool, 2) = home;
+			*SM_WOFFSET(sm_queue *, epool, 2) = home;
 			epool->ctl.pool_flag = 1;
 		}
 		epool->ctl.hash_key_flag = hash_key_flag;
 		epool->ctl.priority_flag = priority_flag;
-		epool = epool->next;
+		if(pool_size == 1)
+			epool->next = ehead;
+		else
+			epool = epool->next;
 	}
-	epool = SM_WOFFSET(sm_event *, epool, - (_head + offset + size / SM_WORD));
-	epool->next = ehead;
+	//epool = SM_WOFFSET(sm_event, epool, - (_head + offset + size / SM_WORD));
+	//epool->next = ehead;
 	return epool;
 }
 	
 void sm_event_free(sm_event *e) {
-	sm_event *e1;
-	while(e != NULL) {
-		e1 = sm_event_unlink(e);
-		free(e);
-		e = e1;
-	}
+	free(e);
 }
 
-static void purge(sm_event *e) {
+void sm_event_purge(sm_event *e) {
 	memset((void *)e + _hshk(e), 0, 
 		   (e->ctl.hash_key_flag + e->ctl.priority_flag) * 2 * SM_WORD 
 		    + sm_event_data_size(e));
 	e->ctl.id = 0;
-	//e->ctl.tailed_flag = 0;
 	e->ctl.disposable_flag = 0;
-}
-
-void sm_event_purge(sm_event *e) {
-	sm_event *e1;
-	while(e != NULL) {
-		e1 = sm_event_tail(e);
-		purge(e);
-		e = e1;
-	}
 }
 
 void sm_event_park(sm_event *e) {
@@ -152,49 +141,13 @@ bool sm_event_is_disposable(sm_event *e) {
 	return (bool)e->ctl.disposable_flag;
 }
 
-sm_event *sm_event_tail_end(sm_event *e) {
-	while (e->ctl.tailed_flag)
-		e = e->next;
-	return e;
-}
-
-void sm_event_link(sm_event *e1, sm_event *e2) {
-	if(!e1->ctl.tailed_flag){
-		if(e1->next == NULL) 
-			e1->next = e2;
-		if(e1->next == e2)
-			e1->ctl.tailed_flag = 1;
-	}
-	else {
-		SM_LOG(SM_CORE, SM_LOG_DEBUG, "Failed to link events"); 
-	}
-}
-
-sm_event *sm_event_unlink(sm_event *e) {
-	sm_event *e1 = NULL;
-	if(!e->ctl.tailed_flag) {
-		e1 = e->next;
-		e->next = NULL;
-		e->ctl.tailed_flag = 0;
-	}
-	return e1;
-}
-
-sm_event *sm_event_tail(sm_event *e) {
-	return e->ctl.tailed_flag ? e->next : NULL;
-}
-
-bool sm_event_is_linked(sm_event *e) {
-	return (bool)e->ctl.tailed_flag;
-}
-
 size_t sm_event_id(sm_event *e) {
 	return (size_t)e->ctl.id;
 }
 
 void sm_event_set_id(sm_event *e, size_t id) {
 	if(id > SM_EVENT_ID_MAX)
-		SM_LOG(SM_CORE, SM_LOG_DEBUG, "Event id value exceeds allowed maximum");
+		SM_LOG(SM_CORE, SM_LOG_DEBUG, "Event id exceeding allowed maximum was trunkated");
 	e->ctl.id = (uint16_t)id;
 }
 
@@ -203,23 +156,23 @@ size_t sm_event_data_size(sm_event	*e) {
 }
 
 void *sm_event_data_ptr(sm_event *e) {
-	return SM_WOFFSET(void *, e, _head + e->ctl.data_offset);
+	return SM_WOFFSET(void, e, _head + e->ctl.data_offset);
 }
 
 sm_queue* sm_event_pool_ptr(sm_event *e) {
-	return e->ctl.pool_flag ? SM_WOFFSET(sm_queue *, e, _pull(e)) : NULL;
+	return e->ctl.pool_flag ? SM_WOFFSET(sm_queue, e, _pull(e)) : NULL;
 }
 
 void *sm_event_handle_ptr(sm_event *e) {
-	return e->ctl.handle_flag ? SM_WOFFSET(void *, e, _hndl(e)) : NULL;
+	return e->ctl.handle_flag ? SM_WOFFSET(void, e, _hndl(e)) : NULL;
 }
 
 sm_hash_key *sm_event_hash_key_ptr(sm_event *e) {
-	return e->ctl.hash_key_flag ? SM_WOFFSET(sm_hash_key *, e, _hshk(e)) : NULL;
+	return e->ctl.hash_key_flag ? SM_WOFFSET(sm_hash_key, e, _hshk(e)) : NULL;
 }
 
 sm_event_priority *sm_event_priority_ptr(sm_event *e){ 
-	return e->ctl.priority_flag ? SM_WOFFSET(sm_event_priority *, e, _prrt(e)) : NULL;
+	return e->ctl.priority_flag ? SM_WOFFSET(sm_event_priority, e, _prrt(e)) : NULL;
 }
 
 

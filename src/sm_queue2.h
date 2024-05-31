@@ -5,7 +5,6 @@
 #ifndef SM_QUEUE2_H
 #define SM_QUEUE2_H
 
-#include "sm_logger.h"
 #include "sm_event.h"
 #include "sm_queue.h"
 

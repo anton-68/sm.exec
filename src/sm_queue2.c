@@ -4,6 +4,7 @@
 
 #include <stdlib.h>	
 #include "sm_queue2.h"
+#include "sm_logger.h"
 
 static sm_event *dequeue2(sm_queue2 *q){
 	sm_event * e = q->h[0]->next;
@@ -52,7 +53,7 @@ sm_queue2 *sm_queue2_create(bool synchronized) {
         SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to allocate queue2 header");
         return NULL;
     }
-	q->ctl->synchronized = synchronized;
+	q->ctl.synchronized = synchronized;
 	q->size = 0;
     sm_event * e;
 	for(size_t i = 0; i <= 1; i++) {

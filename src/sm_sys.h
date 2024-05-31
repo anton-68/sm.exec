@@ -28,7 +28,7 @@
 #endif
 
 /* Machine word defs */
-#define SM_WORD 8
+#define SM_WORD (size_t)8
 typedef ptrdiff_t sm_word_t;
 
 /* Timestamp */
@@ -46,6 +46,9 @@ sm_timestamp sm_get_timestamp();
 #define SM_DUMMY_PAYLOAD 0x012357BD
 #define SM_DUMMY_PAYLOAD_SIZE sizeof SM_DUMMY_PAYLOAD
 
+/* Numner of event priority steges */
+#define SM_NUM_OF_PRIORITY_STAGES 2
+
 /* Mutex type */
 #ifndef SM_DEBUG
 #define SM_MUTEX_TYPE PTHREAD_MUTEX_DEFAULT
@@ -58,7 +61,7 @@ sm_timestamp sm_get_timestamp();
 #define SM_COND_NAME empty
 #define SM_ATTR_NAME attr
 #define SM_LOCK_INIT(q, _free) \
-	if((q)->ctl->synchronized){ \
+	if((q)->ctl.synchronized){ \
     	pthread_mutexattr_t SM_ATTR_NAME; \
     	if(pthread_mutexattr_init(&SM_ATTR_NAME) != EXIT_SUCCESS) { \
         	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to create queue mutex attribute"); \
@@ -83,19 +86,19 @@ sm_timestamp sm_get_timestamp();
     	} \
 	}
 #define SM_LOCK_DESTROY(q) \
-	if((q)->ctl->synchronized){ \
+	if((q)->ctl.synchronized){ \
     	pthread_mutex_destroy(&(q)->SM_LOCK_NAME); \
     	pthread_cond_destroy(&(q)->SM_COND_NAME); \
 	}
 #define SM_LOCK(q) \
-	if((q)->ctl->synchronized) { \
+	if((q)->ctl.synchronized) { \
     	if(pthread_mutex_lock(&((q)->SM_LOCK_NAME)) != EXIT_SUCCESS) { \
 			SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to lock mutex"); \
         	return EXIT_FAILURE; \
    		} \
 	}
 #define SM_SIGNAL_UNLOCK(q) \
-	if((q)->ctl->synchronized){ \
+	if((q)->ctl.synchronized){ \
     	if(pthread_cond_signal(&((q)->SM_COND_NAME)) != EXIT_SUCCESS) { \
 			SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to signal conditional"); \
         	return EXIT_FAILURE; \
@@ -106,7 +109,7 @@ sm_timestamp sm_get_timestamp();
     	} \
 	}
 #define SM_LOCK_WAIT(q, _expr) \
-	if((q)->ctl->synchronized){ \
+	if((q)->ctl.synchronized){ \
     	int __tl_result = pthread_mutex_lock(&((q)->SM_LOCK_NAME)); \
     	if(__tl_result != EXIT_SUCCESS) { \
         	SM_LOG(SM_CORE, SM_LOG_ERR, "Failed to lock mutex"); \
@@ -138,11 +141,12 @@ sm_timestamp sm_get_timestamp();
 #define SM_FLOOR(X, Y) ((X) + ((X) + (Y)) / 2) / (Y)
 
 /* Alignment */
-#define SM_ALIGN(K, L) SM_CEILING((K), (L)) * (L)
-#define SM_OFFSET(T1, A, T2, O) *(T1*)((T2*)(A) + (ptrdiff_t)(O))
+#define SM_ALIGN(K, L) (SM_CEILING((size_t)(char *)(K), (L)) * (L))
+#define SM_OFFSET(T1, A, T2, O) (T1*)((T2*)(A) + (ptrdiff_t)(O))
 #define SM_WOFFSET(T1, A, O) SM_OFFSET(T1, A, sm_word_t, O) 
 
-
+/* dlopen() flag */
+#define SM_APP_RTLD_FLAG RTLD_NOW | RTLD_GLOBAL
 
 
 

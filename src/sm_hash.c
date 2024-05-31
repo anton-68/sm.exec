@@ -1,7 +1,8 @@
 /* SM.EXEC
    anton.bondarenko@gmail.com 
    Hash function by Bob Jenkins: 
-   http://burtleburtle.net/bob/c/lookup3.c */
+   http://burtleburtle.net/bob/c/lookup3.c 
+   https://en.wikipedia.org/wiki/Jenkins_hash_function */
 
 #include "sm_hash.h"
 

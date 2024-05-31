@@ -5,7 +5,6 @@
 #ifndef SM_QUEUE_H
 #define SM_QUEUE_H
 
-#include "sm_logger.h"
 #include "sm_event.h"
 
 typedef struct sm_queue {
