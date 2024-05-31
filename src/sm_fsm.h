@@ -7,7 +7,7 @@
 
 #include <stdint.h> 
 #include "sm_app.h"
-#inckude "sm_event.h"
+#include "sm_event.h"
 #include "sm_state.h"
 
 // DEPRECATED [[

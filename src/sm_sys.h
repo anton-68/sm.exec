@@ -24,7 +24,7 @@
 #if __STDC_VERSION__ >= 199901L
 	#include <stdbool.h>
 #else
-	typedef enum { false, true} bool;
+	typedef enum {false, true} bool;
 #endif
 
 /* Machine word defs */
@@ -35,12 +35,15 @@ typedef ptrdiff_t sm_word_t;
 typedef struct sm_timestamp{
     time_t seconds;
     long microseconds;
-    char timestring[32];
+    char timestring[64];
 } sm_timestamp;
 sm_timestamp sm_get_timestamp();
 
 /* Maximal event id */
 #define SM_EVENT_ID_MAX UINT16_MAX
+
+/* Maximal event data size */
+#define SM_EVENT_MAX_DATA_SIZE (1<<24 - 1)
 
 /* Dummy event payload for queues*/
 #define SM_DUMMY_PAYLOAD 0x012357BD
@@ -48,6 +51,9 @@ sm_timestamp sm_get_timestamp();
 
 /* Numner of event priority steges */
 #define SM_NUM_OF_PRIORITY_STAGES 2
+
+/* Event priority type */
+typedef long int sm_event_priority;
 
 /* Mutex type */
 #ifndef SM_DEBUG
@@ -148,11 +154,13 @@ sm_timestamp sm_get_timestamp();
 /* dlopen() flag */
 #define SM_APP_RTLD_FLAG RTLD_NOW | RTLD_GLOBAL
 
-
-
-
-
-
+/* Hex object type identifying sequences */
+#define SM_ARRAY_TYPE_CODE  0x7ff0
+#define SM_QUEUE_TYPE_CODE  0x7ff1
+#define SM_QUEUE2_TYPE_CODE 0x7ff2
+#define SM_PQUEUE_TYPE_CODE 0x7ff3
+#define SM_FSM_TYPE_CODE    0x7fff
+#define SM_EVENT_TYPE_CODE  0x7ffe
 
 /* JSON Parser 
    not defined == dynamic allocation */
@@ -161,10 +169,6 @@ sm_timestamp sm_get_timestamp();
 
 /* Multithreading */
 #define TL_MUTEX_DEBUG
-
-
-
-
 
 /* State Array hash key length */
 #define SM_STATE_HASH_KEYLEN 256
