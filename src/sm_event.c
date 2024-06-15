@@ -1,73 +1,97 @@
-/* SM.EXEC
-   Event module   
-   (c) anton.bondarenko@gmail.com */
+/* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
+Event class
+-------------------------------------------------------------------------------
+Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
+-------------------------------------------------------------------------------
+SPDX-License-Identifier: LGPL-3.0-only */
 
-#include <stdlib.h>         // malloc(), free(), NULL, size_t, 
-#include <string.h>         // memset()
-
-#include "sm_logger.h"
 #include "sm_event.h"
-#include "sm_queue.h"
-//#include "sm_memory.h"
 
-/* sm_event */
+// Private methods
 
-sm_event *sm_event_create(uint32_t payload_size) {
-    sm_event *e;
-    if((e = malloc(sizeof(sm_event))) == NULL) {
-        REPORT(ERROR, "malloc()");
+static inline size_t sm_event_sizeof(sm_event *e)
+{
+    return sizeof(sm_event) + SM_WORD * (e->ctl.Q + e->ctl.K + 
+                                         e->ctl.P + e->ctl.H * 2)
+                            + 8 * e->ctl.K
+                            + SM_EVENT_DATA_SIZE(e);
+}
+
+
+// Public methods
+
+sm_event *sm_event_copy(sm_event *e) 
+{
+    sm_event *new_e;
+    if ((new_e = (sm_event *)malloc(sm_event_sizeof(e))) == NULL)
+    {
+        //REPORT(ERROR, "malloc()");
+        printf("malloc()!\n");
         return e;
     }
-/*    if(SM_MEMORY_MANAGER)
-        e->data_size = sm_memory_size_align(payload_size, sizeof(sm_chunk));
-    else */
-        e->data_size = payload_size;
-    if(e->data_size > 0) {
-        if ((e->data = malloc(e->data_size)) == NULL) {
-            REPORT(ERROR, "malloc()");
-            free(e);
-            return NULL;
-        }
-        memset(e->data, 0, e->data_size);
-    }
-    else {
-        e->data = NULL;
-    }
-    e->next = NULL;
-    e->id = 0;
-    for (int stage = 0; stage < SM_NUM_OF_PRIORITY_STAGES; stage++)
-        e->priority[stage] = 0;
-    e->home = NULL;
-    e->key = NULL;
-    e->key_hash = 0;
-    e->key_length = 0;
-    e->disposable = true;
-    return e;    
+    memset(new_e, 0, sm_event_sizeof(e));
+    new_e->next = NULL;
+    new_e->app_id = e->app_id;
+    new_e->event_id = e->event_id;
+    new_e->type = e->type;
+    return new_e;
 }
 
-int sm_event_set_key(sm_event *e, const void *key, size_t key_length) {
-    memset(e->key, '\0', SM_STATE_HASH_KEYLEN);
-    e->key_length = MIN(key_length, SM_STATE_HASH_KEYLEN);
-    memcpy(e->key, key, MIN(key_length, e->key_length));
-    return EXIT_SUCCESS;
+sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H) 
+{
+    sm_event header;
+    header.next = NULL;
+    header.app_id = 0;
+    header.event_id = 0;
+    header.ctl.size = size >> 6;
+    header.ctl.Q = Q;
+    header.ctl.K = K;
+    header.ctl.P = P;
+    header.ctl.H = H;
+    header.ctl.L = false;
+    header.ctl.D = true;
+    return sm_event_copy(&header);
 }
-    
-void sm_event_free(sm_event *e) {
-    free(e->data);
+
+void sm_event_free(sm_event *e)
+{
     free(e);
     e = NULL;
+} 
+
+void sm_event_wipe(sm_event *e)
+{
+    uint32_t type = e->type;
+    memset(e, 0, sm_event_sizeof(e));
+    e->type = type;
 }
 
-void sm_event_park(sm_event *e) {
-    if(e->home == NULL)
-        sm_event_free(e);
-    else {
-        if(e->key != NULL) 
-            free(e->key);
-        e->key_length = 0;
-        e->key_hash = 0;
-        memset(e->data, 0, e->data_size);
-        sm_queue_enqueue(e, e->home);
+int sm_event_to_string(sm_event *e, char *buffer) {
+    char *s = buffer;
+    s += sprintf(s, "address: %p\n", e);
+    s += sprintf(s, "next: %p\n", e->next);
+    s += sprintf(s, "app_id: %u\n", e->app_id);
+    s += sprintf(s, "event_id: %u\n", e->event_id);
+    s += sprintf(s, "size: %u B\n", e->ctl.size * 64);
+    if(e->ctl.Q)
+        s += sprintf(s, "depot addr: %p\n", SM_EVENT_DEPOT(e));
+    if (e->ctl.K) 
+    {
+        s += sprintf(s, "key string: %s\n", SM_EVENT_KEY_STRING(e)  != NULL ?
+                                                 SM_EVENT_KEY_STRING(e) : "\0");
+        s += sprintf(s, "key length: %d\n", SM_EVENT_KEY_LENGTH(e));
+        s += sprintf(s, "key hash: 0x%X\n", SM_EVENT_KEY_HASH(e));
     }
+    if (e->ctl.P) 
+    {
+        s += sprintf(s, "priority[0]: %lu\n", SM_EVENT_PRIORITY_0(e));
+        s += sprintf(s, "priority[1]: %lu\n", SM_EVENT_PRIORITY_1(e));
+    }
+    if (e->ctl.H)
+        s += sprintf(s, "handle: %p\n", SM_EVENT_HANDLE(e));
+    s += sprintf(s, "linked: %s\n", e->ctl.L ? "true" : "false");
+    s += sprintf(s, "disposable: %s\n", e->ctl.D ? "true" : "false");
+    if (e->ctl.size)
+        s += snprintf(s, /*SM_EVENT_DATA_SIZE(e) +*/ 40, "data: \n[%s]\n", (char *)SM_EVENT_DATA(e));
+    return (int)((char *)s - (char *)buffer);
 }
-

@@ -1,12 +1,13 @@
-/* SM.EXEC
-   Queues   
-   anton.bondarenko@gmail.com */
+/* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
+Queue class
+-------------------------------------------------------------------------------
+Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
+-------------------------------------------------------------------------------
+SPDX-License-Identifier: LGPL-3.0-only */
 
 #include <stdlib.h>			// malloc-free
-
 #include "sm_queue.h"
-
-/* queue */
+// #include "sm_logger.h"
 
 // Private methods
 
@@ -18,12 +19,12 @@ static sm_event *dequeue(sm_queue *q);
 sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchronized) {
     sm_queue *q;
     if((q = malloc(sizeof(sm_queue))) == NULL) {
-        REPORT(ERROR, "malloc()");
+        //REPORT(ERROR, "malloc()");
         return NULL;
     }    
     sm_event * e;
     if((e = sm_event_create(TL_DUMMY_PAYLOAD_SIZE)) == NULL) {
-        REPORT(ERROR, "event_create()");
+        //REPORT(ERROR, "event_create()");
         free(q);
         return NULL;
     }
@@ -45,22 +46,22 @@ sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchr
 	if(q->synchronized){
     	pthread_mutexattr_t attr;
     	if(pthread_mutexattr_init(&attr) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutexattr_init()");
+        	//REPORT(ERROR, "pthread_mutexattr_init()");
         	sm_queue_free(q);
         	return NULL;
     	}
     	if(pthread_mutexattr_settype(&attr, TL_MUTEX_TYPE) != EXIT_SUCCESS){
-        	REPORT(ERROR, "pthread_mutexattr_settype()");
+        	//REPORT(ERROR, "pthread_mutexattr_settype()");
         	sm_queue_free(q);
         	return NULL;
     	}    
     	if(pthread_mutex_init(&(q->lock), &attr) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_init()");
+        	//REPORT(ERROR, "pthread_mutex_init()");
         	sm_queue_free(q);
         	return NULL;
     	}
     	if(pthread_cond_init(&(q->empty),NULL) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_cond_init()");
+        	//REPORT(ERROR, "pthread_cond_init()");
         	pthread_cond_signal(&q->empty);
         	sm_queue_free(q);
         	return NULL;
@@ -102,18 +103,18 @@ void enqueue(sm_event * e, sm_queue * q) {
 int sm_queue_enqueue(sm_event * e, sm_queue * q){
 	if(q->synchronized){
     	if(pthread_mutex_lock(&(q->lock)) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_lock()");
+        	//REPORT(ERROR, "pthread_mutex_lock()");
         	return EXIT_FAILURE;
    		}
 	}
     enqueue(e, q);
 	if(q->synchronized){
     	if(pthread_cond_signal(&(q->empty)) != EXIT_SUCCESS) {
-       		REPORT(ERROR, "pthread_cond_signal()");
+       		//REPORT(ERROR, "pthread_cond_signal()");
         	return EXIT_FAILURE;
     	}
     	if(pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_unlock()");
+        	//REPORT(ERROR, "pthread_mutex_unlock()");
         	return EXIT_FAILURE;
     	}
 	}
@@ -138,19 +139,19 @@ sm_event *sm_queue_dequeue(sm_queue * q) {
 	if(q->synchronized){
     	int __tl_result = pthread_mutex_lock(&(q->lock));
     	if(__tl_result != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_lock()");
+        	//REPORT(ERROR, "pthread_mutex_lock()");
         	return NULL;
     	}
     	while((e = dequeue(q)) == NULL) {
         	__tl_result = pthread_cond_wait(&(q->empty), &(q->lock));
         	if (__tl_result != EXIT_SUCCESS) {
-            	REPORT(ERROR, "pthread_cond_wait()");
+            	//REPORT(ERROR, "pthread_cond_wait()");
             	return NULL;
         	}
     	}
     	__tl_result = pthread_mutex_unlock(&(q->lock));
     	if(__tl_result != EXIT_SUCCESS) {
-        	REPORT(ERROR, "pthread_mutex_unlock()");
+        	//REPORT(ERROR, "pthread_mutex_unlock()");
         	// enqueue(e, q); 
 			if (e != NULL){
 				e->next = q->head->next;

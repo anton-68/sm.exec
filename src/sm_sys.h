@@ -1,13 +1,23 @@
-/* SM.EXEC
-   Some system utilities and definintions
-   (c) anton.bondarenko@gmail.com */
+/* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
+System-цшву utilities and definintions
+-------------------------------------------------------------------------------
+Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
+-------------------------------------------------------------------------------
+SPDX-License-Identifier: LGPL-3.0-only */
 
 #ifndef SM_SYS_H
 #define SM_SYS_H
 
+#include <math.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 //static void * __sm_tx_desc = NULL;
 //static __thread void * sm_tx_desc = &__sm_tx_desc;
@@ -60,6 +70,10 @@ char sm_buffer[SM_OUTPUT_BUF_LEN];
 unsigned long get_tid();
 void get_tid_str(char *);
 
+/* System word (ILP64 and LP32) */
+#define SM_WORD sizeof(unsigned long)
+
+// DEPRECATED
 /* Allocation boundary */
 #define SM_MEMORY_WORD 8
 
@@ -80,7 +94,7 @@ uint32_t sm_ipstr_to_id(const char* const ip);
 #define SM_STATE_DATA_SIZE 4096
 
 /* SM Default event descriptor data size */
-#define SM_EVENT_DATA_SIZE 4096
+// #define SM_EVENT_DATA_SIZE 4096
 
 /* SM Simple memory manager usage flag 
    Restrict data block sizes for events, states and exec descriptor */

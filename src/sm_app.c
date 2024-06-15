@@ -1,6 +1,10 @@
-/* SM.EXEC
-   Apps
-   (c) anton.bondarenko@gmail.com */
+/* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
+Application function prototype and application table class
+NOTE: The app_table class is deprecated, use the sm_directory class instead.
+-------------------------------------------------------------------------------
+Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
+-------------------------------------------------------------------------------
+SPDX-License-Identifier: LGPL-3.0-only */
 
 // #include <stdint.h>
 #include <stdlib.h>
@@ -14,7 +18,8 @@
 // DEPRECATED [
 // Private methods
 
-static sm_app_table *find_record(sm_app_table *t, const char *name) {
+static sm_app_table *find_record(sm_app_table *t, const char *name) 
+{
 	sm_app_table *r = t;
 	while (r != NULL && strcmp(r->name, name)){
 		r = r->next;
@@ -24,7 +29,8 @@ static sm_app_table *find_record(sm_app_table *t, const char *name) {
 
 // Public methods
 
-sm_app_table *sm_app_table_create() {
+sm_app_table *sm_app_table_create() 
+{
 /*	sm_app_table *t;
     if((t = malloc(sizeof(sm_app_table))) == NULL) {
         REPORT(ERROR, "malloc()");
@@ -35,10 +41,12 @@ sm_app_table *sm_app_table_create() {
 	t->prev = NULL;
 	t->next = NULL;
 	return t;          */
+/* So far this is just a plain list w/o ditinct head and tail */
 	return NULL;
 }
 		
-sm_app_table *sm_app_table_set(sm_app_table *t, const char *name, sm_app app){
+sm_app_table *sm_app_table_set(sm_app_table *t, const char *name, sm_app app)
+{
 	sm_app_table *r;
 	if(t == NULL)
 		r = NULL;
@@ -77,7 +85,8 @@ sm_app_table *sm_app_table_set(sm_app_table *t, const char *name, sm_app app){
 	return t;
 }
 	
-sm_app *sm_app_table_get_ref(sm_app_table *t, const char *name) {	
+sm_app *sm_app_table_get_ref(sm_app_table *t, const char *name) 
+{	
 	sm_app_table *tr = find_record(t, name);
 	if (tr == NULL)
 		return NULL;
@@ -85,7 +94,8 @@ sm_app *sm_app_table_get_ref(sm_app_table *t, const char *name) {
 		return tr->ref;
 }
 
-void sm_app_table_remove(sm_app_table *t, const char *name) {
+void sm_app_table_remove(sm_app_table *t, const char *name) 
+{
 	sm_app_table *tr = find_record(t, name);
 	if (tr != NULL) {
 		tr->prev->next = tr->next;
@@ -95,7 +105,8 @@ void sm_app_table_remove(sm_app_table *t, const char *name) {
 	}
 }
 
-void sm_app_table_free(sm_app_table *t) {
+void sm_app_table_free(sm_app_table *t) 
+{
 	sm_app_table *tmp;
 	while(t != NULL) {
 		tmp = t->next;
@@ -103,4 +114,4 @@ void sm_app_table_free(sm_app_table *t) {
 		t = tmp;
 	}
 }
-//]
+//] DEPRECATED

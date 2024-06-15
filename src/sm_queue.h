@@ -1,14 +1,14 @@
-/* SM.EXEC
-   Queue module
-   anton.bondarenko@gmail.com */
+/* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
+Queue class
+-------------------------------------------------------------------------------
+Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
+-------------------------------------------------------------------------------
+SPDX-License-Identifier: LGPL-3.0-only */
 
 #ifndef SM_QUEUE_H
 #define SM_QUEUE_H
 
 #include "sm_event.h"
-#include "sm_logger.h"
-
-/* sm_queue */
 
 typedef struct sm_queue {
     pthread_mutex_t lock;
