@@ -16,6 +16,9 @@
 *.gch
 *.pch
 
+# Backup files
+*.drawio.bkp
+
 # Libraries
 *.lib
 *.a
