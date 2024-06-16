@@ -15,11 +15,14 @@
 // DEPRECATED:
 //#define SM_STATE_FSM(S) (*(S)->fsm)
 //#define SM_STATE_EVENT_ID(s, e) (e)->id >= SM_STATE_FSM(s)->num_of_nodes ? SM_STATE_FSM(s)->omega : (e)->id
- 
+
+#define SM_STATE_HASH_KEYLEN 256
+
 // state
 struct sm_tx;
 typedef struct sm_state {
-    SM_STATE_ID id;
+    //SM_STATE_ID id;
+    uint16_t id; //??
     struct sm_state *next;
     sm_fsm **fsm;
     void *key;

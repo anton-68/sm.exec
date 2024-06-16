@@ -11,6 +11,8 @@
 
 // simple memory manager
 
+typedef uint32_t SM_ID;
+
 // sm_chunk
 typedef struct sm_chunk {
 	struct sm_chunk *next;

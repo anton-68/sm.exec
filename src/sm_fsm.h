@@ -13,6 +13,10 @@
 //#include "sm_state.h"
 #include "sm_logger.h"
 
+/* FSM pretty print buffer */
+#define SM_OUTPUT_BUF_LEN (1024 * 32)
+char sm_buffer[SM_OUTPUT_BUF_LEN];
+
 //DEPRECATED ??
 //#define SM_FSM(S) (*(S)->fsm)
 //#define SM_FSM_EVENT_ID(s, e) (e)->id >= SM_FSM(s)->num_of_nodes ? 0 : (e)->id

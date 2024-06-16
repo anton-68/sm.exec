@@ -50,7 +50,7 @@ sm_queue *sm_queue_create(size_t event_size, unsigned num_of_events, bool synchr
         	sm_queue_free(q);
         	return NULL;
     	}
-    	if(pthread_mutexattr_settype(&attr, TL_MUTEX_TYPE) != EXIT_SUCCESS){
+    	if(pthread_mutexattr_settype(&attr, SM_MUTEX_TYPE) != EXIT_SUCCESS){
         	//REPORT(ERROR, "pthread_mutexattr_settype()");
         	sm_queue_free(q);
         	return NULL;

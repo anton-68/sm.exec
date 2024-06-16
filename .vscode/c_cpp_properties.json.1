@@ -2,24 +2,23 @@
     "configurations": [
         {
             "name": "Linux",
-            "compilerPath": "/usr/bin/gcc",
-            "compilerArgs": [],
-            "intelliSenseMode": "linux-gcc-x86",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include"
+                "/usr/lib/gcc/x86_64-linux-gnu/9/include",
+                "/usr/include/**"
             ],
             "defines": [],
-            "cStandard": "gnu11",
-            "cppStandard": "gnu++14",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "cStandard": "c11",
             "browse": {
                 "path": [
                     "/usr/lib/gcc/x86_64-linux-gnu/9/include",
                     "/usr/include/**"
                 ]
-            }
+            },
+            "compilerPath": "/usr/bin/gcc"
         }
     ],
-    "enableConfigurationSquiggles": true,
     "version": 4
 }

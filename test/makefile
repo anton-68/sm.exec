@@ -7,16 +7,23 @@
 
 CC = gcc
 INCLUDE	= /usr/local/include
-CFLAGS = -fPIC -O2 -g -Wall
-DFLAGS = -fPIC -O0 -ggdb -Wall -Werror
+CFLAGS = -std=gnu11 -fPIC -O2 -g -Wall 
+DFLAGS = -std=gnu11 -fPIC -O0 -ggdb -Wall -Werror
 
 SRC = ../src/
 OBJS = 	$(SRC)sm_event.o \
-		$(SRC)sm_sys.o \
-		test_event.o
+		$(SRC)sm_logger.o \
+		$(SRC)sm_sys.o
+TEST_OBJS =	test_event.o \
+			test_sys.o
 
-test_event : $(OBJS)
-	$(CC) $(OBJS) -o test_event
+all : test_event test_sys clean
+
+test_event : $(OBJS) test_event.o
+	$(CC) $(OBJS) test_event.o -o test_event
+
+test_sys : $(OBJS) test_sys.o
+	$(CC) $(OBJS) test_sys.o -o test_sys
 
 %.o : %.c
 	$(CC) -c $< -o $@ $(DFLAGS) -I$(INCLUDE)
@@ -24,3 +31,4 @@ test_event : $(OBJS)
 .PHONY : clean
 clean :
 	rm -f $(OBJS)
+	rm -f $(TEST_OBJS)

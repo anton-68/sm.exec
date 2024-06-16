@@ -25,8 +25,7 @@ sm_event *sm_event_copy(sm_event *e)
     sm_event *new_e;
     if ((new_e = (sm_event *)malloc(sm_event_sizeof(e))) == NULL)
     {
-        //REPORT(ERROR, "malloc()");
-        printf("malloc()!\n");
+        SM_REPORT(SM_LOG_ERR, "malloc() returned NULL");
         return e;
     }
     memset(new_e, 0, sm_event_sizeof(e));
@@ -34,6 +33,7 @@ sm_event *sm_event_copy(sm_event *e)
     new_e->app_id = e->app_id;
     new_e->event_id = e->event_id;
     new_e->type = e->type;
+    SM_REPORT(SM_LOG_DEBUG, "sm_event copied successfully");
     return new_e;
 }
 
@@ -50,6 +50,7 @@ sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H)
     header.ctl.H = H;
     header.ctl.L = false;
     header.ctl.D = true;
+    SM_REPORT(SM_LOG_DEBUG, "sm_event created successfully");
     return sm_event_copy(&header);
 }
 
@@ -68,6 +69,7 @@ void sm_event_wipe(sm_event *e)
 
 int sm_event_to_string(sm_event *e, char *buffer) {
     char *s = buffer;
+    char data_buffer[32];
     s += sprintf(s, "address: %p\n", e);
     s += sprintf(s, "next: %p\n", e->next);
     s += sprintf(s, "app_id: %u\n", e->app_id);
@@ -91,7 +93,10 @@ int sm_event_to_string(sm_event *e, char *buffer) {
         s += sprintf(s, "handle: %p\n", SM_EVENT_HANDLE(e));
     s += sprintf(s, "linked: %s\n", e->ctl.L ? "true" : "false");
     s += sprintf(s, "disposable: %s\n", e->ctl.D ? "true" : "false");
-    if (e->ctl.size)
-        s += snprintf(s, /*SM_EVENT_DATA_SIZE(e) +*/ 40, "data: \n[%s]\n", (char *)SM_EVENT_DATA(e));
+    
+    if (e->ctl.size > 0) {
+        snprintf(data_buffer, 32, "%s", (char *)SM_EVENT_DATA(e));
+        s += sprintf(s, "data:\n[%s ...]\n", data_buffer);
+    }
     return (int)((char *)s - (char *)buffer);
 }

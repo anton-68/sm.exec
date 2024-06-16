@@ -3,5 +3,45 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"files.associations": {
+			"*.COBOL*": "cobol",
+			"*.COB*": "cobol",
+			"*.COBCOPY*": "cobol",
+			"*.COPYBOOK*": "cobol",
+			"*.COPY*": "cobol",
+			"*.PL1*": "pl1",
+			"*.PLI*": "pl1",
+			"*.INC*": "pl1",
+			"*.INCLUDE*": "pl1",
+			"*.JCL*": "jcl",
+			"*.ASM*": "hlasm",
+			"*.ASSEMBLE*": "hlasm",
+			"*.HLASM*": "hlasm",
+			"*.HLA*": "hlasm",
+			"*.MACRO*": "hlasm",
+			"*.MACLIB*": "hlasm",
+			"device.h": "c",
+			"io.h": "c",
+			"assert.h": "c",
+			"zephyr.h": "c",
+			"kernel.h": "c",
+			"kernel_includes.h": "c",
+			"init.h": "c",
+			"sensor.h": "c",
+			"errno.h": "c",
+			"mpu9250_ext.h": "c",
+			"ak8963.h": "c",
+			"math.h": "c",
+			"cmath": "c",
+			"complex": "c",
+			"ak8963_ext.h": "c",
+			"time.h": "c",
+			"features.h": "c",
+			"stdio.h": "c",
+			"sm_event.h": "c",
+			"cstdlib": "c"
+		}
+	}
 }

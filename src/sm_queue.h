@@ -10,6 +10,9 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_event.h"
 
+#define SM_MUTEX_TYPE PTHREAD_MUTEX_DEFAULT
+                   /* PTHREAD_MUTEX_ERRORCHECK */
+
 typedef struct sm_queue {
     pthread_mutex_t lock;
     pthread_cond_t empty;

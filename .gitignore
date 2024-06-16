@@ -18,6 +18,7 @@
 
 # Backup files
 *.drawio.bkp
+*.drawio.dtmp
 
 # Libraries
 *.lib
