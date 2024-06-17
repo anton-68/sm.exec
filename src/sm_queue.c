@@ -71,7 +71,8 @@ sm_queue *sm_queue_create(uint32_t event_size,
         	return NULL;
     	}
 	}
-    return q;
+	SM_REPORT(SM_LOG_DEBUG, "sm_queue created");
+	return q;
 }
 
 void sm_queue_free(sm_queue *q) {
@@ -87,6 +88,7 @@ void sm_queue_free(sm_queue *q) {
     	pthread_cond_destroy(&q->empty);
     	free(q);
 	}
+	SM_REPORT(SM_LOG_DEBUG, "sm_queue purged");
 }
 
 size_t sm_queue_size(sm_queue * q) {
@@ -122,7 +124,8 @@ int sm_queue_enqueue(sm_event * e, sm_queue * q){
 			return EXIT_FAILURE;
     	}
 	}
-    return EXIT_SUCCESS;
+	SM_REPORT(SM_LOG_DEBUG, "event enqueed");
+	return EXIT_SUCCESS;
 }
 
 sm_event *dequeue(sm_queue * q) {
@@ -135,7 +138,7 @@ sm_event *dequeue(sm_queue * q) {
             e->next = NULL;
 		q->size--;
     }
-    return e;
+	return e;
 }
 
 sm_event *sm_queue_dequeue(sm_queue * q) {
@@ -174,7 +177,8 @@ sm_event *sm_queue_dequeue(sm_queue * q) {
 	}
 	else
 		e = dequeue(q);
-    return e;
+	SM_REPORT(SM_LOG_DEBUG, "event dequeued");
+	return e;
 }
 
 int sm_queue_to_string(sm_queue *q, char *buffer)

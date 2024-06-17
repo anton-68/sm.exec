@@ -38,7 +38,7 @@ sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H)
     }
     memset(e, 0, sm_event_sizeof(&header));
     e->type = header.type;
-    SM_REPORT(SM_LOG_DEBUG, "sm_event created successfully");
+    SM_REPORT(SM_LOG_DEBUG, "sm_event created");
     return e;
 }
 
@@ -46,6 +46,7 @@ void sm_event_free(sm_event *e)
 {
     free(e);
     e = NULL;
+    SM_REPORT(SM_LOG_DEBUG, "sm_event purged");
 } 
 
 void sm_event_wipe(sm_event *e)

@@ -76,6 +76,7 @@ int main()
         printf("Dequeved event\n=====\ntype: %u\n%s\n", e0->type, b);
         sm_queue_to_string(q0, b);
         printf("Queue -1\n=====\n%s\n", b);
+        sm_event_free(e0);
     }
 
     printf("q0 = %p\n", q0);
@@ -93,10 +94,10 @@ int main()
         e0 = sm_queue_dequeue(q0);
         sm_event_to_string(e0, b);
         printf("Dequeved event\n=====\ntype: %u\n%s\n", e0->type, b);
+        sm_event_free(e0);
     }
     printf("q0.size = %lu\n", sm_queue_size(q0));
 
     // delete q0
     sm_queue_free(q0);
-    sm_event_free(e0);
 }
