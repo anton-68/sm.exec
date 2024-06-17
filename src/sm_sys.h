@@ -34,6 +34,10 @@ sm_timestamp sm_get_timestamp();
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) >= (Y)) ? (X) : (Y))
 
+/* Mutex type */
+#define SM_MUTEX_TYPE PTHREAD_MUTEX_DEFAULT
+                   /* PTHREAD_MUTEX_ERRORCHECK */
+
 /* Thread ID */
 unsigned long get_tid();
 void get_tid_str(char *);

@@ -20,29 +20,9 @@ static inline size_t sm_event_sizeof(sm_event *e)
 
 // Public methods
 
-sm_event *sm_event_copy(sm_event *e) 
-{
-    sm_event *new_e;
-    if ((new_e = (sm_event *)malloc(sm_event_sizeof(e))) == NULL)
-    {
-        SM_REPORT(SM_LOG_ERR, "malloc() returned NULL");
-        return e;
-    }
-    memset(new_e, 0, sm_event_sizeof(e));
-    new_e->next = NULL;
-    new_e->app_id = e->app_id;
-    new_e->event_id = e->event_id;
-    new_e->type = e->type;
-    SM_REPORT(SM_LOG_DEBUG, "sm_event copied successfully");
-    return new_e;
-}
-
-sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H) 
+sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H)
 {
     sm_event header;
-    header.next = NULL;
-    header.app_id = 0;
-    header.event_id = 0;
     header.ctl.size = size >> 6;
     header.ctl.Q = Q;
     header.ctl.K = K;
@@ -50,8 +30,16 @@ sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H)
     header.ctl.H = H;
     header.ctl.L = false;
     header.ctl.D = true;
+    sm_event *e;
+    if ((e = malloc(sm_event_sizeof(&header))) == NULL)
+    {
+        SM_REPORT(SM_LOG_ERR, "malloc() failed");
+        return NULL;
+    }
+    memset(e, 0, sm_event_sizeof(&header));
+    e->type = header.type;
     SM_REPORT(SM_LOG_DEBUG, "sm_event created successfully");
-    return sm_event_copy(&header);
+    return e;
 }
 
 void sm_event_free(sm_event *e)

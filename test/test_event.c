@@ -1,5 +1,5 @@
 /* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
-Sys module tests
+Event module tests
 -------------------------------------------------------------------------------
 Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 -------------------------------------------------------------------------------
@@ -32,12 +32,10 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
     printf("Event\n=====\ntype: %u\n%s\n", e->type, b);
 
-    sm_event *e_copy = sm_event_copy(e);
-    strcpy(SM_EVENT_DATA(e_copy), "Test event copy");
-    sm_event_to_string(e_copy, b);
+    strcpy(SM_EVENT_DATA(e), "Test event data access");
+    sm_event_to_string(e, b);
 
-    printf("Event\n=====\ntype: %u\n%s\n", e_copy->type, b);
+    printf("Event\n=====\ntype: %u\n%s\n", e->type, b);
 
     sm_event_free(e);
-    sm_event_free(e_copy);
 }

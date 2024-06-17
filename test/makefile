@@ -7,26 +7,35 @@
 
 CC = gcc
 INCLUDE	= /usr/local/include
-CFLAGS = -std=gnu11 -fPIC -O2 -g -Wall 
-DFLAGS = -std=gnu11 -fPIC -O0 -ggdb -Wall -Werror
+CFLAGS = -std=gnu11 -fPIC -O2 -g -Wall -pthread
+DFLAGS = -std=gnu11 -fPIC -O0 -ggdb -Wall -Werror -pthread
+LFLAGS = -pthread
+LIBS = -lpthread -lm
 
 SRC = ../src/
-OBJS = 	$(SRC)sm_event.o \
+
+OBJS = 	$(SRC)sm_sys.o \
 		$(SRC)sm_logger.o \
-		$(SRC)sm_sys.o
-TEST_OBJS =	test_event.o \
-			test_sys.o
+		$(SRC)sm_event.o \
+		$(SRC)sm_queue.o
+		
+TEST_OBJS =	test_sys.o \
+			test_event.o \
+			test_queue.o
 
-all : test_event test_sys clean
-
-test_event : $(OBJS) test_event.o
-	$(CC) $(OBJS) test_event.o -o test_event
+all : test_sys test_event test_queue clean
 
 test_sys : $(OBJS) test_sys.o
-	$(CC) $(OBJS) test_sys.o -o test_sys
+	$(CC) $(LFLAGS) $(OBJS) test_sys.o -o test_sys
+
+test_event : $(OBJS) test_event.o
+	$(CC) $(LFLAGS) $(OBJS) test_event.o -o test_event
+
+test_queue : $(OBJS) test_queue.o
+	$(CC) $(LFLAGS) $(OBJS) test_queue.o $(LIBS) -o test_queue
 
 %.o : %.c
-	$(CC) -c $< -o $@ $(DFLAGS) -I$(INCLUDE)
+	$(CC) $(LFLAGS) -c $< -o $@ $(DFLAGS) -I$(INCLUDE)
 
 .PHONY : clean
 clean :

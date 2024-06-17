@@ -1,5 +1,5 @@
 /* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
-Event class tests
+Sys module tests
 -------------------------------------------------------------------------------
 Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 -------------------------------------------------------------------------------

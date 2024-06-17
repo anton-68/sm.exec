@@ -128,7 +128,6 @@ typedef struct sm_event
 // Public methods
 
 sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H);
-sm_event *sm_event_copy(sm_event *e);
 void sm_event_free(sm_event *e); 
 void sm_event_wipe(sm_event *e);
 int sm_event_to_string(sm_event *e, char *buffer);
