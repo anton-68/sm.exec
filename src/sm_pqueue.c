@@ -114,7 +114,7 @@ void sm_pqueue_free(sm_pqueue *pq) {
 	if(pq->synchronized){
     	pthread_mutex_destroy(&pq->lock);
     	pthread_cond_destroy(&pq->empty);
-    	free(pq);
+    	free(pq); // should be outside ?!?!?!?!?
 	}
 }
 
@@ -144,7 +144,7 @@ int sm_pqueue_enqueue(sm_event * e, sm_pqueue * pq){
     	}
     	if(pthread_mutex_unlock(&(pq->lock)) != EXIT_SUCCESS) {
         	REPORT(ERROR, "pthread_mutex_unlock()");
-        	return EXIT_FAILURE;
+        	return EXIT_FAILURE; // to reverse with unlock ?!?!?!? (apue-464)
     	}
 	}
     return EXIT_SUCCESS;

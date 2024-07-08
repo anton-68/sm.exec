@@ -34,9 +34,17 @@ sm_timestamp sm_get_timestamp();
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) >= (Y)) ? (X) : (Y))
 
+/* Branching hints */
+#define SM_LIKELY(X) __builtin_expect(!!(X), 1)
+#define SM_UNLIKELY(X) __builtin_expect(!!(X), 0)
+
 /* Mutex type */
-#define SM_MUTEX_TYPE PTHREAD_MUTEX_DEFAULT
+#define SM_MUTEX_TYPE PTHREAD_MUTEX_NORMAL
+                   /* PTHREAD_MUTEX_DEFAULT */
                    /* PTHREAD_MUTEX_ERRORCHECK */
+
+/* Mutex unlock retry delay in usecs */
+#define SM_MUTEX_UNLOCK_DELAY 10000
 
 /* Thread ID */
 unsigned long get_tid();

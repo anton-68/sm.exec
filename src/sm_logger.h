@@ -25,19 +25,23 @@ typedef enum sm_log_entity
 	SM_JSON,
 } sm_log_entity;
 
-typedef enum sm_syslog_severity {
-	SM_LOG_EMERG,	// system is unusable
-	SM_LOG_ALERT,	// action must be taken immediately
-	SM_LOG_CRIT,	// critical conditions
-	SM_LOG_ERR,		// error conditions
-	SM_LOG_WARNING,	// warning conditions
-	SM_LOG_NOTICE,	// normal but significant condition
-	SM_LOG_INFO,	// informational
-	SM_LOG_DEBUG,	
+typedef enum sm_syslog_severity
+{
+	//  Log level          Description							Usage
+	SM_LOG_EMERG,	// system is unusable					For applications usage
+	SM_LOG_ALERT,	// action must be taken immediately		For applications usage
+	SM_LOG_CRIT,	// critical conditions					For applications usage
+	SM_LOG_ERR,		// error conditions						API function unable to complete
+	SM_LOG_WARNING, // warning conditions					Potentially amendable error
+	SM_LOG_NOTICE,	// normal but significant condition		Resources utilization, amended error 
+	SM_LOG_INFO,	// informational						System objects lifecycle 
+	SM_LOG_DEBUG,	// excessive debug information			Operations on events
 } sm_syslog_severity;
 
 #ifdef SM_LOG
 #define SM_REPORT(severity, message) report(SM_EXEC, severity, __LINE__, __FILE__, __func__, (message), "-") // Deprecated
+#define SM_REPORT_MESSAGE(severity, message) report(SM_EXEC, severity, __LINE__, __FILE__, __func__, (message), "-") 
+#define SM_REPORT_CODE(severity, code) report(SM_EXEC, severity, __LINE__, __FILE__, __func__, strerror(code), "-") 
 #define SM_SYSLOG(entity, severity, description, cause) report((entity), (severity), __LINE__, __FILE__, __func__, (description), (cause))
 #else
 #define REPORT(severity, message)

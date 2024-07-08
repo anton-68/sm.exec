@@ -674,7 +674,7 @@ static int new_queue(lua_State *L) {
     }
     luaL_getmetatable(L, "sm.queue");
     lua_setmetatable(L, -2);
-    sm_event *e = sm_queue_top(q->native);
+    sm_event *e = SM_QUEUE_TOP(q->native);
     if(e != NULL)
         while(e->next != NULL) {
             memset(e->data, '\0', plsize);
@@ -700,7 +700,7 @@ static int queue_tostring(lua_State *L) {
                     q, (lua_Integer)q->native->size,
                     q->native->synchronized ? "true" : "false");
     luaL_addvalue(&b);
-    sm_event *e = sm_queue_top(q->native);
+    sm_event *e = SM_QUEUE_TOP(q->native);
     while(e != NULL) {
         sm_push_event(L, e);
         luaL_addvalue(&b);
@@ -728,7 +728,7 @@ static int collect_queue(lua_State *L) {
 // stk: q
 static int queuetop(lua_State *L) {
     SMQueue *q = check_sm_queue(L);
-    sm_event *top_e = sm_queue_top(q->native);
+    sm_event *top_e = SM_QUEUE_TOP(q->native);
     if(top_e == NULL) {
         lua_pushnil(L);
         return 1;

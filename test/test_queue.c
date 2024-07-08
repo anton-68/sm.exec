@@ -5,11 +5,6 @@ Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 -------------------------------------------------------------------------------
 SPDX-License-Identifier: LGPL-3.0-only */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include "../src/sm_queue.h"
 
 int main()
@@ -24,7 +19,7 @@ int main()
     printf("Queue\n=====\n%s\n", b);
 
     // top q0
-    sm_event *e0 = sm_queue_top(q0);
+    sm_event *e0 = SM_QUEUE_TOP(q0);
     printf("Top of empty queue: %p\n", e0);
     
     // create event
@@ -36,7 +31,7 @@ int main()
     // print q0
     sm_queue_to_string(q0, b);
     printf("Queue 1\n=====\n%s\n", b);
-    e0 = sm_queue_top(q0);
+    e0 = SM_QUEUE_TOP(q0);
     sm_event_to_string(e0, b);
     printf("Top event\n=====\ntype: %u\n%s\n", e0->type, b);
 
@@ -46,7 +41,7 @@ int main()
     sm_queue_enqueue(e0, q0);
     sm_queue_to_string(q0, b);
     printf("Queue 2\n=====\n%s\n", b);
-    e0 = sm_queue_top(q0);
+    e0 = SM_QUEUE_TOP(q0);
     sm_event_to_string(e0, b);
     printf("Top event\n=====\ntype: %u\n%s\n", e0->type, b);
 
@@ -55,7 +50,7 @@ int main()
     sm_queue_enqueue(e0, q0);
     sm_queue_to_string(q0, b);
     printf("Queue 3\n=====\n%s\n", b);
-    e0 = sm_queue_top(q0);
+    e0 = SM_QUEUE_TOP(q0);
     sm_event_to_string(e0, b);
     printf("Top event\n=====\ntype: %u\n%s\n", e0->type, b);
 
@@ -64,12 +59,12 @@ int main()
     sm_queue_enqueue(e0, q0);
     sm_queue_to_string(q0, b);
     printf("Queue 4\n=====\n%s\n", b);
-    e0 = sm_queue_top(q0);
+    e0 = SM_QUEUE_TOP(q0);
     sm_event_to_string(e0, b);
     printf("Top event\n=====\ntype: %u\n%s\n", e0->type, b);
     
     // Purge q0
-    while (sm_queue_size(q0) > 0)
+    while (q0->size > 0)
     {
         e0 = sm_queue_dequeue(q0);
         sm_event_to_string(e0, b);
@@ -89,14 +84,14 @@ int main()
     printf("Queue 7\n=====\n%s\n", b);
 
     // dequeue all from q0
-    while (sm_queue_size(q0) > 0)
+    while (q0->size > 0)
     {
         e0 = sm_queue_dequeue(q0);
         sm_event_to_string(e0, b);
         printf("Dequeved event\n=====\ntype: %u\n%s\n", e0->type, b);
         sm_event_free(e0);
     }
-    printf("q0.size = %lu\n", sm_queue_size(q0));
+    printf("q0.size = %lu\n", q0->size);
 
     // delete q0
     sm_queue_free(q0);

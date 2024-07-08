@@ -9,13 +9,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 // Private methods
 
-static inline size_t sm_event_sizeof(sm_event *e)
-{
-    return sizeof(sm_event) + SM_WORD * (e->ctl.Q + e->ctl.K + 
-                                         e->ctl.P + e->ctl.H * 2)
-                            + 8 * e->ctl.K
-                            + SM_EVENT_DATA_SIZE(e);
-}
+static inline size_t sm_event_sizeof(sm_event *e) __attribute__((always_inline));
 
 
 // Public methods
@@ -31,14 +25,15 @@ sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H)
     header.ctl.L = false;
     header.ctl.D = true;
     sm_event *e;
-    if ((e = malloc(sm_event_sizeof(&header))) == NULL)
+    if (SM_UNLIKELY((e = malloc(sm_event_sizeof(&header))) == NULL))
     {
-        SM_REPORT(SM_LOG_ERR, "malloc() failed");
+        SM_REPORT_CODE(SM_LOG_ERR, errno);
+        //SM_REPORT(SM_LOG_ERR, "malloc() failed");
         return NULL;
     }
     memset(e, 0, sm_event_sizeof(&header));
     e->type = header.type;
-    SM_REPORT(SM_LOG_DEBUG, "sm_event created");
+    SM_REPORT_MESSAGE(SM_LOG_DEBUG, "sm_event successfully created");
     return e;
 }
 
@@ -46,7 +41,7 @@ void sm_event_free(sm_event *e)
 {
     free(e);
     e = NULL;
-    SM_REPORT(SM_LOG_DEBUG, "sm_event purged");
+    SM_REPORT_MESSAGE(SM_LOG_DEBUG, "sm_event successfully destroyed");
 } 
 
 void sm_event_wipe(sm_event *e)
@@ -54,6 +49,7 @@ void sm_event_wipe(sm_event *e)
     uint32_t type = e->type;
     memset(e, 0, sm_event_sizeof(e));
     e->type = type;
+    SM_REPORT_MESSAGE(SM_LOG_DEBUG, "sm_event successfully wiped");
 }
 
 int sm_event_to_string(sm_event *e, char *buffer) {
@@ -88,4 +84,12 @@ int sm_event_to_string(sm_event *e, char *buffer) {
         s += sprintf(s, "data:\n[%s ...]\n", data_buffer);
     }
     return (int)((char *)s - (char *)buffer);
+}
+
+
+// Private methods
+
+static inline size_t sm_event_sizeof(sm_event *e)
+{
+    return sizeof(sm_event) + SM_WORD * (e->ctl.Q + e->ctl.K + e->ctl.P + e->ctl.H * 2) + 8 * e->ctl.K + SM_EVENT_DATA_SIZE(e);
 }

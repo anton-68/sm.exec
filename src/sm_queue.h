@@ -10,7 +10,8 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_event.h"
 
-typedef struct sm_queue {
+typedef struct __attribute__((aligned(SM_WORD))) sm_queue
+{
     pthread_mutex_t lock;
     pthread_cond_t empty;
     sm_event * head;
@@ -19,24 +20,23 @@ typedef struct sm_queue {
 	size_t size;
 } sm_queue;
 
-// Public methods
-
 #define SM_QUEUE_CREATE_EMPTY(S) \
     sm_queue_create(0, false, false, false, false, 0, (S))
 
 #define SM_QUEUE_SIZE(q) (q)->size
+
+#define SM_QUEUE_TOP(q) (q)->head->next
 
 sm_queue *sm_queue_create(uint32_t event_size,
                           bool Q, bool K, bool P, bool H,
                           unsigned num_of_events,
                           bool synchronized);
 void sm_queue_free(sm_queue *q);
-size_t sm_queue_size(sm_queue *q);
 
-sm_event * sm_queue_top(const sm_queue * q);
 int sm_queue_enqueue(sm_event *e, sm_queue *q);
 sm_event *sm_queue_dequeue(sm_queue *q);
 
+// Not thread-safe !!
 int sm_queue_to_string(sm_queue *q, char *buffer);
 
 #endif //SM_QUEUE_H

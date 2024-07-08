@@ -16,11 +16,11 @@ sm_event - LP64
 ===============
  0         1          2         3          4         5          6
  0123456789012345 6789012345678901 23456789012345678901234567 890123
-+-------------------------------------------------------------------+ <-----
-|                               next                                | fixed
-+----------------+----------------+--------------------------+------+ part
-|     app_id     |    event_id    |           size           |flags |
 +----------------+----------------+--------------------------+------+ <-----
+|     app_id     |    event_id    |           size           |flags | fixed
++----------------+----------------+--------------------------+------+ part
+|                               next                                |
++-------------------------------------------------------------------+ <-----
 :                     home queue (depot) address                    : o p
 +-------------------------------------------------------------------+ p a
 :                           key string addr                         : t r
@@ -40,12 +40,12 @@ sm_event - ILP32
 ================
  0         1         2          3
  0123456789012345 67890123 45678901
-+----------------------------------+ <-----
-|               next               | fixed
-+----------------+-----------------+ part
-|     app_id     |     event_id    |
-+-------------------------+--------+
++----------------+-----------------+ <-----
+|     app_id     |     event_id    | fixed
++----------------+--------+--------+ part
 |          size           | flags  |
++-------------------------+--------+
+|               next               |
 +----------------------------------+ <-----
 :    home queue (depot) address    : o p
 +----------------------------------+ p a
@@ -75,28 +75,28 @@ D - disposable flag
 */
 
 struct sm_queue;
-typedef struct sm_event
+typedef struct __attribute__((aligned(SM_WORD))) sm_event
 {
-    struct sm_event *next;
     uint16_t app_id;
     uint16_t event_id;
     union {
         uint32_t type;
         struct
         {
-            uint32_t D : 1;
-            uint32_t L : 1;
             uint32_t size : 26; // in 64-bit words
+            uint32_t D    :  1;
+            uint32_t L    :  1;
             uint32_t Q    :  1;
             uint32_t K    :  1;
             uint32_t P    :  1;
             uint32_t H    :  1;    
-        } ctl;
+        } ctl;    
     };
+    struct sm_event *next;
 } sm_event;
 
 
-// Data & optional fields accessors. 
+// Accessors
 
 #define SM_EVENT_DEPOT(E) \
     *(void**)((char *)(E) + SM_WORD + 8)
@@ -122,7 +122,7 @@ typedef struct sm_event
 #define SM_EVENT_DATA(E) \
     (void *)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K + 2 * (E)->ctl.P + (E)->ctl.H) + 8 * (1 + (E)->ctl.K))
 
-#define SM_EVENT_DATA_SIZE(E) ((size_t)((E)->ctl.size) * 64)
+#define SM_EVENT_DATA_SIZE(E) ((size_t)((E)->ctl.size) << 6)
 
 
 // Public methods
