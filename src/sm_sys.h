@@ -20,6 +20,10 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include <time.h>
 #include <unistd.h>
 
+/* Log & debug flags*/
+#define SM_LOG
+#define SM_DEBUG
+
 /* Timestamp */
 typedef struct sm_timestamp
 {
@@ -44,13 +48,13 @@ sm_timestamp sm_get_timestamp();
                    /* PTHREAD_MUTEX_ERRORCHECK */
 
 /* Mutex unlock retry delay in usecs */
-#define SM_MUTEX_UNLOCK_DELAY 10000
+#define SM_MUTEX_UNLOCK_DELAY 10000  //?????????????????
 
 /* Thread ID */
 unsigned long get_tid();
 void get_tid_str(char *);
 
 /* System word (ILP64 and LP32) */
-#define SM_WORD sizeof(unsigned long)
+#define SM_WORD sizeof(void *)
 
 #endif //SM_SYS_H

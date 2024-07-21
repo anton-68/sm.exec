@@ -4,7 +4,7 @@
             "name": "Linux",
             "compilerPath": "/usr/bin/gcc",
             "compilerArgs": [],
-            "intelliSenseMode": "linux-gcc-x86",
+            "intelliSenseMode": "linux-gcc-x64",
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include"

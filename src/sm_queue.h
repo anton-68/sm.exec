@@ -12,26 +12,32 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 typedef struct __attribute__((aligned(SM_WORD))) sm_queue
 {
+    sm_event *head;
+    sm_event *tail;
+    size_t size;
+    bool synchronized;
     pthread_mutex_t lock;
     pthread_cond_t empty;
-    sm_event * head;
-    sm_event * tail;
-	bool synchronized;
-	size_t size;
 } sm_queue;
-
-#define SM_QUEUE_CREATE_EMPTY(S) \
-    sm_queue_create(0, false, false, false, false, 0, (S))
 
 #define SM_QUEUE_SIZE(q) (q)->size
 
 #define SM_QUEUE_TOP(q) (q)->head->next
 
+#define SM_QUEUE_CREATE_EMPTY(S) \
+    sm_queue_create(0, false, false, false, false, 0, (S))
+
 sm_queue *sm_queue_create(uint32_t event_size,
                           bool Q, bool K, bool P, bool H,
                           unsigned num_of_events,
                           bool synchronized);
-void sm_queue_free(sm_queue *q);
+/*                          
+sm_queue *sm_queue_bulk_create(uint32_t event_size,
+                               bool Q, bool K, bool P, bool H,
+                               unsigned num_of_events,
+                               bool synchronized);
+*/
+void sm_queue_destroy(sm_queue *q);
 
 int sm_queue_enqueue(sm_event *e, sm_queue *q);
 sm_event *sm_queue_dequeue(sm_queue *q);

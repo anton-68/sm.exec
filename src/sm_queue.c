@@ -7,15 +7,10 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_queue.h"
 
-// Private methods
-
 static inline void enqueue(sm_event *e, sm_queue *q) 
 						   __attribute__((always_inline));
 static inline sm_event *dequeue(sm_queue *q) 
 								__attribute__((always_inline));
-
-
-// Public methods
 
 sm_queue *sm_queue_create(uint32_t event_size,
 						  bool Q, bool K, bool P, bool H,
@@ -23,17 +18,16 @@ sm_queue *sm_queue_create(uint32_t event_size,
 						  bool synchronized)
 {
 	int retval;
-	char message[80];
 	sm_queue *q;
 	if (SM_UNLIKELY((q = malloc(sizeof(sm_queue))) == NULL))
 	{
-		SM_REPORT(SM_LOG_ERR, "malloc() returned NULL");
+		SM_REPORT_MESSAGE(SM_LOG_ERR, "malloc() failed");
 		return NULL;
 	}
 	sm_event *e;
 	if (SM_UNLIKELY((e = sm_event_create(0, false, false, false, false)) == NULL))
 	{
-		SM_REPORT(SM_LOG_ERR, "sm_event_create() returned NULL");
+		SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_event_create() returned NULL");
 		free(q);
 		return NULL;
 	}
@@ -43,8 +37,8 @@ sm_queue *sm_queue_create(uint32_t event_size,
 	{
 		if (SM_UNLIKELY((e = sm_event_create(event_size, Q, K, P, H)) == NULL))
 		{
-			SM_REPORT(SM_LOG_ERR, "event_create()");
-			sm_queue_free(q);
+			SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_event_create() returned NULL");
+			sm_queue_destroy(q);
 			return NULL;
 		}
 		SM_EVENT_DEPOT(e) = q;
@@ -56,60 +50,53 @@ sm_queue *sm_queue_create(uint32_t event_size,
 		pthread_mutexattr_t attr;
 		if (SM_UNLIKELY(retval = pthread_mutexattr_init(&attr) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_mutexattr_init() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
-			sm_queue_free(q);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_init() failed", retval);
+			sm_queue_destroy(q);
 			return NULL;
 		}
 		if (SM_UNLIKELY(retval = pthread_mutexattr_settype(&attr, SM_MUTEX_TYPE) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_mutexattr_settype() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
-			sm_queue_free(q);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_settype() failed", retval);
+			sm_queue_destroy(q);
 			return NULL;
 		}
 		if (SM_UNLIKELY(retval = pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_mutexattr_setrobust() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
-			sm_queue_free(q);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_setrobust() failed", retval);
+			sm_queue_destroy(q);
 			return NULL;
 		}
 		if (SM_UNLIKELY(retval = pthread_mutex_init(&(q->lock), &attr) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_mutex_init() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
-			sm_queue_free(q);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_init() failed", retval);
+			sm_queue_destroy(q);
 			return NULL;
 		}
 		if (SM_UNLIKELY(retval = pthread_mutexattr_destroy(&attr) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_mutexattr_destroy() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_destroy() failed", retval);
 		}
 		if (SM_UNLIKELY(retval = pthread_cond_init(&(q->empty), NULL) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_cond_init() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
-			sm_queue_free(q);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_init() failed", retval);
+			sm_queue_destroy(q);
 			return NULL;
 		}
 	}
-	SM_REPORT_MESSAGE(SM_LOG_DEBUG, "sm_queue successfully created");
+	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully created", q);
 	return q;
 }
 
-void sm_queue_free(sm_queue *q)
+void sm_queue_destroy(sm_queue *q)
 {
 	int retval;
-	char message[80];
 	sm_event *tmp;
 	// lock ??
 	sm_event *e = q->head;
 	while (e != NULL)
 	{
 		tmp = e->next;
-		sm_event_free(e);
+		sm_event_destroy(e);
 		e = tmp;
 	}
 	// unlock ??
@@ -117,17 +104,15 @@ void sm_queue_free(sm_queue *q)
 	{
 		if (SM_UNLIKELY(retval = pthread_mutex_destroy(&q->lock) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_mutex_destroy() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_destroy() failed", retval);
 		}
 		if (SM_UNLIKELY(retval = pthread_cond_destroy(&q->empty) != EXIT_SUCCESS))
 		{
-			sprintf(message, "pthread_cond_destroy() failed with code %i", retval);
-			SM_REPORT(SM_LOG_ERR, message);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_destroy() failed", retval);
 		}
-		free(q);
 	}
-	SM_REPORT_MESSAGE(SM_LOG_DEBUG, "sm_queue destroyed");
+	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully destroyed", q);
+	free(q);
 }
 
 int sm_queue_enqueue(sm_event *e, sm_queue *q)
@@ -139,23 +124,27 @@ int sm_queue_enqueue(sm_event *e, sm_queue *q)
 		{
 			if (retval == EOWNERDEAD)
 			{
-				SM_REPORT_CODE(SM_LOG_WARNING, retval);
+				SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
 				retval = pthread_mutex_consistent(&(q->lock));
 				if (retval == EINVAL || retval == EXIT_SUCCESS)
 				{
-					SM_REPORT_CODE(SM_LOG_NOTICE, retval);
+					SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
 				}
 				else
 				{
-					SM_REPORT_CODE(SM_LOG_ERR, retval);
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
 					return retval;
 				}
 			}
 			else
 			{
-				SM_REPORT_CODE(SM_LOG_ERR, retval);
+				SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
 				return retval;
 			}
+		}
+		else
+		{
+			SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(q->lock));
 		}
 	}
 	enqueue(e, q);
@@ -163,16 +152,14 @@ int sm_queue_enqueue(sm_event *e, sm_queue *q)
 	{
 		if (SM_UNLIKELY(retval = pthread_cond_signal(&(q->empty)) != EXIT_SUCCESS))
 		{
-			SM_REPORT_CODE(SM_LOG_ERR, retval);
-			return retval;
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
 		}
 		if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS))
 		{
-			SM_REPORT_CODE(SM_LOG_ERR, retval);
-			return retval;
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
 		}
 	}
-	SM_REPORT_MESSAGE(SM_LOG_DEBUG, "event enqueed");
+	SM_DEBUG_MESSAGE("event [addr:%p] enqueued successfully into queue [addr:%p]", e, q);
 	return EXIT_SUCCESS;
 }
 
@@ -186,37 +173,44 @@ sm_event *sm_queue_dequeue(sm_queue *q)
 		{
 			if(retval == EOWNERDEAD)
 			{
-				SM_REPORT_CODE(SM_LOG_WARNING, retval);
+				SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
 				retval = pthread_mutex_consistent(&(q->lock));
 				if (retval == EINVAL || retval == EXIT_SUCCESS)
 				{
-					SM_REPORT_CODE(SM_LOG_NOTICE, retval);
+					SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
 				}
 				else {
-					SM_REPORT_CODE(SM_LOG_ERR, retval);
+					SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
+					return NULL;
 				}
 			}
 			else {
-				SM_REPORT_CODE(SM_LOG_ERR, retval);
+				SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
 				return NULL;
 			}
+		}
+		else
+		{
+			SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(q->lock));
 		}
 		while ((e = dequeue(q)) == NULL)
 		{
 			if (SM_UNLIKELY(retval = pthread_cond_wait(&(q->empty), &(q->lock)) != EXIT_SUCCESS))
 			{
-				SM_REPORT_CODE(SM_LOG_ERR, retval);
+				SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_wait() failed", retval);
 				return NULL;
 			}
 		}
 		if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS))
 		{
-			SM_REPORT_CODE(SM_LOG_ERR, retval);
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
 		}
 	}
 	else
+	{
 		e = dequeue(q);
-	SM_REPORT_MESSAGE(SM_LOG_DEBUG, "event successfully dequeued");
+	}
+	SM_DEBUG_MESSAGE("event [addr:%p] successfully dequeued from queue [addr:%p]", e, q);
 	return e;
 }
 
@@ -235,6 +229,10 @@ static inline void enqueue(sm_event *e, sm_queue *q)
 {
 	q->tail->next = e;
 	q->tail = e;
+	while (e->ctl.L && e->next != NULL)
+	{
+		q->tail = e->next;
+	}
 	q->tail->next = NULL;
 	q->size++;
 }
@@ -242,14 +240,13 @@ static inline void enqueue(sm_event *e, sm_queue *q)
 static inline sm_event *dequeue(sm_queue *q)
 {
 	sm_event *e = q->head->next;
-	if (e != NULL)
+	sm_event *end = sm_event_chain_end(e);
+	q->head->next = end->next;
+	if (q->head->next == NULL)
 	{
-		q->head->next = q->head->next->next;
-		if (e->next == NULL)
-			q->tail = q->head;
-		else
-			e->next = NULL;
-		q->size--;
+		q->tail = q->head;
 	}
+	q->size--;
+	end->next = NULL;
 	return e;
 }

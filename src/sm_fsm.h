@@ -38,9 +38,9 @@ typedef enum sm_fsm_node_type {
 
 typedef struct sm_fsm_transition {
     void *transitionRef;
-    SM_EVENT_ID appliedOnEvent;
-    SM_EVENT_ID setEventId;
-    SM_STATE_ID targetNode;
+    uint16_t appliedOnEvent;
+    uint16_t setEventId;
+    uint16_t targetNode;
     sm_fsm_transition_type type;
 } sm_fsm_transition;
 
@@ -48,14 +48,14 @@ typedef struct sm_fsm_node {
     char *name; 
     sm_fsm_transition *transitions;
     size_t num_of_transitions;
-    SM_STATE_ID id;
+    uint16_t id;
     //SM_EVENT_ID default_event;
     sm_fsm_node_type type;
 } sm_fsm_node;
 
 typedef struct sm_fsm_event {
     char *name;
-    SM_EVENT_ID id;
+    uint16_t id;
 } sm_fsm_event;
 
 typedef struct sm_fsm {
@@ -66,8 +66,8 @@ typedef struct sm_fsm {
     size_t num_of_nodes;
     sm_fsm_event *events;
     size_t num_of_events;
-    SM_STATE_ID initial;
-    SM_STATE_ID final;
+    uint16_t initial;
+    uint16_t final;
     //sm_fsm_type type;
 } sm_fsm;
 
@@ -75,5 +75,10 @@ typedef struct sm_fsm {
 sm_fsm* sm_fsm_create(const char *fsm_json, sm_directory *dir);
 void sm_fsm_free(sm_fsm *f);
 char *sm_fsm_to_string(sm_fsm *f, sm_directory *dir);
+
+// move to the fsm module
+// sm_fsm_node *sm_state_get_node(sm_state *s);
+// sm_fsm_transition *sm_state_get_transition(sm_event *e, sm_state *s);
+
 
 #endif //SM_FSM_H

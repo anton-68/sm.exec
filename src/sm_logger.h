@@ -12,9 +12,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include <errno.h>
 #include "sm_sys.h" // timestamp
 
-#define SM_LOG
-
-//#define SM_SYSLOG_STRING_LEN 4096
+#define SM_LOGGER_PRINT_BUFFER 160
 
 typedef enum sm_log_entity
 {
@@ -23,6 +21,7 @@ typedef enum sm_log_entity
 	SM_FSM,
 	SM_LUA,
 	SM_JSON,
+	SM_OAM,
 } sm_log_entity;
 
 typedef enum sm_syslog_severity
@@ -39,21 +38,42 @@ typedef enum sm_syslog_severity
 } sm_syslog_severity;
 
 #ifdef SM_LOG
-#define SM_REPORT(severity, message) report(SM_EXEC, severity, __LINE__, __FILE__, __func__, (message), "-") // Deprecated
-#define SM_REPORT_MESSAGE(severity, message) report(SM_EXEC, severity, __LINE__, __FILE__, __func__, (message), "-") 
-#define SM_REPORT_CODE(severity, code) report(SM_EXEC, severity, __LINE__, __FILE__, __func__, strerror(code), "-") 
-#define SM_SYSLOG(entity, severity, description, cause) report((entity), (severity), __LINE__, __FILE__, __func__, (description), (cause))
+#define SM_REPORT_MESSAGE(severity, message) \
+	report(SM_EXEC, severity, __LINE__, __FILE__, __func__, (message), "-")
+#define SM_REPORT_CODE(severity, code) \
+	report(SM_EXEC, severity, __LINE__, __FILE__, __func__, "-", strerror(code))
+#define SM_SYSLOG(entity, severity, description, code) \
+	report((entity), (severity), __LINE__, __FILE__, __func__, (description), strerror(code))
 #else
-#define REPORT(severity, message)
+#define SM_REPORT_MESSAGE(severity, message)
+#define SM_REPORT_CODE(severity, code)
 #define SM_SYSLOG(entity, severity, description, cause)
+#endif
+
+#ifdef SM_DEBUG
+#define SM_DEBUG_MESSAGE(...)                                                                  		\
+	{                                                                                          		\
+		char __sm__message__[SM_LOGGER_PRINT_BUFFER];                                          		\
+		sprintf(__sm__message__, __VA_ARGS__);                                                 		\
+		if (strlen(__sm__message__) > SM_LOGGER_PRINT_BUFFER)                                 		\
+		{																							\
+			report(SM_OAM, SM_LOG_ERR, __LINE__, __FILE__, __func__, "SYSLOG buffer exceeded", "-");\
+		}																							\
+		report(SM_EXEC, SM_LOG_DEBUG, __LINE__, __FILE__, __func__, (__sm__message__), "-");   		\
+	}
+#define SM_DEBUG_CODE(code) \
+	report(SM_EXEC, SM_LOG_DEBUG, __LINE__, __FILE__, __func__, "-", strerror(code))
+#else
+#define SM_DEBUG_MESSAGE(message)
+#define SM_DEBUG_CODE(code)
 #endif
 
 int report(sm_log_entity  entity,		// {CORE, FSM, ...} => sm_log_entity_name
 		             int  severity,		// 0-7 (rfc5424)
 		             int  line, 		// __LINE__
-		     const char  *file, 		// __FILE__
-		     const char  *function,		// __func__
-		     const char  *description,	// aka symptoms
-		  	 const char  *cause);		// aka (diff) diagnosys
+		      const char *file, 		// __FILE__
+		      const char *function,		// __func__
+		      const char *description,	// aka symptoms
+		  	  const char *cause);		// aka (diff) diagnosys
 
 #endif // SM_LOGGER_H

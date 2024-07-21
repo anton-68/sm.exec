@@ -1,0 +1,19 @@
+change linkage (flag):
+- sm_event_chain()
+- sm_event_unchain()
+
+track linkage:
+- sm_event_chain_end()
+- sm_event_dispose()
+- sm_queue_enqueue()
+- sm_queue_dequeue()
+- sm_state_pop_event()
+- sm_state_push_event()
+- sm_state_to_string()
+
+ignore linkage:
+- sm_event_erase()
+- sm_event_destroy()
+- sm_event_clone()
+- sm_event_to_string()
+- sm_queue_destroy()

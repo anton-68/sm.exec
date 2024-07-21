@@ -747,3 +747,44 @@ char *sm_fsm_to_string(sm_fsm* f, sm_directory *dir) {
     }
     return sm_buffer; 
 }
+
+
+//////////////// refactor
+
+sm_fsm_node *sm_state_get_node(sm_state *s)
+{
+    sm_fsm *f = *(s->fsm);
+    size_t i;
+    for (i = 0; i < f->num_of_nodes && f->nodes[i].id != s->id; i++)
+        ;
+    if (i == f->num_of_nodes)
+    {
+        return NULL;
+    }
+    else
+    {
+        return &(f->nodes[i]);
+    }
+}
+
+sm_fsm_transition *sm_state_get_transition(sm_event *e, sm_state *s)
+{
+    sm_fsm_node *n = sm_state_get_node(s);
+    size_t i;
+    for (i = 0; i < n->num_of_transitions && n->transitions[i].appliedOnEvent != e->id; i++)
+        ;
+    if (i == n->num_of_transitions)
+    {
+        for (i = 0; i < n->num_of_transitions && n->transitions[i].appliedOnEvent != 0; i++)
+            ;
+    }
+    if (i < n->num_of_transitions)
+    {
+        return &(n->transitions[i]);
+    }
+    else
+    {
+        SM_SYSLOG(SM_CORE, SM_LOG_ERR, "Cannot find transition in SM", "No default transition found");
+        return NULL;
+    }
+}

@@ -20,7 +20,9 @@ int report(sm_log_entity  entity,		// {CORE, FSM} => sm_log_entity_name
 		"SM_EXEC",
 		"SM_EXEC.CORE",
 		"SM_EXEC.FSM",
-		"SM_EXEC.LUA"
+		"SM_EXEC.LUA",
+		"SM_EXEC.JSON",
+		"SM_EXEC.OAM"
 	};
 
 	char* prioritynames[] = { 
