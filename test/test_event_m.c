@@ -57,7 +57,7 @@ int main()
     sm_print_event(e);
     SM_EVENT_DISPOSE(e);
 
-    SM_EVENT_DISPOSE(e1); 
+    SM_EVENT_DISPOSE(e1); // this will rase an error if chained with func
     sm_print_event(e);
     sm_print_event(e1);
 }

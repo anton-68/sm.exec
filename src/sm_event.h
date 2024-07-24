@@ -8,7 +8,6 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #ifndef SM_EVENT_H
 #define SM_EVENT_H
 
-#include "sm_sys.h"
 #include "sm_logger.h"
 
 /*
@@ -123,28 +122,16 @@ struct sm_queue;
 #define SM_EVENT_DATA_SIZE(E) (size_t)((uint32_t)((E)->ctl.size) << 6)
 
 sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H);
-void sm_event_destroy(sm_event *e);
-#define SM_EVENT_DESTROY(E)  \
-{                            \
-    sm_event_destroy(E);     \
-    (E) = NULL;              \
-}
+void sm_event_destroy(sm_event **e);
+#define SM_EVENT_DESTROY(E) sm_event_destroy((&(E)))
 void sm_event_erase(sm_event *e);
-void sm_event_dispose(sm_event *e);
-#define SM_EVENT_DISPOSE(E) \
-{                           \
-    sm_event_dispose(E);    \
-    (E) = NULL;             \
-}
+void sm_event_dispose(sm_event **e);
+#define SM_EVENT_DISPOSE(E) sm_event_dispose((&(E)))
 size_t sm_event_sizeof(const sm_event *e);
 sm_event *sm_event_clone(sm_event *e);
-sm_event *sm_event_chain_end(sm_event *e); 
-void sm_event_chain(sm_event *e0, sm_event *e1);
-#define SM_EVENT_CHAIN(E0, E1)  \
-{                               \
-    sm_event_chain((E0), (E1)); \
-    (E1) = NULL;                \
-}
+sm_event *sm_event_chain_end(sm_event *e);
+void sm_event_chain(sm_event *e0, sm_event **e1);
+#define SM_EVENT_CHAIN(E0, E1) sm_event_chain((E0), (&(E1)))
 void sm_event_unchain(sm_event *e);
 int sm_event_to_string(const sm_event *e, char *buffer);
 

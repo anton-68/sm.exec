@@ -23,14 +23,14 @@ sm_state - LP64
 |                                fsm                                |
 +-------------------------------------------------------------------+ <-----
 :                    home array ([D]epot) address                   : o p
-+-------------------------------------------------------------------+ p a
-:                         [K]ey string addr                         : t r
-+     -     -     -     -     -   + -     -     -     -     -     - + i t
-:          [K]ey length           :            [K]ey hash           : o
-+---------------------------------+---------------------------------+ n
-:                           [T]x address                            : a
++ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - + p a
+:                          key string addr                          : t r
++ - - - - - - - - - - - - - - - - + - - - - - - - - - - - - - - - - + i t
+:            key length           :              key hash           : o
++ - - - - - - - - - - - - - - - - + - - - - - - - - - - - - - - - - + n
+:                                next                               : a
 +-------------------------------------------------------------------+ l
-:                        [E]vent stack head                         :
+:                     [E]vent stack head address                    :
 +-------------------------------------------------------------------+
 :                   [H]andle (Lua wrapper) address                  :
 +-------------------------------------------------------------------+ <-----
@@ -49,13 +49,13 @@ sm_state - ILP32
 +----------------------------------+ <-----
 :   home array ([D]epot) address   : o p
 +----------------------------------+ p a
-:        [K]ey string addr         : t r
-+    -     -     -     -     -     + i t
-:           [K]ey length           : o
-+    -     -     -     -     -     + n
-:            [K]ey hash            : a
-+----------------------------------+ l
-:           [T]x address           :
+:         key string addr          : t r
++- - - - - - - - - - - - - - - - - + i t
+:            key length            : o
++- - - - - - - - - - - - - - - - - + n
+:             key hash             : a
++- - - - - - - - - - - - - - - - - + l
+:               next               :
 +----------------------------------+
 :        [E]vent stack head        :
 +----------------------------------+
@@ -65,8 +65,6 @@ sm_state - ILP32
 Flags
 =====
 D - Depot address flag
-K - Key-Length-Hash flag
-T - Tx address flag
 E - Event trace (linked event(s)) flag
 H - Handle address flag
 */
@@ -82,14 +80,13 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_state
         {
             uint32_t size : 26; // in 64-bit words
             uint32_t D    :  1;
-            uint32_t K    :  1;
-            uint32_t T    :  1;
             uint32_t E    :  1; 
             uint32_t H    :  1;
             uint32_t      :  0; // reserved
         } ctl;
     };
     sm_fsm **fsm;
+    struct sm_state *next;
 } sm_state;
 
 struct sm_array;
@@ -105,26 +102,28 @@ struct sm_array;
 #define SM_STATE_KEY_HASH(S) \
     (*(uint32_t *)((char *)(S) + SM_WORD * (2 + (S)->ctl.D) + 12))
 
-struct sm_tx;
-#define SM_STATE_TX(S) \
-    (*(struct sm_tx **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K) + 8 * (1 + (S)->ctl.K)))
+#define SM_STATE_NEXT(S) \
+    (*(struct sm_state **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K) + 8 * (1 + (S)->ctl.K)))
 
 #define SM_STATE_EVENT_TRACE(S) \
-    (*(sm_event **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.T) + 8 * (1 + (S)->ctl.K)))
+    (*(sm_event **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C) + 8 * (1 + (S)->ctl.K)))
 
 #define SM_STATE_HANDLE(S) \
-    (*(void **)((char *)(S) + SM_WORD * (2 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.T + (S)->ctl.E) + 8 * (1 + (S)->ctl.K)))
+    (*(void **)((char *)(S) + SM_WORD * (2 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C + (S)->ctl.E) + 8 * (1 + (S)->ctl.K)))
 
 #define SM_STATE_DATA(S) \
-    ((void *)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + 2 * (S)->ctl.T + (S)->ctl.E + (S)->ctl.H) + 8 * (1 + (S)->ctl.K)))
+    ((void *)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + 2 * (S)->ctl.C + (S)->ctl.E + (S)->ctl.H) + 8 * (1 + (S)->ctl.K)))
 
 #define SM_STATE_DATA_SIZE(S) ((uint32_t)((S)->ctl.size) << 6)
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool K, bool T, bool E, bool H);
-void sm_state_destroy(sm_state *s);
+sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool H);
+void sm_state_destroy(sm_state **s);
+#define SM_STATE_DESTROY(S) sm_state_destroy((&(S)))
 void sm_state_erase(sm_state *s); 
-void sm_state_dispose(sm_state *s);
-void sm_state_push_event(sm_state *s, sm_event *e);
+void sm_state_dispose(sm_state **s);
+#define SM_STATE_DISPOSE(S) sm_state_dispose((&(S)))
+void sm_state_push_event(sm_state *s, sm_event **e);
+#define SM_STATE_PUSH_EVENT(S, E) sm_state_push_event((S), (&(E)))
 sm_event *sm_state_pop_event(sm_state *s);
 int sm_state_to_string(sm_state *s, char *buffer);
 

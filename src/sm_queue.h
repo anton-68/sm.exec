@@ -15,9 +15,9 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_queue
     sm_event *head;
     sm_event *tail;
     size_t size;
-    bool synchronized;
     pthread_mutex_t lock;
     pthread_cond_t empty;
+    bool synchronized;
 } sm_queue;
 
 #define SM_QUEUE_SIZE(q) (q)->size
@@ -37,12 +37,11 @@ sm_queue *sm_queue_bulk_create(uint32_t event_size,
                                unsigned num_of_events,
                                bool synchronized);
 */
-void sm_queue_destroy(sm_queue *q);
-
-int sm_queue_enqueue(sm_event *e, sm_queue *q);
+void sm_queue_destroy(sm_queue **q);
+#define SM_QUEUE_DESTROY(Q) sm_queue_destroy((&(Q)))
+int sm_queue_enqueue(sm_queue *q, sm_event **e);
+#define SM_QUEUE_ENQUEUE(Q, E) sm_queue_enqueue((Q), (&(E)))
 sm_event *sm_queue_dequeue(sm_queue *q);
-
-// Not thread-safe !!
 int sm_queue_to_string(sm_queue *q, char *buffer);
 
 #endif //SM_QUEUE_H

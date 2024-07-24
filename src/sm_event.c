@@ -6,8 +6,6 @@ Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_event.h"
-#include <stdio.h>
-#include "../test/test_utils.h"
 
 static inline size_t event_sizeof(const sm_event *e) 
                      __attribute__((always_inline));
@@ -41,13 +39,14 @@ sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H)
     return e;
 }
 
-void sm_event_destroy(sm_event *e)
+void sm_event_destroy(sm_event **e)
 {
-    if (e != NULL)
+    if (e != NULL && *e != NULL)
     {
-        free(e);
+        free(*e);
     }
     SM_DEBUG_MESSAGE("sm_event [addr:%p] successfully destroyed", e);
+    *e = NULL;
 } 
 
 void sm_event_erase(sm_event *e)
@@ -63,30 +62,30 @@ void sm_event_erase(sm_event *e)
     SM_DEBUG_MESSAGE("sm_event [addr:%p] successfully erased", e);
 }
 
-int sm_queue_enqueue(sm_event *e, struct sm_queue *q); 
-void sm_event_dispose(sm_event *e)
+int sm_queue_enqueue(struct sm_queue *q, sm_event **e);
+void sm_event_dispose(sm_event **e)
 {
     sm_event *next_e;
-    while (e != NULL)
+    while (*e != NULL)
     {
-        if (e->ctl.L)
+        if ((*e)->ctl.L)
         {
-            next_e = e->next;
+            next_e = (*e)->next;
         }
         else
         {
             next_e = NULL;
         }
-        if (e->ctl.Q)
+        if ((*e)->ctl.Q)
         {
-            sm_event_erase(e);
-            sm_queue_enqueue(e, SM_EVENT_DEPOT(e));
+            sm_event_erase(*e);
+            sm_queue_enqueue(SM_EVENT_DEPOT(*e), e);
         }
         else
         {
             sm_event_destroy(e);
         }
-        e = next_e;
+        *e = next_e;
     };
 }
 
@@ -128,17 +127,18 @@ sm_event *sm_event_chain_end(sm_event *e)
     return e1;
 }
 
-void sm_event_chain(sm_event *e0, sm_event *e1)
+void sm_event_chain(sm_event *e0, sm_event **e1)
 {   
-    if (SM_UNLIKELY(e0 == NULL || e1 == NULL))
+    if (SM_UNLIKELY(e0 == NULL || *e1 == NULL))
     {
         SM_SYSLOG(SM_CORE, SM_LOG_ERR, "NULL event sent to function", EXIT_FAILURE);
         return;
     }
     sm_event *e2 = sm_event_chain_end(e0);
     e2->ctl.L = true;
-    e2->next = e1;
+    e2->next = *e1;
     SM_DEBUG_MESSAGE("events [addr:%p] and [addr:%p] successfully chained", e0, e1);
+    *e1 = NULL;
 }
 
 void sm_event_unchain(sm_event *e)

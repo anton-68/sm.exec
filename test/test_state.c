@@ -14,7 +14,7 @@ int main()
 
     sm_state *s = sm_state_create(NULL, 0, false, false, false, false, false);
     sm_print_state(s);
-    sm_state_destroy(s);
+    SM_STATE_DESTROY(s);
 
     char *fsm_name = "FSM0";
     sm_fsm fsm0;
@@ -24,17 +24,17 @@ int main()
     sm_fsm **fsm0r = &fsm0p;
     s = sm_state_create(fsm0r, 0, false, false, false, false, false);
     sm_print_state(s);
-    sm_state_destroy(s);
+    SM_STATE_DESTROY(s);
 
     fsm0.initial = 78;
     s = sm_state_create(fsm0r, 0, true, false, true, false, true);
     sm_print_state(s);
-    sm_state_destroy(s);
+    SM_STATE_DESTROY(s);
 
     fsm0.initial = 79;
     s = sm_state_create(fsm0r, 0, false, true, false, true, false);
     sm_print_state(s);
-    sm_state_destroy(s);
+    SM_STATE_DESTROY(s);
 
     fsm0.initial = 80;
     s = sm_state_create(fsm0r, 64, true, true, true, true, true);
@@ -72,12 +72,14 @@ int main()
     //clone->ctl.L = false;
     //clone->next = NULL;
 
-    sm_state_push_event(s, e0);
-    sm_state_push_event(s, e1);
-    sm_state_push_event(s, clone);
+    SM_STATE_PUSH_EVENT(s, e0);
+    SM_STATE_PUSH_EVENT(s, e1);
+    SM_STATE_PUSH_EVENT(s, clone);
 
     sm_print_state(s);
 
-    s->ctl.D = false;
-    sm_state_dispose(s);
+    //s->ctl.D = false;
+    SM_STATE_DISPOSE(s);
+
+    sm_print_state(s);
 }

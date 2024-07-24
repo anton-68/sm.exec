@@ -47,9 +47,6 @@ sm_timestamp sm_get_timestamp();
                    /* PTHREAD_MUTEX_DEFAULT */
                    /* PTHREAD_MUTEX_ERRORCHECK */
 
-/* Mutex unlock retry delay in usecs */
-#define SM_MUTEX_UNLOCK_DELAY 10000  //?????????????????
-
 /* Thread ID */
 unsigned long get_tid();
 void get_tid_str(char *);

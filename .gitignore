@@ -45,6 +45,7 @@
 *.su
 *.idb
 *.pdb
+core.test_event.*
 
 # Kernel Module Compile Results
 *.mod*
