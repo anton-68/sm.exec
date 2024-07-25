@@ -22,11 +22,11 @@ int main()
     // Stand-alone complete event & access header
     e = sm_event_create(256, false, true, true, true);
     strcpy(SM_EVENT_DATA(e), "Secret password ..............................");
-    SM_EVENT_KEY_STRING(e) = SM_EVENT_DATA(e);
-    SM_EVENT_KEY_LENGTH(e) = strlen(SM_EVENT_KEY_STRING(e));
-    SM_EVENT_KEY_HASH(e) = 0xBCDE;
-    SM_EVENT_PRIORITY_0(e) = 7;
-    SM_EVENT_PRIORITY_1(e) = 17;
+    SM_EVENT_HASH_KEY(e)->string = SM_EVENT_DATA(e);
+    SM_EVENT_HASH_KEY(e)->length = strlen(SM_EVENT_HASH_KEY(e)->string);
+    SM_EVENT_HASH_KEY(e)->value = 0xBCDE;
+    SM_EVENT_PRIORITY(e)[0] = 7;
+    SM_EVENT_PRIORITY(e)[1] = 17;
     SM_EVENT_HANDLE(e) = (void *)0xA123;
     sm_print_event(e);
 

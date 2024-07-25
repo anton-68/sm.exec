@@ -9,6 +9,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #define SM_TEST_UTILS_H
 
 #include <stdlib.h>
+#include "../src/sm_hash.h"
 #include "../src/sm_event.h"
 #include "../src/sm_state.h"
 #include "../src/sm_queue.h"
@@ -16,6 +17,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #define SM_TEST_PRINT_BUFFER 2048
 
+void sm_print_hash_key(const sm_hash_key *k); 
 void sm_print_event(const sm_event *e);
 void sm_print_state(sm_state *s);
 void sm_print_queue(sm_queue *q);

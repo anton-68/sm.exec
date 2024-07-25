@@ -9,6 +9,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #define SM_EVENT_H
 
 #include "sm_logger.h"
+#include "sm_hash.h"
 
 /*
 sm_event - LP64
@@ -24,11 +25,11 @@ sm_event - LP64
 :                    [Q]ueue (home depot) address                   : o p
 +-------------------------------------------------------------------+ p a
 :                         [K]ey string addr                         : t r
-+     -     -     -     -     -   + -     -     -     -     -     - + i t
++ - - - - - - - - - - - - - - - - + - - - - - - - - - - - - - - - - + i t
 :          [K]ey length           :            [K]ey hash           : o
 +---------------------------------+---------------------------------+ n
 :                           [P]riority[0]                           : a
-+  -     -     -     -     -     -     -     -     -     -     -    + l
++ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - + l
 :                           [P]riority[1]                           :
 +-------------------------------------------------------------------+
 :                   [H]andle (Lua wrapper) address                  :
@@ -51,13 +52,13 @@ sm_event - ILP32
 :   [Q]ueue (home depot) address   : o p
 +----------------------------------+ p a
 :        [K]ey string addr         : t r
-+    -     -     -     -     -     + i t
++ - - - - - - - - - - - - - - - - -+ i t
 :          [K]ey length            : o
-+    -     -     -     -     -     + n
++ - - - - - - - - - - - - - - - - -+ n
 :           [K]ey hash             : a
 +----------------------------------+ l
 :          [P]riority[0]           :
-+ -     -     -     -     -     -  +
++ - - - - - - - - - - - - - - - - -+
 :          [P]riority[1]           :
 +----------------------------------+
 :  [H]andle (Lua wrapper) address  :
@@ -98,6 +99,9 @@ struct sm_queue;
 #define SM_EVENT_DEPOT(E) \
     (*(struct sm_queue **)((char *)(E) + SM_WORD + 8))
 
+#define SM_EVENT_HASH_KEY(E) \
+    ((sm_hash_key *)((char *)(E) + sizeof(sm_event) + SM_WORD * !!(E)->ctl.Q))
+/*
 #define SM_EVENT_KEY_STRING(E) \
     (*(char **)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q) + 8))
 
@@ -106,22 +110,35 @@ struct sm_queue;
 
 #define SM_EVENT_KEY_HASH(E) \
     (*(uint32_t *)((char *)(E) + SM_WORD * (2 + (E)->ctl.Q) + 12))
+*/
 
+#define SM_EVENT_PRIORITY(E) \
+    ((unsigned long *)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) + SM_WORD * !!(E)->ctl.Q))
+    
+    //SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K) + 8 * (1 + (E)->ctl.K)))
+/*
 #define SM_EVENT_PRIORITY_0(E) \
     (*(unsigned long *)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K) + 8 * (1 + (E)->ctl.K)))
 
 #define SM_EVENT_PRIORITY_1(E) \
     (*(unsigned long *)((char *)(E) + SM_WORD * (2 + (E)->ctl.Q + (E)->ctl.K) + 8 * (1 + (E)->ctl.K)))
-
+*/
+#define SM_EVENT_HANDLE(E) \
+    (*(void **)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) + SM_WORD * (!!(E)->ctl.Q + !!(E)->ctl.P * 2)))
+/*
 #define SM_EVENT_HANDLE(E) \
     (*(void **)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K + 2 * (E)->ctl.P) + 8 * (1 + (E)->ctl.K)))
-
+*/
+#define SM_EVENT_DATA(E) \
+    ((void *)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) + SM_WORD * (!!(E)->ctl.Q + !!(E)->ctl.P * 2 + !!(E)->ctl.H)))
+/*
 #define SM_EVENT_DATA(E) \
     ((void *)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K + 2 * (E)->ctl.P + (E)->ctl.H) + 8 * (1 + (E)->ctl.K)))
-
+*/
 #define SM_EVENT_DATA_SIZE(E) (size_t)((uint32_t)((E)->ctl.size) << 6)
 
-sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H);
+    sm_event *
+    sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H);
 void sm_event_destroy(sm_event **e);
 #define SM_EVENT_DESTROY(E) sm_event_destroy((&(E)))
 void sm_event_erase(sm_event *e);

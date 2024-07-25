@@ -5,7 +5,6 @@ Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 -------------------------------------------------------------------------------
 SPDX-License-Identifier: LGPL-3.0-only */
 
-#include "../src/sm_queue.h"
 #include "test_utils.h"
 
 int main()

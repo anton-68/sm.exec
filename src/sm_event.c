@@ -169,17 +169,21 @@ int sm_event_to_string(const sm_event *e, char *buffer) {
         s += sprintf(s, "size: %u B\n", e->ctl.size << 6);
         if(e->ctl.Q)
             s += sprintf(s, "depot addr: %p\n", SM_EVENT_DEPOT(e));
-        if (e->ctl.K) 
+        if (e->ctl.K)
         {
-            s += sprintf(s, "key string: %s\n", SM_EVENT_KEY_STRING(e)  != NULL ?
-                                                    SM_EVENT_KEY_STRING(e) : "\0");
-            s += sprintf(s, "key length: %d\n", SM_EVENT_KEY_LENGTH(e));
-            s += sprintf(s, "key hash: 0x%X\n", SM_EVENT_KEY_HASH(e));
+            /* s += sprintf(s, "key string: %s\n", SM_EVENT_KEY_STRING(e)  != NULL ?
+                                                       SM_EVENT_KEY_STRING(e) : "\0");
+               s += sprintf(s, "key length: %d\n", SM_EVENT_KEY_LENGTH(e));
+               s += sprintf(s, "key hash: 0x%X\n", SM_EVENT_KEY_HASH(e)); */
+            s += sprintf(s, "hash key addr: %p\n", SM_EVENT_HASH_KEY(e));
+            s += sprintf(s, "key string: %s\n", (char *)SM_EVENT_HASH_KEY(e)->string);
+            s += sprintf(s, "key length: %d\n", SM_EVENT_HASH_KEY(e)->length);
+            s += sprintf(s, "key hash: 0x%X\n", SM_EVENT_HASH_KEY(e)->value);
         }
         if (e->ctl.P) 
         {
-            s += sprintf(s, "priority[0]: %lu\n", SM_EVENT_PRIORITY_0(e));
-            s += sprintf(s, "priority[1]: %lu\n", SM_EVENT_PRIORITY_1(e));
+            s += sprintf(s, "priority[0]: %lu\n", SM_EVENT_PRIORITY(e)[0]);
+            s += sprintf(s, "priority[1]: %lu\n", SM_EVENT_PRIORITY(e)[1]);
         }
         if (e->ctl.H)
             s += sprintf(s, "handle: %p\n", SM_EVENT_HANDLE(e));
@@ -196,7 +200,10 @@ int sm_event_to_string(const sm_event *e, char *buffer) {
 
 static inline size_t event_sizeof(const sm_event *e)
 {
-    return sizeof(sm_event) + SM_WORD * (e->ctl.Q + e->ctl.K + e->ctl.P * 2 + e->ctl.H) + 8 * e->ctl.K + SM_EVENT_DATA_SIZE(e);
+    return sizeof(sm_event) + 
+           sizeof(sm_hash_key) * !!e->ctl.K + 
+           SM_WORD * (!!e->ctl.Q + 2 * !!e->ctl.P + !!e->ctl.H) + 
+           SM_EVENT_DATA_SIZE(e);
 }
 
 static inline  sm_event *event_chain_end(sm_event *e)

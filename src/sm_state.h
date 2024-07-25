@@ -8,6 +8,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #ifndef SM_STATE_H
 #define SM_STATE_H
 
+#include "sm_hash.h"
 #include "sm_event.h"
 #include "sm_fsm.h"
 
@@ -86,13 +87,21 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_state
         } ctl;
     };
     sm_fsm **fsm;
-    struct sm_state *next;
 } sm_state;
 
 struct sm_array;
 #define SM_STATE_DEPOT(S) \
-    (*(struct sm_array **)((char *)(S) + SM_WORD + 8))
+    (*(struct sm_array **)((char *)(S) + sizeof(sm_state)))
 
+/*
+#define SM_STATE_DEPOT(S) \
+    (*(struct sm_array **)((char *)(S) + SM_WORD + 8))
+*/
+
+#define SM_STATE_HASH_KEY(S) \
+    ((sm_hash_key *)((char *)(S) + sizeof(sm_state) + SM_WORD))
+
+/*
 #define SM_STATE_KEY_STRING(S) \
     (*(char **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D) + 8))
 
@@ -101,18 +110,39 @@ struct sm_array;
 
 #define SM_STATE_KEY_HASH(S) \
     (*(uint32_t *)((char *)(S) + SM_WORD * (2 + (S)->ctl.D) + 12))
+*/
 
 #define SM_STATE_NEXT(S) \
+    (*(sm_state**)((char *)(S) + sizeof(sm_state) + SM_WORD + sizeof(sm_hash_key)))
+
+/*
+#define SM_STATE_NEXT(S) \
     (*(struct sm_state **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K) + 8 * (1 + (S)->ctl.K)))
+*/
 
 #define SM_STATE_EVENT_TRACE(S) \
+    (*(sm_event **)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D))
+
+/*
+#define SM_STATE_EVENT_TRACE(S) \
     (*(sm_event **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C) + 8 * (1 + (S)->ctl.K)))
+*/
 
 #define SM_STATE_HANDLE(S) \
+    (*(void **)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * (S)->ctl.E))
+
+/*
+#define SM_STATE_HANDLE(S) \
     (*(void **)((char *)(S) + SM_WORD * (2 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C + (S)->ctl.E) + 8 * (1 + (S)->ctl.K)))
+*/
 
 #define SM_STATE_DATA(S) \
+    ((void *)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * (S)->ctl.E + SM_WORD * (S)->ctl.H))
+
+/*
+#define SM_STATE_DATA(S) \
     ((void *)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + 2 * (S)->ctl.C + (S)->ctl.E + (S)->ctl.H) + 8 * (1 + (S)->ctl.K)))
+*/
 
 #define SM_STATE_DATA_SIZE(S) ((uint32_t)((S)->ctl.size) << 6)
 

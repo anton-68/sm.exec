@@ -1,5 +1,5 @@
 # SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
-# Event class tests
+# Test classes makefile
 # -------------------------------------------------------------------------------
 # Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 # -------------------------------------------------------------------------------
@@ -16,18 +16,21 @@ SRC = ../src/
 
 OBJS = 	$(SRC)sm_sys.o \
 		$(SRC)sm_logger.o \
+		$(SRC)sm_hash.o \
 		$(SRC)sm_event.o \
 		$(SRC)sm_queue.o \
 		$(SRC)sm_state.o \
+		../lib/bj_hash/bj_hash.o \
 		test_utils.o
 
 TEST_OBJS =	test_sys.o \
 			test_logger.o \
+			test_hash.o \
 			test_event.o \
 			test_queue.o \
 			test_state.o
 
-EXES = test_sys test_logger test_event test_queue test_state
+EXES = test_sys test_logger test_hash test_event test_queue test_state
 
 all : $(EXES)
 
@@ -36,6 +39,9 @@ test_sys : $(OBJS) test_sys.o
 
 test_logger : $(OBJS) test_logger.o
 	$(CC) $(LFLAGS) $(OBJS) test_logger.o -o test_logger
+
+test_hash : $(OBJS) test_hash.o
+	$(CC) $(LFLAGS) $(OBJS) test_hash.o -o test_hash
 
 test_event : $(OBJS) test_event.o
 	$(CC) $(LFLAGS) $(OBJS) test_event.o -o test_event

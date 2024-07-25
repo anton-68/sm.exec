@@ -7,6 +7,14 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "test_utils.h"
 
+void sm_print_hash_key(const sm_hash_key *k)
+{
+    printf("Hash_key\n=====\n");
+    printf("string = %s\n", (const char *)k->string);
+    printf("length = %u\n", k->length);
+    printf("hash = %08X\n", k->value);
+}
+
 void sm_print_event(const sm_event *e)
 {
     char buffer[SM_TEST_PRINT_BUFFER];

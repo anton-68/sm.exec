@@ -5,14 +5,13 @@ Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 -------------------------------------------------------------------------------
 SPDX-License-Identifier: LGPL-3.0-only */
 
-#include "../src/sm_state.h"
 #include "test_utils.h"
 
 int main()
 {
     openlog(NULL, LOG_NDELAY, LOG_USER);
 
-    sm_state *s = sm_state_create(NULL, 0, false, false, false, false, false);
+    sm_state *s = sm_state_create(NULL, 0, false, false, false);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
@@ -22,34 +21,38 @@ int main()
     fsm0.initial = 77;
     sm_fsm *fsm0p = &fsm0;
     sm_fsm **fsm0r = &fsm0p;
-    s = sm_state_create(fsm0r, 0, false, false, false, false, false);
+    s = sm_state_create(fsm0r, 0, false, false, false);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
     fsm0.initial = 78;
-    s = sm_state_create(fsm0r, 0, true, false, true, false, true);
+    s = sm_state_create(fsm0r, 0, true, false, true);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
     fsm0.initial = 79;
-    s = sm_state_create(fsm0r, 0, false, true, false, true, false);
+    s = sm_state_create(fsm0r, 0, false, true, false);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
     fsm0.initial = 80;
-    s = sm_state_create(fsm0r, 64, true, true, true, true, true);
+    s = sm_state_create(fsm0r, 256, true, true, true);
+    sm_print_state(s);
+
     char *state_data = "Data string ..................................................";
-    strcpy(SM_STATE_DATA(s), state_data);
+    strcpy((char *)SM_STATE_DATA(s), state_data);
     SM_STATE_DEPOT(s) = (void *)0xABCD;
-    SM_STATE_KEY_STRING(s) = SM_STATE_DATA(s);
-    SM_STATE_KEY_LENGTH(s) = strlen(SM_STATE_KEY_STRING(s));
-    SM_STATE_KEY_HASH(s) = 0xBCDE;
-    SM_STATE_TX(s) = (void *)0xCDEF;
+    sm_hash_set_key(SM_STATE_HASH_KEY(s), SM_STATE_DATA(s), strlen((char *)SM_STATE_DATA(s)), 0xffffffff);
+    //SM_STATE_HASH_KEY(s)->string = SM_STATE_DATA(s);
+    //SM_STATE_HASH_KEY(s)->length = strlen(SM_STATE_HASH_KEY(s)->string);
+    //SM_STATE_HASH_KEY(s)->value = 0xBCDE;
+    SM_STATE_NEXT(s) = (void *)0xCDEF;
     SM_STATE_EVENT_TRACE(s) = NULL;
     SM_STATE_HANDLE(s) = (void *)0xA123;
     sm_print_state(s);
 
-    strcpy(SM_STATE_DATA(s), "Test event data access");
+    state_data = "Test event data access";
+    strcpy((char *)SM_STATE_DATA(s), state_data);
     sm_print_state(s);
 
     // push - pop
@@ -59,11 +62,12 @@ int main()
 
     sm_event *e1 = sm_event_create(256, false, true, true, true);
     strcpy(SM_EVENT_DATA(e1), "Secret password ..............................");
-    SM_EVENT_KEY_STRING(e1) = SM_EVENT_DATA(e1);
-    SM_EVENT_KEY_LENGTH(e1) = strlen(SM_EVENT_KEY_STRING(e1));
-    SM_EVENT_KEY_HASH(e1) = 0xBCDE;
-    SM_EVENT_PRIORITY_0(e1) = 7;
-    SM_EVENT_PRIORITY_1(e1) = 17;
+    sm_hash_set_key(SM_STATE_HASH_KEY(s), SM_STATE_DATA(s), strlen((char *)SM_STATE_DATA(s)), 0xffffffff);
+    //SM_EVENT_KEY_STRING(e1) = SM_EVENT_DATA(e1);
+    //SM_EVENT_KEY_LENGTH(e1) = strlen(SM_EVENT_KEY_STRING(e1));
+    //SM_EVENT_KEY_HASH(e1) = 0xBCDE;
+    SM_EVENT_PRIORITY(e1)[0] = 7;
+    SM_EVENT_PRIORITY(e1)[1] = 17;
     SM_EVENT_HANDLE(e1) = (void *)0xA123;
     //e1->ctl.L = true;
 

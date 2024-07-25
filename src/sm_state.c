@@ -9,7 +9,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 static inline size_t sm_state_sizeof(sm_state *s) __attribute__((always_inline));
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool K, bool C, bool E, bool H) {
+sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool H) {
     if(SM_UNLIKELY(f == NULL)){
         SM_REPORT_MESSAGE(SM_LOG_INFO, "NULL FSM pointer on input");
         //return NULL;
@@ -17,8 +17,6 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool K, bool C, boo
     sm_state header;
     header.ctl.size = size >> 6;
     header.ctl.D = D;
-    header.ctl.K = K;
-    header.ctl.C = C;
     header.ctl.E = E;
     header.ctl.H = H;
     sm_state *s;
@@ -30,9 +28,9 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool K, bool C, boo
     memset(s, '\0', sm_state_sizeof(&header));
     s->type = header.type;
     s->fsm = f; 
-    if(*f != NULL)
+    if(f != NULL && *f != NULL)
         s->state_id = (*f)->initial;
-    SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully created", s);
+    SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully created with size = %lu", s, sm_state_sizeof(&header));
     return s;    
 }
 
@@ -128,25 +126,25 @@ int sm_state_to_string(sm_state *s, char *buffer)
         pos += sprintf(pos, "state_id: %u\n", s->state_id);
         pos += sprintf(pos, "size: %u B\n", s->ctl.size << 6);
         if (s->ctl.D)
+        {
             pos += sprintf(pos, "depot addr: %p\n", SM_STATE_DEPOT(s));
-        if (s->ctl.K)
-        {
-            pos += sprintf(pos, "key string: %s\n", SM_STATE_KEY_STRING(s) != NULL ? SM_STATE_KEY_STRING(s) : "\0");
-            pos += sprintf(pos, "key length: %d\n", SM_STATE_KEY_LENGTH(s));
-            pos += sprintf(pos, "key hash: 0x%X\n", SM_STATE_KEY_HASH(s));
-        }
-        if (s->ctl.C)
-        {
-            pos += sprintf(pos, "Tx address: %p\n", SM_STATE_SERVICE(s));
+            pos += sprintf(pos, "hash key addr: %p\n", SM_STATE_HASH_KEY(s));
+            pos += sprintf(pos, "key string: %s\n", (char *)SM_STATE_HASH_KEY(s)->string);
+            pos += sprintf(pos, "key length: %d\n", SM_STATE_HASH_KEY(s)->length);
+            pos += sprintf(pos, "key hash: 0x%X\n", SM_STATE_HASH_KEY(s)->value);
+            pos += sprintf(pos, "next state address: %p\n", SM_STATE_NEXT(s));
         }
         if (s->ctl.E)
         {
-            pos += sprintf(pos, "event trace head address: %p\n", SM_STATE_SERVICE(s));
+            pos += sprintf(pos, "event trace head address: %p\n", SM_STATE_EVENT_TRACE(s));
         }
         if (s->ctl.H)
+        {
             pos += sprintf(pos, "handle: %p\n", SM_STATE_HANDLE(s));
+        }
         if (s->ctl.size > 0)
         {
+            pos += sprintf(pos, "data addr: %p\n", SM_STATE_DATA(s));
             snprintf(data_buffer, 32, "%s", (char *)SM_STATE_DATA(s));
             pos += sprintf(pos, "data:\n[%s ...]\n", data_buffer);
         }
@@ -156,5 +154,6 @@ int sm_state_to_string(sm_state *s, char *buffer)
 
 static inline size_t sm_state_sizeof(sm_state *s)
 {
-    return sizeof(sm_state) + SM_WORD * (s->ctl.D + s->ctl.K + s->ctl.C + s->ctl.E + s->ctl.H) + 8 * s->ctl.K + SM_STATE_DATA_SIZE(s);
+    //return sizeof(sm_state) + SM_WORD * (s->ctl.D + s->ctl.K + s->ctl.C + s->ctl.E + s->ctl.H) + 8 * s->ctl.K + SM_STATE_DATA_SIZE(s);
+    return sizeof(sm_state) + s->ctl.D * (sizeof(sm_hash_key) + 2 * SM_WORD) + s->ctl.E * SM_WORD + s->ctl.H * SM_WORD + SM_STATE_DATA_SIZE(s);
 }
