@@ -37,6 +37,8 @@ sm_state - ILP32
 +----------------------------------+
 */
 
+#define SM_HASH_FUNC &hashlittle
+
 typedef struct __attribute__((aligned(SM_WORD))) sm_hash_key
 {
     void *string;

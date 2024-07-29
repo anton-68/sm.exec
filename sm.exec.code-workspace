@@ -41,7 +41,11 @@
 			"features.h": "c",
 			"stdio.h": "c",
 			"sm_event.h": "c",
-			"cstdlib": "c"
+			"cstdlib": "c",
+			"param.h": "c",
+			"stdlib.h": "c",
+			"string.h": "c",
+			"stddef.h": "c"
 		}
 	}
 }

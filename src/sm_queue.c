@@ -8,27 +8,70 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include "sm_queue.h"
 
 static inline void enqueue(sm_queue *q, sm_event *e) 
-						   __attribute__((always_inline));
+	__attribute__((always_inline));
 static inline sm_event *dequeue(sm_queue *q) 
-								__attribute__((always_inline));
+	__attribute__((always_inline));
 
 sm_queue *sm_queue_create(uint32_t event_size,
 						  bool Q, bool K, bool P, bool H,
 						  unsigned num_of_events,
 						  bool synchronized)
 {
-	int retval;
 	sm_queue *q;
+	int retval;
 	if (SM_UNLIKELY((q = aligned_alloc(SM_WORD, sizeof(sm_queue))) == NULL))
 	{
 		SM_REPORT_MESSAGE(SM_LOG_ERR, "aligned_alloc() failed");
 		return NULL;
 	}
+	q->synchronized = synchronized;
+	if (q->synchronized)
+	{
+		pthread_mutexattr_t attr;
+		if (SM_UNLIKELY((retval = pthread_mutexattr_init(&attr)) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_init() failed", retval);
+			free(q);
+			return NULL;
+		}
+		if (SM_UNLIKELY((retval = pthread_mutexattr_settype(&attr, SM_MUTEX_TYPE)) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_settype() failed", retval);
+			pthread_mutexattr_destroy(&attr);
+			free(q);
+			return NULL;
+		}
+		if (SM_UNLIKELY((retval = pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST)) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_setrobust() failed", retval);
+			pthread_mutexattr_destroy(&attr);
+			free(q);
+			return NULL;
+		}
+		if (SM_UNLIKELY((retval = pthread_mutex_init(&(q->lock), &attr)) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_init() failed", retval);
+			pthread_mutexattr_destroy(&attr);
+			free(q);
+			return NULL;
+		}
+		if (SM_UNLIKELY((retval = pthread_mutexattr_destroy(&attr)) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_destroy() failed", retval);
+		}
+		if (SM_UNLIKELY((retval = pthread_cond_init(&(q->empty), NULL)) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_init() failed", retval);
+			pthread_mutex_destroy(&(q->lock));
+			free(q);
+			return NULL;
+		}
+	}
 	sm_event *e;
 	if (SM_UNLIKELY((e = sm_event_create(0, false, false, false, false)) == NULL))
 	{
 		SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_event_create() returned NULL");
-		free(q);
+		sm_queue_destroy(&q);
 		return NULL;
 	}
 	q->head = q->tail = e;
@@ -44,45 +87,7 @@ sm_queue *sm_queue_create(uint32_t event_size,
 		SM_EVENT_DEPOT(e) = q;
 		enqueue(q, e);
 	}
-	q->synchronized = synchronized;
-	if (q->synchronized)
-	{
-		pthread_mutexattr_t attr;
-		if (SM_UNLIKELY(retval = pthread_mutexattr_init(&attr) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_init() failed", retval);
-			sm_queue_destroy(&q);
-			return NULL;
-		}
-		if (SM_UNLIKELY(retval = pthread_mutexattr_settype(&attr, SM_MUTEX_TYPE) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_settype() failed", retval);
-			sm_queue_destroy(&q);
-			return NULL;
-		}
-		if (SM_UNLIKELY(retval = pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_setrobust() failed", retval);
-			sm_queue_destroy(&q);
-			return NULL;
-		}
-		if (SM_UNLIKELY(retval = pthread_mutex_init(&(q->lock), &attr) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_init() failed", retval);
-			sm_queue_destroy(&q);
-			return NULL;
-		}
-		if (SM_UNLIKELY(retval = pthread_mutexattr_destroy(&attr) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_destroy() failed", retval);
-		}
-		if (SM_UNLIKELY(retval = pthread_cond_init(&(q->empty), NULL) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_init() failed", retval);
-			sm_queue_destroy(&q);
-			return NULL;
-		}
-	}
+
 	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully created", q);
 	return q;
 }
@@ -90,6 +95,17 @@ sm_queue *sm_queue_create(uint32_t event_size,
 void sm_queue_destroy(sm_queue **q)
 {
 	int retval;
+	if ((*q)->synchronized)
+	{
+		if (SM_UNLIKELY((retval = pthread_mutex_destroy(&((*q)->lock))) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_destroy() failed", retval);
+		}
+		if (SM_UNLIKELY((retval = pthread_cond_destroy(&((*q)->empty))) != EXIT_SUCCESS))
+		{
+			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_destroy() failed", retval);
+		}
+	}
 	sm_event *tmp;
 	sm_event *e = (*q)->head;
 	while (e != NULL)
@@ -98,19 +114,8 @@ void sm_queue_destroy(sm_queue **q)
 		sm_event_destroy(&e);
 		e = tmp;
 	}
-	if ((*q)->synchronized)
-	{
-		if (SM_UNLIKELY(retval = pthread_mutex_destroy(&((*q)->lock)) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_destroy() failed", retval);
-		}
-		if (SM_UNLIKELY(retval = pthread_cond_destroy(&((*q)->empty)) != EXIT_SUCCESS))
-		{
-			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_destroy() failed", retval);
-		}
-	}
-	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully destroyed", *q);
 	free(*q);
+	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully destroyed", *q);
 	*q = NULL;
 }
 
@@ -119,7 +124,7 @@ int sm_queue_enqueue(sm_queue *q, sm_event **e)
 	int retval;
 	if (q->synchronized)
 	{
-		if (SM_UNLIKELY(retval = pthread_mutex_lock(&(q->lock)) != EXIT_SUCCESS))
+		if (SM_UNLIKELY((retval = pthread_mutex_lock(&(q->lock))) != EXIT_SUCCESS))
 		{
 			if (retval == EOWNERDEAD)
 			{
@@ -149,11 +154,11 @@ int sm_queue_enqueue(sm_queue *q, sm_event **e)
 	enqueue(q, *e);
 	if (q->synchronized)
 	{
-		if (SM_UNLIKELY(retval = pthread_cond_signal(&(q->empty)) != EXIT_SUCCESS))
+		if (SM_UNLIKELY((retval = pthread_cond_signal(&(q->empty))) != EXIT_SUCCESS))
 		{
 			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
 		}
-		if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS))
+		if (SM_UNLIKELY((retval = pthread_mutex_unlock(&(q->lock))) != EXIT_SUCCESS))
 		{
 			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
 		}
@@ -169,7 +174,7 @@ sm_event *sm_queue_dequeue(sm_queue *q)
 	int retval;
 	if (q->synchronized)
 	{
-		if (SM_UNLIKELY(retval = pthread_mutex_lock(&(q->lock)) != EXIT_SUCCESS))
+		if (SM_UNLIKELY((retval = pthread_mutex_lock(&(q->lock))) != EXIT_SUCCESS))
 		{
 			if(retval == EOWNERDEAD)
 			{
@@ -195,13 +200,13 @@ sm_event *sm_queue_dequeue(sm_queue *q)
 		}
 		while ((e = dequeue(q)) == NULL)
 		{
-			if (SM_UNLIKELY(retval = pthread_cond_wait(&(q->empty), &(q->lock)) != EXIT_SUCCESS))
+			if (SM_UNLIKELY((retval = pthread_cond_wait(&(q->empty), &(q->lock))) != EXIT_SUCCESS))
 			{
 				SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_wait() failed", retval);
 				return NULL;
 			}
 		}
-		if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(q->lock)) != EXIT_SUCCESS))
+		if (SM_UNLIKELY((retval = pthread_mutex_unlock(&(q->lock))) != EXIT_SUCCESS))
 		{
 			SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
 		}

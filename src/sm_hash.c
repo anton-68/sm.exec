@@ -5,8 +5,9 @@ Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
 -------------------------------------------------------------------------------
 SPDX-License-Identifier: LGPL-3.0-only */
 
-#include <string.h> //memcmp
+
 #include "sm_hash.h"
+#include <string.h> //memcmp
 
 void sm_hash_set_key(sm_hash_key *dst, void *str, size_t len, uint32_t hash_mask)
 {

@@ -46,7 +46,7 @@ unsigned long get_tid()
 sm_timestamp sm_get_timestamp()
 {
     char timebuffer[20] = {0};
-    /*struct tm      *tmval     = NULL;*/
+    /*struct tm *tmval = NULL;*/
     struct tm gmtval = {0};
     struct timespec curtime = {0};
     sm_timestamp timestamp;

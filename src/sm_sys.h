@@ -11,6 +11,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include <math.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

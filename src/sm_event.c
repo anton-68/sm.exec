@@ -8,9 +8,9 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include "sm_event.h"
 
 static inline size_t event_sizeof(const sm_event *e) 
-                     __attribute__((always_inline));
+    __attribute__((always_inline));
 static inline sm_event *event_chain_end(sm_event *e)
-                        __attribute__((always_inline));
+    __attribute__((always_inline));
 
 size_t sm_event_sizeof(const sm_event *e)
 {

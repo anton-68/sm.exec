@@ -7,9 +7,12 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_state.h"
 
+extern __thread void *__sm_tx_desc;
+
 static inline size_t sm_state_sizeof(sm_state *s) __attribute__((always_inline));
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool H) {
+sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool T, bool H, bool K)
+{
     if(SM_UNLIKELY(f == NULL)){
         SM_REPORT_MESSAGE(SM_LOG_INFO, "NULL FSM pointer on input");
         //return NULL;
@@ -18,7 +21,9 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool H) {
     header.ctl.size = size >> 6;
     header.ctl.D = D;
     header.ctl.E = E;
+    header.ctl.T = T;
     header.ctl.H = H;
+    header.ctl.K = K;
     sm_state *s;
     if (SM_UNLIKELY((s = aligned_alloc(SM_WORD, sm_state_sizeof(&header))) == NULL))
     {
@@ -28,10 +33,20 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool H) {
     memset(s, '\0', sm_state_sizeof(&header));
     s->type = header.type;
     s->fsm = f; 
-    if(f != NULL && *f != NULL)
+    if (f != NULL && *f != NULL)
+    {
         s->state_id = (*f)->initial;
+    }
+    if (s->ctl.T)
+    {
+        SM_STATE_TX(s) = __sm_tx_desc; 
+    }
+    if (s->ctl.D && s->ctl.K)
+    {
+        SM_STATE_HASH_KEY(s)->string = SM_STATE_DATA(s); // because SM_STATE_HASH_KEY(s)->string == 0 here
+    }
     SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully created with size = %lu", s, sm_state_sizeof(&header));
-    return s;    
+    return s;
 }
 
 void sm_state_destroy(sm_state **s)
@@ -51,12 +66,16 @@ void sm_state_erase(sm_state *s) {
         struct sm_array *a = SM_STATE_DEPOT(s);
         memset(s, '\0', sm_state_sizeof(s));
         s->type = type;
+        if (s->ctl.D && s->ctl.K)
+        {
+            SM_STATE_HASH_KEY(s)->string = SM_STATE_DATA(s); // because SM_STATE_HASH_KEY(s)->string == 0 here
+        }
         SM_STATE_DEPOT(s) = a;
     }
     SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully erased", s);
 }
 
-//void sm_array_park_state(struct sm_array *, sm_state *);
+void sm_array_park_state(struct sm_array *, sm_state *);
 void sm_state_dispose(sm_state **s) {
     if ((*s)->ctl.E)
     {
@@ -65,12 +84,13 @@ void sm_state_dispose(sm_state **s) {
     if ((*s)->ctl.D)
     {
         sm_state_erase(*s);
-        //sm_array_park_state(SM_STATE_DEPOT(s), s);
+        sm_array_park_state(SM_STATE_DEPOT(s), s);
     }
     else
     {
         sm_state_destroy(s);
     }
+    SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully parked", s);
 }
 
 void sm_state_push_event(sm_state *s, sm_event **e)
@@ -82,6 +102,7 @@ void sm_state_push_event(sm_state *s, sm_event **e)
         (*e)->ctl.L = true;
     }
     *e = NULL;
+    SM_DEBUG_MESSAGE("sm_event [addr:%p] successfully pushed into stack of sm_state at [addr:%p]", *e, s);
 }
 
 sm_event *sm_state_pop_event(sm_state *s)
@@ -94,11 +115,13 @@ sm_event *sm_state_pop_event(sm_state *s)
         {
             SM_STATE_EVENT_TRACE(s) = SM_STATE_EVENT_TRACE(s)->next;
         }
+        SM_DEBUG_MESSAGE("sm_event [addr:%p] successfully popped from stack of sm_state at [addr:%p]", e, s);
         return e;
     }
     else
     {
         return NULL;
+        SM_DEBUG_MESSAGE("no sm_event available in the stack of sm_state at [addr:%p]", s);
     }
 }
 
@@ -129,6 +152,7 @@ int sm_state_to_string(sm_state *s, char *buffer)
         {
             pos += sprintf(pos, "depot addr: %p\n", SM_STATE_DEPOT(s));
             pos += sprintf(pos, "hash key addr: %p\n", SM_STATE_HASH_KEY(s));
+            pos += sprintf(pos, "key string allocated in the data block: %u\n", s->ctl.K);
             pos += sprintf(pos, "key string: %s\n", (char *)SM_STATE_HASH_KEY(s)->string);
             pos += sprintf(pos, "key length: %d\n", SM_STATE_HASH_KEY(s)->length);
             pos += sprintf(pos, "key hash: 0x%X\n", SM_STATE_HASH_KEY(s)->value);
@@ -137,6 +161,10 @@ int sm_state_to_string(sm_state *s, char *buffer)
         if (s->ctl.E)
         {
             pos += sprintf(pos, "event trace head address: %p\n", SM_STATE_EVENT_TRACE(s));
+        }
+        if (s->ctl.T)
+        {
+            pos += sprintf(pos, "Tx object address: %p\n", SM_STATE_TX(s));
         }
         if (s->ctl.H)
         {
@@ -154,6 +182,5 @@ int sm_state_to_string(sm_state *s, char *buffer)
 
 static inline size_t sm_state_sizeof(sm_state *s)
 {
-    //return sizeof(sm_state) + SM_WORD * (s->ctl.D + s->ctl.K + s->ctl.C + s->ctl.E + s->ctl.H) + 8 * s->ctl.K + SM_STATE_DATA_SIZE(s);
-    return sizeof(sm_state) + s->ctl.D * (sizeof(sm_hash_key) + 2 * SM_WORD) + s->ctl.E * SM_WORD + s->ctl.H * SM_WORD + SM_STATE_DATA_SIZE(s);
+    return sizeof(sm_state) + s->ctl.D * (sizeof(sm_hash_key) + 2 * SM_WORD) + (s->ctl.E + s->ctl.T + s->ctl.H) * SM_WORD + SM_STATE_DATA_SIZE(s);
 }

@@ -49,3 +49,10 @@ void sm_print_queue(sm_queue *q)
     sm_queue_to_string(q, buffer);
     printf("Queue\n=====\n%s\n", buffer);
 }
+
+void sm_print_array(sm_array *a)
+{
+    char buffer[SM_TEST_PRINT_BUFFER];
+    sm_array_to_string(a, buffer);
+    printf("Array\n=====\n%s\n", buffer);
+}

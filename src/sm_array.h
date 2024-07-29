@@ -9,7 +9,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #define SM_ARRAY_H
 
 #include "sm_state.h"
-#include "../lib/bj_hash/bj_hash.h"
+#include "sm_hash.h"
 
 typedef struct __attribute__((aligned(SM_WORD))) sm_array
 {
@@ -25,13 +25,21 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_array
     pthread_cond_t empty;
 } sm_array;
 
-sm_array *sm_array_create(size_t key_length, size_t state_size, sm_fsm **fsm, bool S, bool C, bool E, bool H);
-
-void sm_array_free(sm_array **a);
+sm_array *sm_array_create(size_t key_length,
+                          size_t queue_size,
+                          size_t state_size,
+                          sm_fsm **fsm,
+                          bool synchronized, bool E, bool T, bool H, bool K);
+void sm_array_destroy(sm_array **a);
+#define SM_ARRAY_DESTROY(A) sm_array_destroy((&(A)))
+#define SM_ARRAY_QUEUE_TOP(A) ((A)->queue_head)
+#define SM_ARRAY_QUEUE_SIZE(A) ((A)->queue_size)
 sm_state *sm_array_find_state(sm_array *a, const void *key, size_t key_length);
 sm_state *sm_array_get_state(sm_array *a, const void *key, size_t key_length);
-void sm_array_release_state(sm_array *a, sm_state **s);  
-void sm_array_park_state(sm_array *a, sm_state **s);  
+int sm_array_release_state(sm_array *a, sm_state **s);
+int sm_array_park_state(sm_array *a, sm_state **s); // DEPRECATED
+#define SM_ARRAY_PARK_STATE(S) {SM_STATE_TX((S)) = NULL;(S)=NULL;}
+int sm_array_to_string(sm_array *a, char *buffer);
 
 #endif //SM_ARRAY_H
 

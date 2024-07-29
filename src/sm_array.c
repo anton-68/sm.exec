@@ -7,347 +7,477 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_array.h"
 
-// extern __thread void * __sm_tx_desc;
+extern __thread void *__sm_tx_desc;
 
-static sm_state *find_by_hash(sm_array *d, HASH_TYPE h, const void* key, size_t key_length);
-static sm_state *get_by_hash(sm_array *d, HASH_TYPE h, const void * key, size_t key_length);
-static sm_state *pop(sm_array *d);
-static int push(sm_array *d, sm_state *c);
-static void table_free(sm_array *d);
-static void stack_free(sm_array *d); 
-static int insert_into_hash(sm_array *d, sm_state *c); 
-static int remove_from_hash(sm_array *d, sm_state *c);
+static inline void enqueue(sm_array *a, sm_state *e) 
+    __attribute__((always_inline));
+static inline sm_state *dequeue(sm_array *q) 
+    __attribute__((always_inline));
+static inline sm_state *find_by_hash_key(sm_array *a, sm_hash_key *k) 
+    __attribute__((always_inline));
+static inline sm_state *get_by_hash_key(sm_array *a, sm_hash_key *k)
+    __attribute__((always_inline));
+static inline sm_state *get_from_queue(sm_array *a)
+    __attribute__((always_inline));
+static inline void insert_into_hash(sm_array *a, sm_state *s)
+    __attribute__((always_inline));
+static inline void remove_from_hash(sm_array *a, sm_state *s)
+    __attribute__((always_inline));
 
-sm_array *sm_array_create(size_t key_length, size_t state_size, sm_fsm **fsm, bool S, bool C, bool E, bool H)
+sm_array *sm_array_create(size_t key_length,
+                          size_t queue_size,
+                          size_t state_size,
+                          sm_fsm **fsm,
+                          bool synchronized, bool E, bool T, bool H, bool K)
 {
-
     sm_array *a;
-    if (SM_UNLIKELY(a = aligned_alloc(SM_WORD, sizeof(sm_array))) == NULL)
+    int retval;
+    if (SM_UNLIKELY((a = aligned_alloc(SM_WORD, sizeof(sm_array))) == NULL))
     {
-        SM_REPORT_MESSAGE(SM_LOG_ERR, "malloc() failed");
+        SM_REPORT_MESSAGE(SM_LOG_ERR, "aligned_alloc() failed");
         return NULL;
     }
+    a->synchronized = synchronized;
+    if (a->synchronized)
+    {
+        pthread_mutexattr_t attr;
+        if (SM_UNLIKELY((retval = pthread_mutexattr_init(&attr)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_init() failed", retval);
+            free(a);
+            return NULL;
+        }
+        if (SM_UNLIKELY((retval = pthread_mutexattr_settype(&attr, SM_MUTEX_TYPE)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_settype() failed", retval);
+            pthread_mutexattr_destroy(&attr);
+            free(a);
+            return NULL;
+        }
+        if (SM_UNLIKELY((retval = pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_setrobust() failed", retval);
+            pthread_mutexattr_destroy(&attr);
+            free(a);
+            return NULL;
+        }
+        if (SM_UNLIKELY((retval = pthread_mutex_init(&(a->lock), &attr)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_init() failed", retval);
+            pthread_mutexattr_destroy(&attr);
+            free(a);
+            return NULL;
+        }
+        if (SM_UNLIKELY((retval = pthread_mutexattr_destroy(&attr)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutexattr_destroy() failed", retval);
+        }
+        if (SM_UNLIKELY((retval = pthread_cond_init(&(a->empty), NULL)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_init() failed", retval);
+            pthread_mutex_destroy(&(a->lock));
+            free(a);
+            return NULL;
+        }
+    }
+    a->hash_function = SM_HASH_FUNC;
     a->array_size = hashsize(key_length);
     a->mask = hashmask(key_length);
-    a->hash_function = &hashlittle;
-    
     sm_state *s;
-    if (SM_UNLIKELY((s = sm_state_create(NULL, state_size, true, true, C, E, H)) == NULL))
+    if (SM_UNLIKELY((s = sm_state_create(NULL, state_size, true, E, T, H, K)) == NULL))
     {
         SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_event_create() returned NULL");
-        free(a);
+        sm_array_destroy(a);
         return NULL;
     }
     a->queue_head = a->queue_tail = s;
-    if (SM_UNLIKELY((a->queue_head->next = aligned_alloc(SM_WORD, a->array_size * sm_state_sizeof(s))) == NULL))
+    for (size_t i = 0; i < queue_size; i++)
     {
-        SM_REPORT_MESSAGE(SM_LOG_ERR, "aligned_alloc() failed");
-        free(s);
-        free(a);
-        return NULL;
+        if (SM_UNLIKELY((s = sm_state_create(fsm, state_size, true, E, T, H, K)) == NULL))
+        {
+            SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_state_create() returned NULL");
+            sm_array_destroy(&a);
+            return NULL;
+        }
+        SM_STATE_DEPOT(s) = a;
+        enqueue(a, s);
     }
-    for (size_t i = 0; i < a->array_size; i++)
+    a->queue_size = queue_size;
+    
+    if (SM_UNLIKELY((a->table = alligned_alloc(SM_WORD, a->array_size * sizeof(sm_state *))) == NULL))
     {
-        
-    }
-
-        // Initialize pointer for stack of state IDs
-        d->next_free = d->table_size - 1;
-    // Allocate state bodies
-    int i;
-    sm_state *c;
-    d->synchronized = synchronized;
-    // Initialize synchronization flag  
-    if(d->synchronized) {
-        pthread_mutexattr_t attr;   
-        if(pthread_mutexattr_init(&attr) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutexattr_init()");
-            sm_array_free(d);
-            return NULL;
-        }
-        if(pthread_mutexattr_settype(&attr, SM_MUTEX_TYPE) != EXIT_SUCCESS){
-            REPORT(SM_LOG_ERR, "pthread_mutexattr_settype()");
-            sm_array_free(d);
-            return NULL;
-        }    
-        if(pthread_mutex_init(&(d->lock),&attr) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_init()");
-            sm_array_free(d);
-            return NULL;
-        }
-        if(pthread_cond_init(&(d->empty), NULL) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_cond_init()");
-            pthread_cond_signal(&d->empty);
-            sm_array_free(d);
-            return NULL;
-        }
-    }
-    for(i = 0; i < d->table_size; i++) {
-        if((c = sm_state_create(fsm, state_size)) == NULL) {
-            REPORT(SM_LOG_ERR, "state_create()");
-            stack_free(d);
-            return NULL;
-        }
-        SM_STATE_DEPOT(c) = d;
-        push(d, c);
-    }
-    // Allocate hash array state pointers   
-    if((d->table = calloc(d->table_size, sizeof(sm_state *))) == NULL) {
-        REPORT(SM_LOG_ERR, "calloc()");
-        free(d);
+        SM_REPORT_MESSAGE(SM_LOG_ERR, "alligned_alloc() failed");
+        sm_array_destroy(&a);
         return NULL;
     }
-    return d;
+    SM_DEBUG_MESSAGE("sm_array [addr:%p] successfully created", a);
+    return a;
 }
 
-void sm_array_free(sm_array *d){
-    if(d->synchronized) {
-//        pthread_mutex_destroy(&d->table_lock);
-//        pthread_mutex_destroy(&d->stack_lock);
-        pthread_mutex_destroy(&d->lock);
-        pthread_cond_destroy(&d->empty);
-    }
-    table_free(d);  
-    free(d->table);
-    stack_free(d);
-    free(d->stack); 
-    free(d);
-}
-
-sm_state *sm_array_find_state(sm_array *d, const void *key, size_t key_length){
-    HASH_TYPE h = d->hash_function(key, key_length, d->last_hash_value) & d->hash_mask;
-//
-    if (d->synchronized) {
-        if(pthread_mutex_lock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return NULL;
-        } 
-    }
-//
-    //d->last_hash_value = h;
-    sm_state *s = find_by_hash(d, h, key, key_length);
-//
-    if (d->synchronized) {
-        if(pthread_mutex_unlock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return NULL;
+void sm_array_destroy(sm_array **a)
+{
+    int retval;
+    if ((*a)->synchronized)
+    {
+        if (SM_UNLIKELY((retval = pthread_mutex_destroy(&((*a)->lock))) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_destroy() failed", retval);
+        }
+        if (SM_UNLIKELY((retval = pthread_cond_destroy(&((*a)->empty))) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_destroy() failed", retval);
         }
     }
-//
-    return s;
-}
-
-sm_state *sm_array_get_state(sm_array *d, const void *key, size_t key_length){
-    HASH_TYPE h = d->hash_function(key, key_length, d->last_hash_value) & d->hash_mask;
-//
-    if (d->synchronized) {
-        if(pthread_mutex_lock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return NULL;
-        } 
-    }
-//
-    //d->last_hash_value = h;
-    sm_state *s = get_by_hash(d, h, key, key_length);
-    s->tx = __sm_tx_desc;
-//
-    if (d->synchronized) {
-        if(pthread_mutex_unlock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return NULL;
-        }
-    }
-//
-    return s;  
-}
-        
-void sm_array_release_state(sm_array *d, sm_state *c){
-//
-    if (d->synchronized) {
-        if(pthread_mutex_lock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return;
-        } 
-    }
-//
-    remove_from_hash(d, c);
-    sm_state_clear(c);
-    c->tx = NULL;
-    push(d, c);
-//
-    if (d->synchronized) {
-        if(pthread_mutex_unlock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return;
-        }
-    }
-//
-}   
-        
-void sm_array_park_state(sm_array *d, sm_state *c){
-//
-    if (d->synchronized) {
-        if(pthread_mutex_lock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return;
-        } 
-    }
-//
-    c->tx = NULL;
-//
-    if (d->synchronized) {
-        if(pthread_mutex_unlock(&(d->lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return;
-        }
-    }
-//
-}   
-        
-// Private methods
-        
-static sm_state *find_by_hash(sm_array *d, HASH_TYPE h, const void *key, size_t key_length){
-/*    if (d->synchronized)
-        if(pthread_mutex_lock(&(d->table_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return NULL;
-        } */
-    sm_state *c = d->table[h];  
-    while(c != NULL && !sm_state_key_match(c, key, key_length))
-          c = c->next;
-/*    if (d->synchronized)
-        if(pthread_mutex_unlock(&(d->table_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return NULL;
-        }*/
-    return c;
-}
-        
-static sm_state *get_by_hash(sm_array *d, HASH_TYPE h, const void *key, size_t key_length){  
-    sm_state *s = find_by_hash(d, h, key, key_length);
-    if (s == NULL) {
-        if((s = pop(d)) == NULL)
-            return NULL;
-        s->key_hash = h;
-        sm_state_set_key(s, key, key_length);
-    }
-    if(insert_into_hash(d, s) != EXIT_SUCCESS){
-        push(d, s); 
-        return NULL;
-    }
-    return s;
-}       
-        
-static sm_state *pop(sm_array *d){
-    if(d->next_free == d->table_size - 1)
-        return NULL;
-    if (d->synchronized) {
-    /*    if(pthread_mutex_lock(&(d->stack_lock)) != EXIT_SUCCESS){
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return NULL;
-        }*/
-        while(d->next_free >= d->table_size) 
-            if (pthread_cond_wait(&(d->empty), &(d->lock/*stack_lock*/)) != EXIT_SUCCESS){
-                REPORT(SM_LOG_ERR, "pthread_cond_wait()");
-                return NULL;
+    sm_state *s;
+    sm_state *tmp;
+    if ((*a)->table != NULL)
+    {
+        for (size_t i = 0; i < (*a)->array_size; i++)
+        {
+            s = (*a)->table[i];
+            while (s != NULL)
+            {
+                tmp = s;
+                sm_state_dispose(s);
+                s = SM_STATE_NEXT(tmp);
             }
+        }
+        free((*a)->table);
+    }
+    while ((*a)->queue_head != NULL)
+    {
+        sm_state_destroy(dequeue(*a));
+    }
+    sm_state_destroy(((*a)->queue_head));
+    while(SM_ARRAY_QUEUE_TOP(*a) != NULL)
+    {
+        s = dequeue(a);
+        sm_state_destroy(s);
+    }
+    free(*a);
+    SM_DEBUG_MESSAGE("sm_array at [addr:%p] successfully destroyed", *a);
+    *a = NULL;
+}
+
+sm_state *sm_array_find_state(sm_array *a, const void *key, size_t key_length)
+{
+    sm_hash_key k = {NULL, 0, 0xFFFFFFFF};
+    sm_set_hash_key(&k, key, key_length, a->mask);
+    int retval;
+    if (a->synchronized)
+    {
+        if (SM_UNLIKELY((retval = pthread_mutex_lock(&(a->lock))) != EXIT_SUCCESS))
+        {
+            if (retval == EOWNERDEAD)
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
+                retval = pthread_mutex_consistent(&(a->lock));
+                if (retval == EINVAL || retval == EXIT_SUCCESS)
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
+                }
+                else
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
+                    return retval;
+                }
+            }
+            else
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
+                return retval;
+            }
+        }
+        else
+        {
+            SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(a->lock));
+        }
+    }
+    sm_state *s = find_by_hash_key(a, &k);
+    if (a->synchronized)
+    {
+        if (SM_UNLIKELY((retval = pthread_cond_signal(&(a->empty))) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
+        }
+        if (SM_UNLIKELY((retval = pthread_mutex_unlock(&(a->lock))) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
+        }
+    }
+    SM_DEBUG_MESSAGE("sm_state at [addr:%p] successfully found in the array at [addr:%p]", s, a);
+    return s;
+}
+
+sm_state *sm_array_get_state(sm_array *a, const void *key, size_t key_length)
+{
+    {
+        sm_hash_key k = {NULL, 0, 0xFFFFFFFF};
+        sm_set_hash_key(&k, key, key_length, a->mask);
+        int retval;
+        if (a->synchronized)
+        {
+            if (SM_UNLIKELY(retval = pthread_mutex_lock(&(a->lock)) != EXIT_SUCCESS))
+            {
+                if (retval == EOWNERDEAD)
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
+                    retval = pthread_mutex_consistent(&(a->lock));
+                    if (retval == EINVAL || retval == EXIT_SUCCESS)
+                    {
+                        SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
+                    }
+                    else
+                    {
+                        SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
+                        return retval;
+                    }
+                }
+                else
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
+                    return retval;
+                }
+            }
+            else
+            {
+                SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(a->lock));
+            }
+        }
+        sm_state *s = get_by_hash_key(a, &k);
+        if (s == NULL)
+        {
+            SM_REPORT_MESSAGE(SM_LOG_ERR, "get_by_hash_key() returned NULL");
+            return NULL;
+        }
+        SM_STATE_TX(s) = __sm_tx_desc;
+        if (a->synchronized)
+        {
+            if (SM_UNLIKELY(retval = pthread_cond_signal(&(a->empty)) != EXIT_SUCCESS))
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
+            }
+            if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(a->lock)) != EXIT_SUCCESS))
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
+            }
+        }
+        SM_DEBUG_MESSAGE("state [addr:%p] got successfully from array [addr:%p]", s, a);
+        return s;
+    }
+}
+
+int sm_array_release_state(sm_array *a, sm_state **s)
+{
+    if (!((*s)->ctl.D && SM_STATE_DEPOT(*s) == a))
+    {
+        SM_REPORT_MESSAGE(SM_LOG_ERR, "attempt to release state not from the target array");
+        return EXIT_FAILURE;
+    }
+    int retval;
+    if (a->synchronized)
+    {
+        if (SM_UNLIKELY(retval = pthread_mutex_lock(&(a->lock)) != EXIT_SUCCESS))
+        {
+            if (retval == EOWNERDEAD)
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
+                retval = pthread_mutex_consistent(&(a->lock));
+                if (retval == EINVAL || retval == EXIT_SUCCESS)
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
+                }
+                else
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
+                    return retval;
+                }
+            }
+            else
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
+                return retval;
+            }
+        }
+        else
+        {
+            SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(a->lock));
+        }
+    }
+    remove_from_hash(a, *s);
+    sm_state_erase(*s);
+    enqueue(a, *s);
+    *s = NULL;
+    if (a->synchronized)
+    {
+        if (SM_UNLIKELY(retval = pthread_cond_signal(&(a->empty)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
+        }
+        if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(a->lock)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+int sm_array_park_state(sm_array *a, sm_state **s)
+{
+    int retval;
+    if (a->synchronized)
+    {
+        if (SM_UNLIKELY(retval = pthread_mutex_lock(&(a->lock)) != EXIT_SUCCESS))
+        {
+            if (retval == EOWNERDEAD)
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
+                retval = pthread_mutex_consistent(&(a->lock));
+                if (retval == EINVAL || retval == EXIT_SUCCESS)
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
+                }
+                else
+                {
+                    SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
+                    return retval;
+                }
+            }
+            else
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
+                return retval;
+            }
+        }
+        else
+        {
+            SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(a->lock));
+        }
+    }
+    SM_STATE_TX(*s) = NULL;
+    *s = NULL;
+    if (a->synchronized)
+    {
+        if (SM_UNLIKELY(retval = pthread_cond_signal(&(a->empty)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
+        }
+        if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(a->lock)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+int sm_array_to_string(sm_array *a, char *buffer)
+{
+    char *s = buffer;
+    if (SM_UNLIKELY(a == NULL))
+    {
+        s += sprintf(s, "NULL\n");
     }
     else
-        if(d->next_free + 1 > d->table_size)
-            return NULL;
-    d->next_free++;
-    sm_state *c = d->stack[d->next_free];   
-/*    if (d->synchronized)
-        if(pthread_mutex_unlock(&(d->stack_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return NULL;
-        }   */    
-    return c; 
-}   
-
-static int push(sm_array *d, sm_state *c){
-    if(d->next_free == -1)  
-        return EXIT_FAILURE;
-/*    if(d->synchronized) {
-        if(pthread_mutex_lock(&(d->stack_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return EXIT_FAILURE;
-        }
-    }*/
-    d->stack[d->next_free] = c;
-    d->next_free--;
-    if (d->synchronized) {
-        if(pthread_cond_signal(&(d->empty)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_cond_signal()");
-            return EXIT_FAILURE;
-        }
-/*        if(pthread_mutex_unlock(&(d->stack_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return EXIT_FAILURE;
-        }*/
-    } 
-    return EXIT_SUCCESS;    
+    {
+        s += sprintf(s, "address: %p\n", a);
+        s += sprintf(s, "array size: %lu\n", a->array_size);
+        s += sprintf(s, "hash mask: %08X\n", a->mask);
+        s += sprintf(s, "queue_size: %lu\n", a->queue_size);
+        s += sprintf(s, "synchronized: %u\n", a->synchronized);
+    }
+    return (int)((char *)s - (char *)buffer);
 }
 
-static void table_free(sm_array *d){
-    int i;
-    sm_state *c;
-    for(i = 0; i < d->table_size; i++){
-        c = d->table[i];
-        while(c != NULL) {
-            sm_state_free(c);
-            c = c->next;
+static inline void enqueue(sm_array *a, sm_state *s)
+{
+    SM_STATE_NEXT(a->queue_tail) = s;
+    a->queue_tail = s;
+    SM_STATE_NEXT(a->queue_tail) = NULL;
+    a->queue_tail++;
+}
+
+static inline sm_state *dequeue(sm_array *a)
+{
+    sm_state *s = SM_STATE_NEXT(a->queue_head);
+    SM_STATE_NEXT(a->queue_head) = SM_STATE_NEXT(s);
+    if (SM_STATE_NEXT(a->queue_head) == NULL)
+    {
+        a->queue_tail = a->queue_head;
+    }
+    a->queue_size--;
+    return s;
+}
+
+static inline sm_state *find_by_hash_key(sm_array *a, sm_hash_key *k)
+{
+    sm_state *s = a->table[k->value];
+    while (s != NULL && !sm_hash_key_match(k, SM_STATE_HASH_KEY(s)))
+    {
+        s = SM_STATE_NEXT(s);
+    }
+    return s;
+}
+
+static inline sm_state *get_by_hash_key(sm_array *a, sm_hash_key *k)
+{
+    sm_state *s = find_by_hash_key(a, k);
+    if (s == NULL)
+    {
+        if ((s = get_from_queue(a)) == NULL)
+        {
+            SM_REPORT_MESSAGE(SM_LOG_WARNING, "array queue is unexpectedly empty");
+            return NULL;
+        }
+        SM_STATE_HASH_KEY(s)->string = SM_STATE_HASH_DST(s); 
+        sm_hash_set_key(SM_STATE_HASH_KEY(s), k->string, k->length, a->mask);
+    }
+    insert_into_hash(a, s);
+    return s;
+}
+
+static inline sm_state *get_from_queue(sm_array *a)
+{
+    sm_state *s; 
+    int retval;
+    if (a->synchronized)
+    {
+        while ((s = dequeue(a)) == NULL)
+        {
+            if (SM_UNLIKELY((retval = pthread_cond_wait(&(a->empty), &(a->lock))) != EXIT_SUCCESS))
+            {
+                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_wait() failed", retval);
+                return NULL;
+            }
         }
     }
-}           
-
-static void stack_free(sm_array *d){
-    while(d->next_free > 0) {
-        sm_state_free(d->stack[d->next_free]);
-        d->next_free--;
-    }   
-}   
-        
-static int insert_into_hash(sm_array *d, sm_state *c){
-    if(c == NULL) 
-        return EXIT_FAILURE;
-/*    if (d->synchronized)
-        if(pthread_mutex_lock(&(d->table_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return EXIT_FAILURE;
-        } */
-    c->next = d->table[c->key_hash];
-    d->table[c->key_hash] = c;
-/*    if (d->synchronized)
-        if(pthread_mutex_unlock(&(d->table_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return EXIT_FAILURE;
-        }*/
-    return EXIT_SUCCESS;
-}       
-
-static int remove_from_hash(sm_array *d, sm_state *c){  
-/*    if (d->synchronized)
-        if(pthread_mutex_lock(&(d->table_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_lock()");
-            return EXIT_FAILURE;
-        }*/ 
-    if(c == d->table[c->key_hash])
-        d->table[c->key_hash] = d->table[c->key_hash]->next;
-    else{   
-        sm_state *c1 = d->table[c->key_hash];   
-        while(c1 != NULL && c1->next != c)
-            c1 = c1->next;
-        if(c1 != NULL)
-            d->table[c->key_hash] = d->table[c->key_hash]->next;
+    else
+    {
+        s = dequeue(a);
     }
-/*    if (d->synchronized)
-        if(pthread_mutex_unlock(&(d->table_lock)) != EXIT_SUCCESS) {
-            REPORT(SM_LOG_ERR, "pthread_mutex_unlock()");
-            return EXIT_FAILURE;
-        } */
-    return EXIT_SUCCESS;
-}           
-        
+    return s;
+}
 
+static inline void insert_into_hash(sm_array *a, sm_state *s)
+{
+    SM_STATE_NEXT(s) = a->table[SM_STATE_HASH_KEY(s)->value];
+    a->table[SM_STATE_HASH_KEY(s)->value] = s;
+}
 
+static void remove_from_hash(sm_array *a, sm_state *s)
+{
+    sm_state *p = a->queue_head;
+    sm_state *c = a->table[SM_STATE_HASH_KEY(s)->value];
+    while(c != NULL && !sm_hash_key_match(SM_STATE_HASH_KEY(s), SM_STATE_HASH_KEY(c)) && SM_STATE_NEXT(c) != NULL)
+    {
+        p = c;
+        c = SM_STATE_NEXT(c);
+    }
+    if (SM_UNLIKELY(c == NULL))
+    {
+        SM_REPORT_MESSAGE(SM_LOG_WARNING, "state object not found in hash table");
+    }
+    else
+    {
+        SM_STATE_NEXT(p) = SM_STATE_NEXT(c);
+    }
+}

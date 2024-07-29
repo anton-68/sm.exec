@@ -40,7 +40,7 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 #ifndef BJ_HASH_H
 #define BJ_HASH_H
 
-// #define SELF_TEST 1
+//#define SELF_TEST 1
 
 #ifdef SELF_TEST
 #include <stdio.h>      /* defines printf for tests */
@@ -48,21 +48,28 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 #endif
 
 #include <stdint.h>     /* defines uint32_t etc */
-#include <sys/param.h>  /* attempt to define endianness */
-#ifdef linux
-# include <endian.h>    /* attempt to define endianness */
-#endif
+#include <stdlib.h>     /* NULL, size_t */
+
+//Skipping endianess check for now due to conflict with sysdef.h
+//#include <sys/param.h>  /* attempt to define endianness */
+//#ifdef linux
+//#include <endian.h>    /* attempt to define endianness */
+//#endif
 
 /*
  * My best guess at if you are big-endian or little-endian.  This may
  * need adjustment.
  */
+
+/*
 #if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && \
      __BYTE_ORDER == __LITTLE_ENDIAN) || \
     (defined(i386) || defined(__i386__) || defined(__i486__) || \
      defined(__i586__) || defined(__i686__) || defined(vax) || defined(MIPSEL))
+     */
 # define HASH_LITTLE_ENDIAN 1
 # define HASH_BIG_ENDIAN 0
+/*
 #elif (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && \
        __BYTE_ORDER == __BIG_ENDIAN) || \
       (defined(sparc) || defined(POWERPC) || defined(mc68000) || defined(sel))
@@ -72,7 +79,7 @@ on 1 byte), but shoehorning those bytes into integers efficiently is messy.
 # define HASH_LITTLE_ENDIAN 0
 # define HASH_BIG_ENDIAN 0
 #endif
-
+*/
 #define hashsize(n) ((uint32_t)1<<(n))
 #define hashmask(n) (hashsize(n)-1)
 #define rot(x,k) (((x)<<(k)) | ((x)>>(32-(k))))

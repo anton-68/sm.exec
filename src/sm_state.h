@@ -19,7 +19,7 @@ sm_state - LP64
  0         1          2         3          4         5          6
  0123456789012345 6789012345678901 23456789012345678901234567 890123
 +----------------+----------------+--------------------------+------+ <-----
-|   service_id   |    event_id    |           size           |flags | fixed
+|   service_id   |    state_id    |           size           |flags | fixed
 +----------------+----------------+--------------------------+------+ part
 |                                fsm                                |
 +-------------------------------------------------------------------+ <-----
@@ -33,6 +33,8 @@ sm_state - LP64
 +-------------------------------------------------------------------+ l
 :                     [E]vent stack head address                    :
 +-------------------------------------------------------------------+
+:                        [T]x object address                        :
++-------------------------------------------------------------------+
 :                   [H]andle (Lua wrapper) address                  :
 +-------------------------------------------------------------------+ <-----
 
@@ -42,14 +44,14 @@ sm_state - ILP32
  0         1         2          3
  0123456789012345 6789012345 678901
 +----------------+-----------------+ <-----
-|   service_id   |     event_id    | fixed
+|   service_id   |     state_id    | fixed
 +----------------+----------+------+ part
 |          size             |flags |
 +---------------------------+------+
 |               fsm                |
 +----------------------------------+ <-----
 :   home array ([D]epot) address   : o p
-+----------------------------------+ p a
++- - - - - - - - - - - - - - - - - + p a
 :         key string addr          : t r
 +- - - - - - - - - - - - - - - - - + i t
 :            key length            : o
@@ -60,6 +62,8 @@ sm_state - ILP32
 +----------------------------------+
 :        [E]vent stack head        :
 +----------------------------------+
+:        [T]x object address       :
++----------------------------------+
 :  [H]andle (Lua wrapper) address  :
 +----------------------------------+ <-----
 
@@ -67,8 +71,13 @@ Flags
 =====
 D - Depot address flag
 E - Event trace (linked event(s)) flag
+T - Tx object address
 H - Handle address flag
+K - Hash key allocation strategy 
 */
+
+#define SM_STATE_HASH_DST(S) SM_STATE_DATA((S))
+// #define SM_STATE_HASH_DST(S) NULL
 
 typedef struct __attribute__((aligned(SM_WORD))) sm_state
 {
@@ -81,8 +90,10 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_state
         {
             uint32_t size : 26; // in 64-bit words
             uint32_t D    :  1;
-            uint32_t E    :  1; 
+            uint32_t E    :  1;
+            uint32_t T    :  1; 
             uint32_t H    :  1;
+            uint32_t K    :  1;
             uint32_t      :  0; // reserved
         } ctl;
     };
@@ -128,16 +139,24 @@ struct sm_array;
     (*(sm_event **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C) + 8 * (1 + (S)->ctl.K)))
 */
 
-#define SM_STATE_HANDLE(S) \
+#define SM_STATE_TX(S) \
     (*(void **)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * (S)->ctl.E))
+
+#define SM_STATE_HANDLE(S) \
+    (*(void **)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * ((S)->ctl.E + (S)->ctl.T)))
 
 /*
 #define SM_STATE_HANDLE(S) \
     (*(void **)((char *)(S) + SM_WORD * (2 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C + (S)->ctl.E) + 8 * (1 + (S)->ctl.K)))
 */
 
+/*
 #define SM_STATE_DATA(S) \
-    ((void *)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * (S)->ctl.E + SM_WORD * (S)->ctl.H))
+    ((void *)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * ((S)->ctl.E + (S)->ctl.T + (S)->ctl.H)))
+*/
+
+#define SM_STATE_DATA(S) \
+    ((void *)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * ((S)->ctl.E + (S)->ctl.T + (S)->ctl.H) + SM_STATE_HASH_KEY(S)->length * (S)->ctl.D * (S)->ctl.K))
 
 /*
 #define SM_STATE_DATA(S) \
@@ -146,7 +165,7 @@ struct sm_array;
 
 #define SM_STATE_DATA_SIZE(S) ((uint32_t)((S)->ctl.size) << 6)
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool H);
+sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool T, bool H, bool K);
 void sm_state_destroy(sm_state **s);
 #define SM_STATE_DESTROY(S) sm_state_destroy((&(S)))
 void sm_state_erase(sm_state *s); 

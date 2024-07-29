@@ -13,6 +13,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include "../src/sm_event.h"
 #include "../src/sm_state.h"
 #include "../src/sm_queue.h"
+#include "../src/sm_array.h"
 #include "../src/sm_fsm.h"
 
 #define SM_TEST_PRINT_BUFFER 2048
