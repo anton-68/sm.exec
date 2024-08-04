@@ -20,6 +20,8 @@ OBJS = 	$(SRC)sm_sys.o \
 		$(SRC)sm_event.o \
 		$(SRC)sm_queue.o \
 		$(SRC)sm_state.o \
+		$(SRC)sm_array.o \
+		$(SRC)sm_tx.o \
 		../lib/bj_hash/bj_hash.o \
 		test_utils.o
 
@@ -28,9 +30,10 @@ TEST_OBJS =	test_sys.o \
 			test_hash.o \
 			test_event.o \
 			test_queue.o \
-			test_state.o
+			test_state.o \
+			test_array.o
 
-EXES = test_sys test_logger test_hash test_event test_queue test_state
+EXES = test_sys test_logger test_hash test_event test_queue test_state test_array
 
 all : $(EXES)
 
@@ -51,6 +54,9 @@ test_queue : $(OBJS) test_queue.o
 
 test_state : $(OBJS) test_state.o
 	$(CC) $(LFLAGS) $(OBJS) test_state.o $(LIBS) -o test_state
+
+test_array : $(OBJS) test_array.o
+	$(CC) $(LFLAGS) $(OBJS) test_array.o $(LIBS) -o test_array
 
 %.o : %.c
 	$(CC) $(LFLAGS) -c $< -o $@ $(DFLAGS) -I$(INCLUDE)

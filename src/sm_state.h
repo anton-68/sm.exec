@@ -76,7 +76,7 @@ H - Handle address flag
 K - Hash key allocation strategy 
 */
 
-#define SM_STATE_HASH_DST(S) SM_STATE_DATA((S))
+#define SM_STATE_HASH_DST(S) (((S)->ctl.K)?SM_STATE_DATA((S)):NULL)
 // #define SM_STATE_HASH_DST(S) NULL
 
 typedef struct __attribute__((aligned(SM_WORD))) sm_state
@@ -165,7 +165,7 @@ struct sm_array;
 
 #define SM_STATE_DATA_SIZE(S) ((uint32_t)((S)->ctl.size) << 6)
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool T, bool H, bool K);
+sm_state *sm_state_create(sm_fsm **f, uint32_t size, struct sm_array *depot, bool E, bool T, bool H, bool K);
 void sm_state_destroy(sm_state **s);
 #define SM_STATE_DESTROY(S) sm_state_destroy((&(S)))
 void sm_state_erase(sm_state *s); 

@@ -84,16 +84,16 @@ sm_array *sm_array_create(size_t key_length,
     a->array_size = hashsize(key_length);
     a->mask = hashmask(key_length);
     sm_state *s;
-    if (SM_UNLIKELY((s = sm_state_create(NULL, state_size, true, E, T, H, K)) == NULL))
+    if (SM_UNLIKELY((s = sm_state_create(NULL, state_size, a, E, T, H, K)) == NULL))
     {
-        SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_event_create() returned NULL");
-        sm_array_destroy(a);
+        SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_state_create() returned NULL");
+        sm_array_destroy(&a);
         return NULL;
     }
     a->queue_head = a->queue_tail = s;
     for (size_t i = 0; i < queue_size; i++)
     {
-        if (SM_UNLIKELY((s = sm_state_create(fsm, state_size, true, E, T, H, K)) == NULL))
+        if (SM_UNLIKELY((s = sm_state_create(fsm, state_size, a, E, T, H, K)) == NULL))
         {
             SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_state_create() returned NULL");
             sm_array_destroy(&a);
@@ -102,11 +102,9 @@ sm_array *sm_array_create(size_t key_length,
         SM_STATE_DEPOT(s) = a;
         enqueue(a, s);
     }
-    a->queue_size = queue_size;
-    
-    if (SM_UNLIKELY((a->table = alligned_alloc(SM_WORD, a->array_size * sizeof(sm_state *))) == NULL))
+    if (SM_UNLIKELY((a->table = calloc(a->array_size, sizeof(sm_state *))) == NULL))
     {
-        SM_REPORT_MESSAGE(SM_LOG_ERR, "alligned_alloc() failed");
+        SM_REPORT_MESSAGE(SM_LOG_ERR, "сalloc() failed");
         sm_array_destroy(&a);
         return NULL;
     }
@@ -134,35 +132,41 @@ void sm_array_destroy(sm_array **a)
     {
         for (size_t i = 0; i < (*a)->array_size; i++)
         {
-            s = (*a)->table[i];
+            s = ((sm_state **)((*a)->table))[i];
             while (s != NULL)
             {
+                s->ctl.D = false;
                 tmp = s;
-                sm_state_dispose(s);
+                sm_state_destroy(&s);
                 s = SM_STATE_NEXT(tmp);
             }
         }
         free((*a)->table);
     }
-    while ((*a)->queue_head != NULL)
+    while (SM_STATE_NEXT((*a)->queue_head) != NULL)
     {
-        sm_state_destroy(dequeue(*a));
+        s = dequeue(*a);
+        s->ctl.D = false;
+        sm_state_destroy(&s);
     }
-    sm_state_destroy(((*a)->queue_head));
+    //s = (*a)->queue_head;
+    //sm_state_destroy(&s);
+    /*
     while(SM_ARRAY_QUEUE_TOP(*a) != NULL)
     {
-        s = dequeue(a);
-        sm_state_destroy(s);
+        s = dequeue(*a);
+        sm_state_destroy(&s);
     }
+    */
     free(*a);
     SM_DEBUG_MESSAGE("sm_array at [addr:%p] successfully destroyed", *a);
     *a = NULL;
 }
-
+/* DEPRECATED
 sm_state *sm_array_find_state(sm_array *a, const void *key, size_t key_length)
 {
     sm_hash_key k = {NULL, 0, 0xFFFFFFFF};
-    sm_set_hash_key(&k, key, key_length, a->mask);
+    sm_hash_set_key(&k, (void *)key, key_length, a->mask);
     int retval;
     if (a->synchronized)
     {
@@ -179,13 +183,13 @@ sm_state *sm_array_find_state(sm_array *a, const void *key, size_t key_length)
                 else
                 {
                     SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
-                    return retval;
+                    return NULL;
                 }
             }
             else
             {
                 SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
-                return retval;
+                return NULL;
             }
         }
         else
@@ -208,73 +212,77 @@ sm_state *sm_array_find_state(sm_array *a, const void *key, size_t key_length)
     SM_DEBUG_MESSAGE("sm_state at [addr:%p] successfully found in the array at [addr:%p]", s, a);
     return s;
 }
-
+*/
 sm_state *sm_array_get_state(sm_array *a, const void *key, size_t key_length)
 {
+    sm_hash_key k = {NULL, 0, 0x0};
+    sm_hash_set_key(&k, (void *)key, key_length, a->mask);
+    int retval;
+    if (a->synchronized)
     {
-        sm_hash_key k = {NULL, 0, 0xFFFFFFFF};
-        sm_set_hash_key(&k, key, key_length, a->mask);
-        int retval;
-        if (a->synchronized)
+        if (SM_UNLIKELY(retval = pthread_mutex_lock(&(a->lock)) != EXIT_SUCCESS))
         {
-            if (SM_UNLIKELY(retval = pthread_mutex_lock(&(a->lock)) != EXIT_SUCCESS))
+            if (retval == EOWNERDEAD)
             {
-                if (retval == EOWNERDEAD)
+                SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
+                retval = pthread_mutex_consistent(&(a->lock));
+                if (retval == EINVAL || retval == EXIT_SUCCESS)
                 {
-                    SM_SYSLOG(SM_CORE, SM_LOG_WARNING, "pthread owner dead, recovering...", retval);
-                    retval = pthread_mutex_consistent(&(a->lock));
-                    if (retval == EINVAL || retval == EXIT_SUCCESS)
-                    {
-                        SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
-                    }
-                    else
-                    {
-                        SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
-                        return retval;
-                    }
+                    SM_SYSLOG(SM_CORE, SM_LOG_NOTICE, "mutex recovered", retval);
                 }
                 else
                 {
-                    SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
-                    return retval;
+                    SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex recovering failed", retval);
+                    return NULL;
                 }
             }
             else
             {
-                SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(a->lock));
+                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "mutex locking failed", retval);
+                return NULL;
             }
         }
-        sm_state *s = get_by_hash_key(a, &k);
-        if (s == NULL)
+        else
         {
-            SM_REPORT_MESSAGE(SM_LOG_ERR, "get_by_hash_key() returned NULL");
-            return NULL;
+            SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(a->lock));
         }
-        SM_STATE_TX(s) = __sm_tx_desc;
-        if (a->synchronized)
-        {
-            if (SM_UNLIKELY(retval = pthread_cond_signal(&(a->empty)) != EXIT_SUCCESS))
-            {
-                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
-            }
-            if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(a->lock)) != EXIT_SUCCESS))
-            {
-                SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
-            }
-        }
-        SM_DEBUG_MESSAGE("state [addr:%p] got successfully from array [addr:%p]", s, a);
-        return s;
     }
+    sm_state *s = get_by_hash_key(a, &k);
+    if (s == NULL)
+    {
+        SM_REPORT_MESSAGE(SM_LOG_ERR, "get_by_hash_key() returned NULL");
+        return NULL;
+    }
+    SM_STATE_TX(s) = __sm_tx_desc;
+    if (a->synchronized)
+    {
+        if (SM_UNLIKELY(retval = pthread_cond_signal(&(a->empty)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
+        }
+        if (SM_UNLIKELY(retval = pthread_mutex_unlock(&(a->lock)) != EXIT_SUCCESS))
+        {
+            SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
+        }
+    }
+    SM_DEBUG_MESSAGE("state [addr:%p] got successfully from array [addr:%p]", s, a);
+    return s;
 }
 
-int sm_array_release_state(sm_array *a, sm_state **s)
+int sm_array_release_state(sm_state **s)
 {
-    if (!((*s)->ctl.D && SM_STATE_DEPOT(*s) == a))
+    if (SM_UNLIKELY(s == NULL || *s == NULL))
     {
-        SM_REPORT_MESSAGE(SM_LOG_ERR, "attempt to release state not from the target array");
+        SM_REPORT_MESSAGE(SM_LOG_WARNING, "an attempt to call release function for the NULL pointer");
+        return EXIT_FAILURE;
+    }
+    if (SM_UNLIKELY(!(*s)->ctl.D))
+    {
+        SM_REPORT_WARNING("attempt to release a standalone state at [addr:%p] registered in array at [addr:%p]", *s, SM_STATE_DEPOT(*s));
         return EXIT_FAILURE;
     }
     int retval;
+    sm_array *a = SM_STATE_DEPOT(*s);
     if (a->synchronized)
     {
         if (SM_UNLIKELY(retval = pthread_mutex_lock(&(a->lock)) != EXIT_SUCCESS))
@@ -304,10 +312,19 @@ int sm_array_release_state(sm_array *a, sm_state **s)
             SM_DEBUG_MESSAGE("mutex [addr:%p] lock successfully acquired", &(a->lock));
         }
     }
-    remove_from_hash(a, *s);
-    sm_state_erase(*s);
-    enqueue(a, *s);
-    *s = NULL;
+    if (SM_STATE_TX(*s) != NULL)
+    {
+        remove_from_hash(a, *s);
+        sm_state_erase(*s);
+        enqueue(a, *s);
+        *s = NULL;
+        retval = EXIT_SUCCESS;
+    }
+    else
+    {
+        SM_REPORT_WARNING("attempt to release a parked or enqueued state at [addr:%p] registered in array at [addr:%p]", *s, SM_STATE_DEPOT(*s));
+        retval = EXIT_FAILURE;
+    }
     if (a->synchronized)
     {
         if (SM_UNLIKELY(retval = pthread_cond_signal(&(a->empty)) != EXIT_SUCCESS))
@@ -319,12 +336,28 @@ int sm_array_release_state(sm_array *a, sm_state **s)
             SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_mutex_unlock() failed", retval);
         }
     }
-    return EXIT_SUCCESS;
+    return retval;
 }
 
-int sm_array_park_state(sm_array *a, sm_state **s)
+int sm_array_park_state(sm_state **s)
 {
+    if (SM_UNLIKELY(s == NULL || *s == NULL))
+    {
+        SM_REPORT_MESSAGE(SM_LOG_WARNING, "an attempt to call parking function for the NULL pointer");
+        return EXIT_FAILURE;
+    }
+    if (SM_UNLIKELY(!(*s)->ctl.D))
+    {
+        SM_REPORT_WARNING("attempt to park a standalone state at [addr:%p] registered in array at [addr:%p]", *s, SM_STATE_DEPOT(*s));
+        return EXIT_FAILURE;
+    }
     int retval;
+    sm_array *a = SM_STATE_DEPOT(*s);
+    if (SM_UNLIKELY(!(*s)->ctl.T))
+    {
+        SM_REPORT_MESSAGE(SM_LOG_WARNING, "state parking function was called for thread-agnostic state");
+        return EXIT_FAILURE;
+    }
     if (a->synchronized)
     {
         if (SM_UNLIKELY(retval = pthread_mutex_lock(&(a->lock)) != EXIT_SUCCESS))
@@ -380,9 +413,9 @@ int sm_array_to_string(sm_array *a, char *buffer)
     else
     {
         s += sprintf(s, "address: %p\n", a);
-        s += sprintf(s, "array size: %lu\n", a->array_size);
+        s += sprintf(s, "array size: %u\n", a->array_size);
         s += sprintf(s, "hash mask: %08X\n", a->mask);
-        s += sprintf(s, "queue_size: %lu\n", a->queue_size);
+        s += sprintf(s, "queue_size: %u\n", a->queue_size);
         s += sprintf(s, "synchronized: %u\n", a->synchronized);
     }
     return (int)((char *)s - (char *)buffer);
@@ -391,20 +424,23 @@ int sm_array_to_string(sm_array *a, char *buffer)
 static inline void enqueue(sm_array *a, sm_state *s)
 {
     SM_STATE_NEXT(a->queue_tail) = s;
+    SM_STATE_NEXT(s) = NULL;
     a->queue_tail = s;
-    SM_STATE_NEXT(a->queue_tail) = NULL;
-    a->queue_tail++;
+    a->queue_size++;
 }
 
 static inline sm_state *dequeue(sm_array *a)
 {
     sm_state *s = SM_STATE_NEXT(a->queue_head);
-    SM_STATE_NEXT(a->queue_head) = SM_STATE_NEXT(s);
-    if (SM_STATE_NEXT(a->queue_head) == NULL)
+    if (s != NULL)
     {
-        a->queue_tail = a->queue_head;
+        SM_STATE_NEXT(a->queue_head) = SM_STATE_NEXT(s);
+        if (SM_STATE_NEXT(a->queue_head) == NULL)
+        {
+            a->queue_tail = a->queue_head;
+        }
+        a->queue_size--;
     }
-    a->queue_size--;
     return s;
 }
 
@@ -430,8 +466,8 @@ static inline sm_state *get_by_hash_key(sm_array *a, sm_hash_key *k)
         }
         SM_STATE_HASH_KEY(s)->string = SM_STATE_HASH_DST(s); 
         sm_hash_set_key(SM_STATE_HASH_KEY(s), k->string, k->length, a->mask);
+        insert_into_hash(a, s);
     }
-    insert_into_hash(a, s);
     return s;
 }
 
@@ -465,19 +501,19 @@ static inline void insert_into_hash(sm_array *a, sm_state *s)
 
 static void remove_from_hash(sm_array *a, sm_state *s)
 {
-    sm_state *p = a->queue_head;
+    sm_state **p = &(a->table[SM_STATE_HASH_KEY(s)->value]);
     sm_state *c = a->table[SM_STATE_HASH_KEY(s)->value];
-    while(c != NULL && !sm_hash_key_match(SM_STATE_HASH_KEY(s), SM_STATE_HASH_KEY(c)) && SM_STATE_NEXT(c) != NULL)
+    while(c != NULL && !sm_hash_key_match(SM_STATE_HASH_KEY(s), SM_STATE_HASH_KEY(c)))
     {
-        p = c;
+        p = &(SM_STATE_NEXT(c));
         c = SM_STATE_NEXT(c);
     }
-    if (SM_UNLIKELY(c == NULL))
+    if (c != NULL)
     {
-        SM_REPORT_MESSAGE(SM_LOG_WARNING, "state object not found in hash table");
+        *p = SM_STATE_NEXT(c);
     }
     else
     {
-        SM_STATE_NEXT(p) = SM_STATE_NEXT(c);
+        SM_REPORT_MESSAGE(SM_LOG_INFO, "state object not found in hash table");
     }
 }

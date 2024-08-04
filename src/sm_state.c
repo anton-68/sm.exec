@@ -9,9 +9,10 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 extern __thread void *__sm_tx_desc;
 
-static inline size_t sm_state_sizeof(sm_state *s) __attribute__((always_inline));
+static inline size_t sm_state_sizeof(sm_state *s) 
+    __attribute__((always_inline));
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool T, bool H, bool K)
+sm_state *sm_state_create(sm_fsm **f, uint32_t size, struct sm_array *depot, bool E, bool T, bool H, bool K)
 {
     if(SM_UNLIKELY(f == NULL)){
         SM_REPORT_MESSAGE(SM_LOG_INFO, "NULL FSM pointer on input");
@@ -19,7 +20,14 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool T, boo
     }
     sm_state header;
     header.ctl.size = size >> 6;
-    header.ctl.D = D;
+    if (depot != NULL)
+    {
+        header.ctl.D = true;
+    }
+    else
+    {
+        header.ctl.D = false;
+    }
     header.ctl.E = E;
     header.ctl.T = T;
     header.ctl.H = H;
@@ -41,9 +49,12 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool T, boo
     {
         SM_STATE_TX(s) = __sm_tx_desc; 
     }
-    if (s->ctl.D && s->ctl.K)
-    {
-        SM_STATE_HASH_KEY(s)->string = SM_STATE_DATA(s); // because SM_STATE_HASH_KEY(s)->string == 0 here
+    if (s->ctl.D)
+    {   SM_STATE_DEPOT(s) = depot;
+        if (s->ctl.K)
+        {
+            SM_STATE_HASH_KEY(s)->string = SM_STATE_DATA(s); // because SM_STATE_HASH_KEY(s)->string == 0 here
+        }
     }
     SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully created with size = %lu", s, sm_state_sizeof(&header));
     return s;
@@ -51,46 +62,66 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, bool D, bool E, bool T, boo
 
 void sm_state_destroy(sm_state **s)
 {
-    if (*s != NULL) 
+    if (s != NULL && *s != NULL)
     {
-        free(*s);
+        if ((*s)->ctl.D)
+        {
+            SM_REPORT_WARNING("an attempt to destroy the state at [addr:%p] registered in array at [addr:%p]", *s, SM_STATE_DEPOT(*s));
+            return;
+        }
+        else
+        {
+            if ((*s)->ctl.E)
+            {
+                sm_event_dispose(&(SM_STATE_EVENT_TRACE(*s)));
+            }
+            //printf("=======free(%p)=======\n", (*s));
+            free(*s);
+            *s = NULL;
+            SM_DEBUG_MESSAGE("sm_state at [addr:%p] successfully destroyed", *s);
+        }
     }
-    SM_DEBUG_MESSAGE("sm_state at [addr:%p] successfully destroyed", *s);
-    *s = NULL;
+    else
+    {
+        SM_REPORT_MESSAGE(SM_LOG_WARNING, "an attempt to call destroy function for the NULL pointer");
+        return;
+    }
 }
 
-void sm_state_erase(sm_state *s) {
-    if(s != NULL)
+void sm_state_erase(sm_state *s)
+{
+    if (s != NULL)
     {
         uint32_t type = s->type;
+        sm_fsm **f = s->fsm;
         struct sm_array *a = SM_STATE_DEPOT(s);
         memset(s, '\0', sm_state_sizeof(s));
         s->type = type;
+        s->fsm = f;
         if (s->ctl.D && s->ctl.K)
         {
             SM_STATE_HASH_KEY(s)->string = SM_STATE_DATA(s); // because SM_STATE_HASH_KEY(s)->string == 0 here
         }
         SM_STATE_DEPOT(s) = a;
+        SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully erased", s);
     }
-    SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully erased", s);
+    else
+    {
+        SM_REPORT_MESSAGE(SM_LOG_WARNING, "an attempt to call erase function for the NULL pointer");
+    }
 }
 
-void sm_array_park_state(struct sm_array *, sm_state *);
+int sm_array_release_state(sm_state **s);
 void sm_state_dispose(sm_state **s) {
-    if ((*s)->ctl.E)
-    {
-        sm_event_dispose(&(SM_STATE_EVENT_TRACE(*s)));
-    }
     if ((*s)->ctl.D)
     {
-        sm_state_erase(*s);
-        sm_array_park_state(SM_STATE_DEPOT(s), s);
+        sm_array_release_state(s);
     }
     else
     {
         sm_state_destroy(s);
+        SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully disposed", s);
     }
-    SM_DEBUG_MESSAGE("sm_state [addr:%p] successfully parked", s);
 }
 
 void sm_state_push_event(sm_state *s, sm_event **e)

@@ -22,5 +22,6 @@ void sm_print_hash_key(const sm_hash_key *k);
 void sm_print_event(const sm_event *e);
 void sm_print_state(sm_state *s);
 void sm_print_queue(sm_queue *q);
+void sm_print_array(sm_array *a);
 
 #endif//SM_TEST_UTILS_H

@@ -7,13 +7,14 @@
 
 #include <stdlib.h>
 #include "sm_sys.h" 
-#include "sm_queue2.h"
+//#include "sm_queue2.h"
 #include "sm_state.h"
-#include "sm_directory.h"
+//#include "sm_directory.h"
 #include "sm_logger.h"
-#include "sm_exec.h"
+//#include "sm_exec.h"
 
-#define SM_TX_STACK_POINTER(tx) (sm_state **)((char *)(tx)->data + (tx)->data_size /*- sizeof(sm_state **) */) 
+/*
+#define SM_TX_STACK_POINTER(tx) (sm_state **)((char *)(tx)->data + (tx)->data_size ) 
 
 struct sm_state;
 typedef struct sm_tx {
@@ -45,5 +46,5 @@ void *sm_tx_runner(void *arg);
 int sm_tx_push_state(sm_tx * tx, sm_state *s);
 int sm_tx_pop_state(sm_tx * tx);
 bool sm_tx_stack_empty(sm_tx *tx);
-
+*/
 #endif //SM_TX_H 

@@ -11,7 +11,7 @@ int main()
 {
     openlog(NULL, LOG_NDELAY, LOG_USER);
 
-    sm_state *s = sm_state_create(NULL, 0, false, false, false);
+    sm_state *s = sm_state_create(NULL, 0, NULL, false, false, false, false);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
@@ -21,22 +21,22 @@ int main()
     fsm0.initial = 77;
     sm_fsm *fsm0p = &fsm0;
     sm_fsm **fsm0r = &fsm0p;
-    s = sm_state_create(fsm0r, 0, false, false, false);
+    s = sm_state_create(fsm0r, 0, NULL, false, false, false, false);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
     fsm0.initial = 78;
-    s = sm_state_create(fsm0r, 0, true, false, true);
+    s = sm_state_create(fsm0r, 0, (struct sm_array *)0xDEADBEEF, false, false, true, false);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
     fsm0.initial = 79;
-    s = sm_state_create(fsm0r, 0, false, true, false);
+    s = sm_state_create(fsm0r, 0, NULL, true, false, false, false);
     sm_print_state(s);
     SM_STATE_DESTROY(s);
 
     fsm0.initial = 80;
-    s = sm_state_create(fsm0r, 256, true, true, true);
+    s = sm_state_create(fsm0r, 256, (struct sm_array *)0xDEADBEEF, true, false, true, false);
     sm_print_state(s);
 
     char *state_data = "Data string ..................................................";

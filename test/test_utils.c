@@ -12,7 +12,7 @@ void sm_print_hash_key(const sm_hash_key *k)
     printf("Hash_key\n=====\n");
     printf("string = %s\n", (const char *)k->string);
     printf("length = %u\n", k->length);
-    printf("hash = %08X\n", k->value);
+    printf("hash = %08X\n\n", k->value);
 }
 
 void sm_print_event(const sm_event *e)

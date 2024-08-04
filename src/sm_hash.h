@@ -47,6 +47,6 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_hash_key
 } sm_hash_key;
 
 void sm_hash_set_key(sm_hash_key *dst, void *key_str, size_t key_len, uint32_t hash_mask);
-bool sm_hash_key_match(sm_hash_key *k0, sm_hash_key *k1);
+bool sm_hash_key_match(const sm_hash_key *k0, const sm_hash_key *k1);
 
 #endif // SM_HASH_H

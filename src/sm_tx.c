@@ -3,15 +3,16 @@
    anton.bondarenko@gmail.com */
 
 #include "sm_tx.h"
-#include <pthread.h>
-#include <time.h>           // nanosleep ()
-#include <string.h> 
-#include "sm_fsm.h"
-#include "sm_event.h"
-#include "sm_apply.h"
+//#include <pthread.h>
+//#include <time.h>           // nanosleep ()
+//#include <string.h> 
+//#include "sm_fsm.h"
+//#include "sm_event.h"
+//#include "sm_apply.h"
 
-__thread void * __sm_tx_desc;
+__thread void *__sm_tx_desc = (void *)0xCAFEBABE;
 
+/*
 // Public methods
 sm_tx *sm_tx_create(sm_exec *exec,
                     sm_fsm **f, 
@@ -86,8 +87,8 @@ void *sm_tx_runner(void *arg) {
                 sm_event_park(event);
             }
             tx->state = tx->default_state;
-            /*if(tx->state->id == (*tx->state->fsm)->final)
-                tx->state->id = (*tx->state->fsm)->initial;*/
+            // if(tx->state->id == (*tx->state->fsm)->final)
+            //     tx->state->id = (*tx->state->fsm)->initial;
         }   
     }
     else {
@@ -98,8 +99,8 @@ void *sm_tx_runner(void *arg) {
                     sm_event_park(event);
                 }
                 tx->state = tx->default_state;
-                /*if(tx->state->id == (*tx->state->fsm)->final)
-                    tx->state->id = (*tx->state->fsm)->initial;*/
+                //if(tx->state->id == (*tx->state->fsm)->final)
+                //    tx->state->id = (*tx->state->fsm)->initial;
             }
             nanosleep(&req, &rem);
         }
@@ -130,3 +131,4 @@ bool sm_tx_stack_empty(sm_tx *tx) {
     return tx->data_size == tx->data_block_size;
 }
 
+*/

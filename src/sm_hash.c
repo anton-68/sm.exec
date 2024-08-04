@@ -39,7 +39,7 @@ void sm_hash_set_key(sm_hash_key *dst, void *str, size_t len, uint32_t hash_mask
     dst->value = hashlittle(dst->string, dst->length, 0) & hash_mask;
 }
 
-bool sm_hash_key_match(sm_hash_key *k0, sm_hash_key *k1)
+bool sm_hash_key_match(const sm_hash_key *k0, const sm_hash_key *k1)
 {
     if(k0->length != k1->length)
         return false;

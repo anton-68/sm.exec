@@ -25,6 +25,13 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_array
     pthread_cond_t empty;
 } sm_array;
 
+/*
+State flags:
+E - Event trace (linked event(s)) flag
+T - Tx object address
+H - Handle address flag
+K - Hash key allocation strategy
+*/
 sm_array *sm_array_create(size_t key_length,
                           size_t queue_size,
                           size_t state_size,
@@ -32,13 +39,15 @@ sm_array *sm_array_create(size_t key_length,
                           bool synchronized, bool E, bool T, bool H, bool K);
 void sm_array_destroy(sm_array **a);
 #define SM_ARRAY_DESTROY(A) sm_array_destroy((&(A)))
-#define SM_ARRAY_QUEUE_TOP(A) ((A)->queue_head)
+#define SM_ARRAY_QUEUE_TOP(A) (SM_STATE_NEXT((A)->queue_head))
 #define SM_ARRAY_QUEUE_SIZE(A) ((A)->queue_size)
-sm_state *sm_array_find_state(sm_array *a, const void *key, size_t key_length);
+//sm_state *sm_array_find_state(sm_array *a, const void *key, size_t key_length);
 sm_state *sm_array_get_state(sm_array *a, const void *key, size_t key_length);
-int sm_array_release_state(sm_array *a, sm_state **s);
-int sm_array_park_state(sm_array *a, sm_state **s); // DEPRECATED
-#define SM_ARRAY_PARK_STATE(S) {SM_STATE_TX((S)) = NULL;(S)=NULL;}
+int sm_array_release_state(sm_state **s);
+#define SM_ARRAY_RELEASE_STATE(S) sm_array_release_state((&(S)))
+int sm_array_park_state(sm_state **s); 
+//#define SM_ARRAY_PARK_STATE(S) {if((S)->ctl.T) {SM_STATE_TX((S)) = NULL;}(S)=NULL;}
+#define SM_ARRAY_PARK_STATE(S) sm_array_park_state((&(S)))
 int sm_array_to_string(sm_array *a, char *buffer);
 
 #endif //SM_ARRAY_H

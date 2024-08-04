@@ -23,7 +23,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 /* Log & debug flags*/
 #define SM_LOG
-#define SM_DEBUG
+//#define SM_DEBUG
 
 /* Timestamp */
 typedef struct sm_timestamp
