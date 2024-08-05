@@ -1,0 +1,1446 @@
+Hash_key
+=====
+string = keystring_0
+length = 11
+hash = 000000D3
+
+Hash_key
+=====
+string = keystring_1
+length = 11
+hash = 0000000F
+
+Hash_key
+=====
+string = keystring_2
+length = 11
+hash = 0000004B
+
+
+*************
+checkpoint #1
+*************
+
+
+*************
+checkpoint #2
+*************
+
+
+*************
+checkpoint #3
+*************
+
+State
+=====
+address: 0x563aa2af7860
+**fsm: (nil)
+service_id: 0
+state_id: 0
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7878
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: 0x563aa2af79a0
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7898
+data addr (K): 0x563aa2af7898
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: 0x563aa2af7ae0
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7ae0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7af8
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: 0x563aa2af7c20
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7b18
+data addr (K): 0x563aa2af7b18
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7c20
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7c38
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: 0x563aa2af7d60
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7c58
+data addr (K): 0x563aa2af7c58
+data:
+[ ...]
+
+
+*************
+checkpoint #4
+*************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 256
+synchronized: 0
+
+
+**************
+checkpoint #11
+**************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7ae0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7af8
+hash key str addr: 0x563aa29e40b8
+key string allocated in the data block: 0
+key string: keystring_1
+key length: 11
+key hash: 0xF
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7b18
+data addr (K): 0x563aa2af7b18
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7c20
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7c38
+hash key str addr: 0x563aa29e40c4
+key string allocated in the data block: 0
+key string: keystring_2
+key length: 11
+key hash: 0x4B
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7c58
+data addr (K): 0x563aa2af7c58
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 0
+
+
+**************
+checkpoint #12
+**************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 0
+
+
+**************
+checkpoint #13
+**************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 0
+
+
+**************
+checkpoint #14
+**************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 0
+
+
+****************
+checkpoint #14.1
+****************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 0
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 0
+
+
+**************
+checkpoint #15
+**************
+
+
+****************
+checkpoint #15.1
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 0
+
+
+****************
+checkpoint #15.2
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 0
+
+
+**************
+checkpoint #16
+**************
+
+
+***************
+checkpoint #4.1
+***************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 256
+synchronized: 1
+
+
+**************
+checkpoint #11
+**************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8158
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7fe0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7ff8
+hash key str addr: 0x563aa29e40b8
+key string allocated in the data block: 0
+key string: keystring_1
+key length: 11
+key hash: 0xF
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af8018
+data addr (K): 0x563aa2af8018
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7ea0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7eb8
+hash key str addr: 0x563aa29e40c4
+key string allocated in the data block: 0
+key string: keystring_2
+key length: 11
+key hash: 0x4B
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7ed8
+data addr (K): 0x563aa2af7ed8
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #12
+**************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8158
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #13
+**************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #14
+**************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8158
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+****************
+checkpoint #14.1
+****************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 0
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8158
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #15
+**************
+
+
+****************
+checkpoint #15.1
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+****************
+checkpoint #15.2
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #16
+**************
+
+
+*************
+checkpoint #5
+*************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 256
+synchronized: 1
+
+
+**************
+checkpoint #11
+**************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7ae0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7af8
+hash key str addr: 0x563aa29e40b8
+key string allocated in the data block: 0
+key string: keystring_1
+key length: 11
+key hash: 0xF
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7b18
+data addr (K): 0x563aa2af7b18
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7c20
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7c38
+hash key str addr: 0x563aa29e40c4
+key string allocated in the data block: 0
+key string: keystring_2
+key length: 11
+key hash: 0x4B
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7c58
+data addr (K): 0x563aa2af7c58
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #12
+**************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #13
+**************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #14
+**************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: 0x563aa29e40ac
+key string allocated in the data block: 0
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+****************
+checkpoint #14.1
+****************
+
+State
+=====
+address: 0x563aa2af79a0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 0
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af79b8
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af79d8
+data addr (K): 0x563aa2af79d8
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #15
+**************
+
+
+****************
+checkpoint #15.1
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+****************
+checkpoint #15.2
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #16
+**************
+
+
+*************
+checkpoint #6
+*************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 256
+synchronized: 1
+
+
+**************
+checkpoint #11
+**************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: 0x563aa2af8158
+key string allocated in the data block: 1
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8163
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7fe0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7ff8
+hash key str addr: 0x563aa2af8018
+key string allocated in the data block: 1
+key string: keystring_1
+key length: 11
+key hash: 0xF
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af8018
+data addr (K): 0x563aa2af8023
+data:
+[ ...]
+
+State
+=====
+address: 0x563aa2af7ea0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af7eb8
+hash key str addr: 0x563aa2af7ed8
+key string allocated in the data block: 1
+key string: keystring_2
+key length: 11
+key hash: 0x4B
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af7ed8
+data addr (K): 0x563aa2af7ee3
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #12
+**************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: 0x563aa2af8158
+key string allocated in the data block: 1
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8163
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #13
+**************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #14
+**************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: 0x563aa2af8158
+key string allocated in the data block: 1
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+Tx object address: 0xcafebabe
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8163
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+****************
+checkpoint #14.1
+****************
+
+State
+=====
+address: 0x563aa2af8120
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 0
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2af8138
+hash key str addr: 0x563aa2af8158
+key string allocated in the data block: 1
+key string: 
+key length: 0
+key hash: 0x0
+next state address: (nil)
+Tx object address: (nil)
+data addr: 0x563aa2af8158
+data addr (K): 0x563aa2af8158
+data:
+[ ...]
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #15
+**************
+
+
+****************
+checkpoint #15.1
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+****************
+checkpoint #15.2
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #16
+**************
+
+
+*************
+checkpoint #7
+*************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 256
+synchronized: 1
+
+
+**************
+checkpoint #11
+**************
+
+State
+=====
+address: 0x563aa2b0cf90
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2b0cfa8
+hash key str addr: 0x563aa2b0cfd8
+key string allocated in the data block: 1
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+event trace head address: (nil)
+Tx object address: 0xcafebabe
+handle: (nil)
+data addr: 0x563aa2b0cfd8
+data addr (K): 0x563aa2b0cfe3
+data:
+[ ...]
+
+Stack event
+===========
+NULL
+
+State
+=====
+address: 0x563aa2b0ce40
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2b0ce58
+hash key str addr: 0x563aa2b0ce88
+key string allocated in the data block: 1
+key string: keystring_1
+key length: 11
+key hash: 0xF
+next state address: (nil)
+event trace head address: (nil)
+Tx object address: 0xcafebabe
+handle: (nil)
+data addr: 0x563aa2b0ce88
+data addr (K): 0x563aa2b0ce93
+data:
+[ ...]
+
+Stack event
+===========
+NULL
+
+State
+=====
+address: 0x563aa2b0ccf0
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2b0cd08
+hash key str addr: 0x563aa2b0cd38
+key string allocated in the data block: 1
+key string: keystring_2
+key length: 11
+key hash: 0x4B
+next state address: (nil)
+event trace head address: (nil)
+Tx object address: 0xcafebabe
+handle: (nil)
+data addr: 0x563aa2b0cd38
+data addr (K): 0x563aa2b0cd43
+data:
+[ ...]
+
+Stack event
+===========
+NULL
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #12
+**************
+
+State
+=====
+address: 0x563aa2b0cf90
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2b0cfa8
+hash key str addr: 0x563aa2b0cfd8
+key string allocated in the data block: 1
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+event trace head address: (nil)
+Tx object address: (nil)
+handle: (nil)
+data addr: 0x563aa2b0cfd8
+data addr (K): 0x563aa2b0cfe3
+data:
+[ ...]
+
+Stack event
+===========
+NULL
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #13
+**************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+**************
+checkpoint #14
+**************
+
+State
+=====
+address: 0x563aa2b0cf90
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 77
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2b0cfa8
+hash key str addr: 0x563aa2b0cfd8
+key string allocated in the data block: 1
+key string: keystring_0
+key length: 11
+key hash: 0xD3
+next state address: (nil)
+event trace head address: (nil)
+Tx object address: 0xcafebabe
+handle: (nil)
+data addr: 0x563aa2b0cfd8
+data addr (K): 0x563aa2b0cfe3
+data:
+[ ...]
+
+Stack event
+===========
+NULL
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 253
+synchronized: 1
+
+
+****************
+checkpoint #14.1
+****************
+
+State
+=====
+address: 0x563aa2b0cf90
+**fsm: 0x7ffc2741be48
+*fsm: 0x7ffc2741be50
+fsm: FSM0
+service_id: 0
+state_id: 0
+size: 256 B
+depot addr: 0x563aa2af72b0
+hash key ptr addr: 0x563aa2b0cfa8
+hash key str addr: 0x563aa2b0cfd8
+key string allocated in the data block: 1
+key string: 
+key length: 0
+key hash: 0x0
+next state address: (nil)
+event trace head address: (nil)
+Tx object address: (nil)
+handle: (nil)
+data addr: 0x563aa2b0cfd8
+data addr (K): 0x563aa2b0cfd8
+data:
+[ ...]
+
+Stack event
+===========
+NULL
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #15
+**************
+
+
+****************
+checkpoint #15.1
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+****************
+checkpoint #15.2
+****************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+**************
+checkpoint #16
+**************
+
+Array
+=====
+address: 0x563aa2af72b0
+array size: 256
+hash mask: 000000FF
+queue_size: 254
+synchronized: 1
+
+
+***************
+checkpoint #7.1
+***************
+
+Array
+=====
+NULL
+
+
+***************
+checkpoint #7.2
+***************
+
+
+*************
+checkpoint #8
+*************
+

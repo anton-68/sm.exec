@@ -150,12 +150,10 @@ struct sm_array;
     (*(void **)((char *)(S) + SM_WORD * (2 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C + (S)->ctl.E) + 8 * (1 + (S)->ctl.K)))
 */
 
-/*
 #define SM_STATE_DATA(S) \
     ((void *)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * ((S)->ctl.E + (S)->ctl.T + (S)->ctl.H)))
-*/
 
-#define SM_STATE_DATA(S) \
+#define SM_STATE_DATA_K(S) \
     ((void *)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * ((S)->ctl.E + (S)->ctl.T + (S)->ctl.H) + SM_STATE_HASH_KEY(S)->length * (S)->ctl.D * (S)->ctl.K))
 
 /*

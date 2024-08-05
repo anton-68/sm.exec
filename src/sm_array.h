@@ -26,9 +26,14 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_array
 } sm_array;
 
 /*
-State flags:
+Array parameters:
+key_length - bits in hash key
+queue_size - number of pre-allocated state objects
+state_size - size of the state data block
+fsm - fsm pointer address (within directory)
+Flags:
+syncronized - array synchronization flag
 E - Event trace (linked event(s)) flag
-T - Tx object address
 H - Handle address flag
 K - Hash key allocation strategy
 */
@@ -36,7 +41,7 @@ sm_array *sm_array_create(size_t key_length,
                           size_t queue_size,
                           size_t state_size,
                           sm_fsm **fsm,
-                          bool synchronized, bool E, bool T, bool H, bool K);
+                          bool synchronized, bool E, bool H, bool K);
 void sm_array_destroy(sm_array **a);
 #define SM_ARRAY_DESTROY(A) sm_array_destroy((&(A)))
 #define SM_ARRAY_QUEUE_TOP(A) (SM_STATE_NEXT((A)->queue_head))

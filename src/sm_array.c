@@ -28,7 +28,7 @@ sm_array *sm_array_create(size_t key_length,
                           size_t queue_size,
                           size_t state_size,
                           sm_fsm **fsm,
-                          bool synchronized, bool E, bool T, bool H, bool K)
+                          bool synchronized, bool E, bool H, bool K)
 {
     sm_array *a;
     int retval;
@@ -84,7 +84,7 @@ sm_array *sm_array_create(size_t key_length,
     a->array_size = hashsize(key_length);
     a->mask = hashmask(key_length);
     sm_state *s;
-    if (SM_UNLIKELY((s = sm_state_create(NULL, state_size, a, E, T, H, K)) == NULL))
+    if (SM_UNLIKELY((s = sm_state_create(NULL, state_size, a, E, true, H, K)) == NULL))
     {
         SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_state_create() returned NULL");
         sm_array_destroy(&a);
@@ -93,7 +93,7 @@ sm_array *sm_array_create(size_t key_length,
     a->queue_head = a->queue_tail = s;
     for (size_t i = 0; i < queue_size; i++)
     {
-        if (SM_UNLIKELY((s = sm_state_create(fsm, state_size, a, E, T, H, K)) == NULL))
+        if (SM_UNLIKELY((s = sm_state_create(fsm, state_size, a, E, true, H, K)) == NULL))
         {
             SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_state_create() returned NULL");
             sm_array_destroy(&a);
@@ -132,13 +132,13 @@ void sm_array_destroy(sm_array **a)
     {
         for (size_t i = 0; i < (*a)->array_size; i++)
         {
-            s = ((sm_state **)((*a)->table))[i];
+            s = (*a)->table[i];
             while (s != NULL)
             {
-                s->ctl.D = false;
-                tmp = s;
+                //s->ctl.D = false;
+                tmp = SM_STATE_NEXT(s);
                 sm_state_destroy(&s);
-                s = SM_STATE_NEXT(tmp);
+                s = tmp;
             }
         }
         free((*a)->table);
@@ -146,7 +146,7 @@ void sm_array_destroy(sm_array **a)
     while (SM_STATE_NEXT((*a)->queue_head) != NULL)
     {
         s = dequeue(*a);
-        s->ctl.D = false;
+        //s->ctl.D = false;
         sm_state_destroy(&s);
     }
     //s = (*a)->queue_head;
@@ -464,7 +464,7 @@ static inline sm_state *get_by_hash_key(sm_array *a, sm_hash_key *k)
             SM_REPORT_MESSAGE(SM_LOG_WARNING, "array queue is unexpectedly empty");
             return NULL;
         }
-        SM_STATE_HASH_KEY(s)->string = SM_STATE_HASH_DST(s); 
+        //SM_STATE_HASH_KEY(s)->string = SM_STATE_HASH_DST(s); 
         sm_hash_set_key(SM_STATE_HASH_KEY(s), k->string, k->length, a->mask);
         insert_into_hash(a, s);
     }

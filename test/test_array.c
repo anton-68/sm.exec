@@ -44,9 +44,11 @@ void test_array_seq(sm_array *a)
     printf("**************\n\n");
     s0 = sm_array_get_state(a, k0.string, k0.length);
     sm_print_state(s0);
+    sm_print_array(a);
     printf("\n****************\n");
     printf("checkpoint #14.1\n");
     printf("****************\n\n");
+    fflush(stdout);
     tmp = s0;
     SM_ARRAY_RELEASE_STATE(s0);
     sm_print_state(tmp);
@@ -54,18 +56,23 @@ void test_array_seq(sm_array *a)
     printf("\n**************\n");
     printf("checkpoint #15\n");
     printf("**************\n\n");
+    fflush(stdout);
     SM_ARRAY_RELEASE_STATE(s1);
     printf("\n****************\n");
     printf("checkpoint #15.1\n");
     printf("****************\n\n");
+    sm_print_array(a);
+    fflush(stdout);
     SM_ARRAY_RELEASE_STATE(s2);
     printf("\n****************\n");
     printf(  "checkpoint #15.2\n");
     printf(  "****************\n\n");
     sm_print_array(a);
+    fflush(stdout);
     printf("\n**************\n");
     printf("checkpoint #16\n");
     printf("**************\n\n");
+    fflush(stdout);
 }
 
 int main()
@@ -93,7 +100,7 @@ int main()
     printf("checkpoint #2\n");
     printf("*************\n\n");
 
-    sm_array *a0 = sm_array_create(8, 256, 256, fsm0r, false, false, false, false, false);
+    sm_array *a0 = sm_array_create(8, 256, 256, fsm0r, false, false, false, false);
 
     printf("\n*************\n");
     printf("checkpoint #3\n");
@@ -115,7 +122,7 @@ int main()
     printf("checkpoint #4.1\n");
     printf("***************\n\n");
 
-    a0 = sm_array_create(8, 256, 256, fsm0r, true, false, false, false, false);
+    a0 = sm_array_create(8, 256, 256, fsm0r, true, false, false, false);
     test_array_seq(a0);
     SM_ARRAY_DESTROY(a0);
 
@@ -123,7 +130,7 @@ int main()
     printf("checkpoint #5\n");
     printf("*************\n\n");
 
-    a0 = sm_array_create(8, 256, 256, fsm0r, true, false, true, false, false);
+    a0 = sm_array_create(8, 256, 256, fsm0r, true, false, false, false);
     test_array_seq(a0);
     SM_ARRAY_DESTROY(a0); //!!!
 
@@ -131,7 +138,7 @@ int main()
     printf("checkpoint #6\n");
     printf("*************\n\n");
 
-    a0 = sm_array_create(8, 256, 256, fsm0r, true, false, true, false, true);
+    a0 = sm_array_create(8, 256, 256, fsm0r, true, false, false, true);
     test_array_seq(a0);
     SM_ARRAY_DESTROY(a0);
 
@@ -139,11 +146,24 @@ int main()
     printf("checkpoint #7\n");
     printf("*************\n\n");
 
-    a0 = sm_array_create(8, 256, 256, fsm0r, true, true, true, true, true);
+    a0 = sm_array_create(8, 256, 256, fsm0r, true, true, true, true);
     test_array_seq(a0);
+    sm_print_array(a0);
+    fflush(stdout);
+
+    printf("\n***************\n");
+    printf("checkpoint #7.1\n");
+    printf("***************\n\n");
+    fflush(stdout);
+
     SM_ARRAY_DESTROY(a0);
+    sm_print_array(a0);
+    printf("\n***************\n");
+    printf("checkpoint #7.2\n");
+    printf("***************\n\n");
+    fflush(stdout);
 
     printf("\n*************\n");
-    printf("checkpoint #7\n");
+    printf("checkpoint #8\n");
     printf("*************\n\n");
 }

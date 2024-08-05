@@ -137,8 +137,7 @@ struct sm_queue;
 */
 #define SM_EVENT_DATA_SIZE(E) (size_t)((uint32_t)((E)->ctl.size) << 6)
 
-    sm_event *
-    sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H);
+sm_event *sm_event_create(uint32_t size, bool Q, bool K, bool P, bool H);
 void sm_event_destroy(sm_event **e);
 #define SM_EVENT_DESTROY(E) sm_event_destroy((&(E)))
 void sm_event_erase(sm_event *e);

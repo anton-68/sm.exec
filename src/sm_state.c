@@ -67,19 +67,14 @@ void sm_state_destroy(sm_state **s)
         if ((*s)->ctl.D)
         {
             SM_REPORT_WARNING("an attempt to destroy the state at [addr:%p] registered in array at [addr:%p]", *s, SM_STATE_DEPOT(*s));
-            return;
         }
-        else
+        if ((*s)->ctl.E)
         {
-            if ((*s)->ctl.E)
-            {
-                sm_event_dispose(&(SM_STATE_EVENT_TRACE(*s)));
-            }
-            //printf("=======free(%p)=======\n", (*s));
-            free(*s);
-            *s = NULL;
-            SM_DEBUG_MESSAGE("sm_state at [addr:%p] successfully destroyed", *s);
+            sm_event_dispose(&(SM_STATE_EVENT_TRACE(*s)));
         }
+        free(*s);
+        *s = NULL;
+        SM_DEBUG_MESSAGE("sm_state at [addr:%p] successfully destroyed", *s);
     }
     else
     {
@@ -131,8 +126,13 @@ void sm_state_push_event(sm_state *s, sm_event **e)
         (*e)->next = SM_STATE_EVENT_TRACE(s);
         SM_STATE_EVENT_TRACE(s) = *e;
         (*e)->ctl.L = true;
+        *e = NULL;
     }
-    *e = NULL;
+    else
+    {
+        SM_REPORT_WARNING("an attempt to call push function for the stae without event stack")
+    }
+    
     SM_DEBUG_MESSAGE("sm_event [addr:%p] successfully pushed into stack of sm_state at [addr:%p]", *e, s);
 }
 
@@ -182,7 +182,8 @@ int sm_state_to_string(sm_state *s, char *buffer)
         if (s->ctl.D)
         {
             pos += sprintf(pos, "depot addr: %p\n", SM_STATE_DEPOT(s));
-            pos += sprintf(pos, "hash key addr: %p\n", SM_STATE_HASH_KEY(s));
+            pos += sprintf(pos, "hash key ptr addr: %p\n", SM_STATE_HASH_KEY(s));
+            pos += sprintf(pos, "hash key str addr: %p\n", SM_STATE_HASH_KEY(s)->string);
             pos += sprintf(pos, "key string allocated in the data block: %u\n", s->ctl.K);
             pos += sprintf(pos, "key string: %s\n", (char *)SM_STATE_HASH_KEY(s)->string);
             pos += sprintf(pos, "key length: %d\n", SM_STATE_HASH_KEY(s)->length);
@@ -204,7 +205,8 @@ int sm_state_to_string(sm_state *s, char *buffer)
         if (s->ctl.size > 0)
         {
             pos += sprintf(pos, "data addr: %p\n", SM_STATE_DATA(s));
-            snprintf(data_buffer, 32, "%s", (char *)SM_STATE_DATA(s));
+            pos += sprintf(pos, "data addr (K): %p\n", SM_STATE_DATA_K(s));
+            snprintf(data_buffer, 32, "%s", (char *)SM_STATE_DATA_K(s));
             pos += sprintf(pos, "data:\n[%s ...]\n", data_buffer);
         }
     }
