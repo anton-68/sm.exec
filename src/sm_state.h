@@ -10,7 +10,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_hash.h"
 #include "sm_event.h"
-#include "sm_fsm.h"
+//#include "sm_fsm.h"
 
 /*
 sm_state - LP64
@@ -79,6 +79,7 @@ K - Hash key allocation strategy
 #define SM_STATE_HASH_DST(S) (((S)->ctl.K)?SM_STATE_DATA((S)):NULL)
 // #define SM_STATE_HASH_DST(S) NULL
 
+struct sm_fsm; 
 typedef struct __attribute__((aligned(SM_WORD))) sm_state
 {
     uint16_t service_id;
@@ -97,7 +98,7 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_state
             uint32_t      :  0; // reserved
         } ctl;
     };
-    sm_fsm **fsm;
+    struct sm_fsm **fsm;
 } sm_state;
 
 struct sm_array;
@@ -163,7 +164,7 @@ struct sm_array;
 
 #define SM_STATE_DATA_SIZE(S) ((uint32_t)((S)->ctl.size) << 6)
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, struct sm_array *depot, bool E, bool T, bool H, bool K);
+sm_state *sm_state_create(struct sm_fsm **f, uint32_t size, struct sm_array *depot, bool E, bool T, bool H, bool K);
 void sm_state_destroy(sm_state **s);
 #define SM_STATE_DESTROY(S) sm_state_destroy((&(S)))
 void sm_state_erase(sm_state *s); 

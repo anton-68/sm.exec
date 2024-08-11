@@ -12,7 +12,8 @@ extern __thread void *__sm_tx_desc;
 static inline size_t sm_state_sizeof(sm_state *s) 
     __attribute__((always_inline));
 
-sm_state *sm_state_create(sm_fsm **f, uint32_t size, struct sm_array *depot, bool E, bool T, bool H, bool K)
+int sm_fsm_get_initial_state(struct sm_fsm *f);
+sm_state *sm_state_create(struct sm_fsm **f, uint32_t size, struct sm_array *depot, bool E, bool T, bool H, bool K)
 {
     if(SM_UNLIKELY(f == NULL)){
         SM_REPORT_MESSAGE(SM_LOG_INFO, "NULL FSM pointer on input");
@@ -41,9 +42,9 @@ sm_state *sm_state_create(sm_fsm **f, uint32_t size, struct sm_array *depot, boo
     memset(s, '\0', sm_state_sizeof(&header));
     s->type = header.type;
     s->fsm = f; 
-    if (f != NULL && *f != NULL)
+    if (f != NULL)
     {
-        s->state_id = (*f)->initial;
+        s->state_id = sm_fsm_get_initial_state(*f);
     }
     if (s->ctl.T)
     {
@@ -88,7 +89,7 @@ void sm_state_erase(sm_state *s)
     if (s != NULL)
     {
         uint32_t type = s->type;
-        sm_fsm **f = s->fsm;
+        struct sm_fsm **f = s->fsm;
         struct sm_array *a = SM_STATE_DEPOT(s);
         memset(s, '\0', sm_state_sizeof(s));
         s->type = type;
@@ -171,10 +172,10 @@ int sm_state_to_string(sm_state *s, char *buffer)
         if (s->fsm != NULL)
         {
             pos += sprintf(pos, "*fsm: %p\n", *(s->fsm));
-            if (*s->fsm != NULL)
+/*          if (*s->fsm != NULL)
             {
                 pos += sprintf(pos, "fsm: %s\n", (*(s->fsm))->name);
-            }
+            }  */
         }
         pos += sprintf(pos, "service_id: %u\n", s->service_id);
         pos += sprintf(pos, "state_id: %u\n", s->state_id);

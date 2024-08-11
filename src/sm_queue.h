@@ -25,15 +25,15 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_queue
 #define SM_QUEUE_TOP(q) (q)->head->next
 
 #define SM_QUEUE_CREATE_EMPTY(S) \
-    sm_queue_create(0, false, false, false, false, 0, (S))
+    sm_queue_create(0, false, false, false, 0, (S))
 
 sm_queue *sm_queue_create(uint32_t event_size,
-                          bool Q, bool K, bool P, bool H,
+                          bool K, bool P, bool H,
                           unsigned num_of_events,
                           bool synchronized);
 /*                          
 sm_queue *sm_queue_bulk_create(uint32_t event_size,
-                               bool Q, bool K, bool P, bool H,
+                               bool K, bool P, bool H,
                                unsigned num_of_events,
                                bool synchronized);
 */

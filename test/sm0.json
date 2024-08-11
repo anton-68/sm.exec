@@ -1,0 +1,52 @@
+{
+   "SM0": {
+      "nodes": [
+         {
+            "name": "idle",
+            "id": 1,
+            "type": "initial",
+            "transitions": [
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 1,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "APP1"
+               },
+               {
+                  "targetNode": 1,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               }
+            ]
+         },
+         {
+            "name": "stop",
+            "id": 2,
+            "type": "final",
+            "transitions": [
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               }
+            ]
+         }
+      ],
+      "events": [
+         {
+            "name": "omega",
+            "id": 0
+         },
+         {
+            "name": "do",
+            "id": 1
+         }
+      ]
+   }
+}
+

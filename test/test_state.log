@@ -1,0 +1,205 @@
+State
+=====
+address: 0x55b618cd77c0
+**fsm: (nil)
+service_id: 0
+state_id: 0
+size: 0 B
+
+State
+=====
+address: 0x55b618cd77c0
+**fsm: 0x7ffe1c9fddd8
+*fsm: 0x7ffe1c9fdde0
+service_id: 0
+state_id: 77
+size: 0 B
+
+State
+=====
+address: 0x55b618cd77e0
+**fsm: 0x7ffe1c9fddd8
+*fsm: 0x7ffe1c9fdde0
+service_id: 0
+state_id: 78
+size: 0 B
+depot addr: 0xdeadbeef
+hash key ptr addr: 0x55b618cd77f8
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: (nil)
+handle: (nil)
+
+State
+=====
+address: 0x55b618cd77c0
+**fsm: 0x7ffe1c9fddd8
+*fsm: 0x7ffe1c9fdde0
+service_id: 0
+state_id: 79
+size: 0 B
+event trace head address: (nil)
+
+Stack event
+===========
+NULL
+
+State
+=====
+address: 0x55b618cd9940
+**fsm: 0x7ffe1c9fddd8
+*fsm: 0x7ffe1c9fdde0
+service_id: 0
+state_id: 80
+size: 256 B
+depot addr: 0xdeadbeef
+hash key ptr addr: 0x55b618cd9958
+hash key str addr: (nil)
+key string allocated in the data block: 0
+key string: (null)
+key length: 0
+key hash: 0x0
+next state address: (nil)
+event trace head address: (nil)
+handle: (nil)
+data addr: 0x55b618cd9980
+data addr (K): 0x55b618cd9980
+data:
+[ ...]
+
+Stack event
+===========
+NULL
+
+State
+=====
+address: 0x55b618cd9940
+**fsm: 0x7ffe1c9fddd8
+*fsm: 0x7ffe1c9fdde0
+service_id: 0
+state_id: 80
+size: 256 B
+depot addr: 0xabcd
+hash key ptr addr: 0x55b618cd9958
+hash key str addr: 0x55b618cd9980
+key string allocated in the data block: 0
+key string: Data string ..................................................
+key length: 62
+key hash: 0x69888181
+next state address: 0xcdef
+event trace head address: (nil)
+handle: 0xa123
+data addr: 0x55b618cd9980
+data addr (K): 0x55b618cd9980
+data:
+[Data string ................... ...]
+
+Stack event
+===========
+NULL
+
+State
+=====
+address: 0x55b618cd9940
+**fsm: 0x7ffe1c9fddd8
+*fsm: 0x7ffe1c9fdde0
+service_id: 0
+state_id: 80
+size: 256 B
+depot addr: 0xabcd
+hash key ptr addr: 0x55b618cd9958
+hash key str addr: 0x55b618cd9980
+key string allocated in the data block: 0
+key string: Test event data access
+key length: 62
+key hash: 0x69888181
+next state address: 0xcdef
+event trace head address: (nil)
+handle: 0xa123
+data addr: 0x55b618cd9980
+data addr (K): 0x55b618cd9980
+data:
+[Test event data access ...]
+
+Stack event
+===========
+NULL
+
+State
+=====
+address: 0x55b618cd9940
+**fsm: 0x7ffe1c9fddd8
+*fsm: 0x7ffe1c9fdde0
+service_id: 0
+state_id: 80
+size: 256 B
+depot addr: 0xabcd
+hash key ptr addr: 0x55b618cd9958
+hash key str addr: 0x55b618cd9980
+key string allocated in the data block: 0
+key string: Test event data access
+key length: 22
+key hash: 0x6BD98233
+next state address: 0xcdef
+event trace head address: 0x55b618cd7960
+handle: 0xa123
+data addr: 0x55b618cd9980
+data addr (K): 0x55b618cd9980
+data:
+[Test event data access ...]
+
+Stack event
+===========
+address: 0x55b618cd7960
+next: 0x55b618cd7820
+service_id: 0
+event_id: 0
+size: 256 B
+hash key addr: 0x55b618cd7970
+key string: (null)
+key length: 0
+key hash: 0x0
+priority[0]: 7
+priority[1]: 17
+handle: 0xa123
+linked: true
+disposable: true
+data:
+[Clone ......................... ...]
+
+Stack event
+===========
+address: 0x55b618cd7820
+next: 0x55b618cd77c0
+service_id: 0
+event_id: 0
+size: 256 B
+hash key addr: 0x55b618cd7830
+key string: (null)
+key length: 0
+key hash: 0x0
+priority[0]: 7
+priority[1]: 17
+handle: 0xa123
+linked: true
+disposable: true
+data:
+[Secret password ............... ...]
+
+Stack event
+===========
+address: 0x55b618cd77c0
+next: (nil)
+service_id: 0
+event_id: 0
+size: 0 B
+linked: true
+disposable: true
+
+State
+=====
+NULL
+

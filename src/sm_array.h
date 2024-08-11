@@ -37,11 +37,12 @@ E - Event trace (linked event(s)) flag
 H - Handle address flag
 K - Hash key allocation strategy
 */
+struct sm_fsm; 
 sm_array *sm_array_create(size_t key_length,
-                          size_t queue_size,
-                          size_t state_size,
-                          sm_fsm **fsm,
-                          bool synchronized, bool E, bool H, bool K);
+                                        size_t queue_size,
+                                        size_t state_size,
+                                        struct sm_fsm **fsm,
+                                        bool synchronized, bool E, bool H, bool K);
 void sm_array_destroy(sm_array **a);
 #define SM_ARRAY_DESTROY(A) sm_array_destroy((&(A)))
 #define SM_ARRAY_QUEUE_TOP(A) (SM_STATE_NEXT((A)->queue_head))

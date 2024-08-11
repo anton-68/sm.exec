@@ -13,7 +13,7 @@ static inline sm_event *dequeue(sm_queue *q)
 	__attribute__((always_inline));
 
 sm_queue *sm_queue_create(uint32_t event_size,
-						  bool Q, bool K, bool P, bool H,
+						  bool K, bool P, bool H,
 						  unsigned num_of_events,
 						  bool synchronized)
 {
@@ -78,7 +78,7 @@ sm_queue *sm_queue_create(uint32_t event_size,
 	q->size = 0;
 	for (int i = 0; i < num_of_events; i++)
 	{
-		if (SM_UNLIKELY((e = sm_event_create(event_size, Q, K, P, H)) == NULL))
+		if (SM_UNLIKELY((e = sm_event_create(event_size, true, K, P, H)) == NULL))
 		{
 			SM_REPORT_MESSAGE(SM_LOG_ERR, "sm_event_create() returned NULL");
 			sm_queue_destroy(&q);

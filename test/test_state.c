@@ -83,7 +83,7 @@ int main()
     sm_print_state(s);
 
     //s->ctl.D = false;
-    SM_STATE_DISPOSE(s);
+    sm_state_destroy(&s);
 
     sm_print_state(s);
 }

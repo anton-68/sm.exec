@@ -1,0 +1,109 @@
+{
+   "SM1": {
+      "nodes": [
+         {
+            "name": "idle",
+            "id": 1,
+            "type": "initial",
+            "transitions": [
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 1,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               },
+               {
+                  "targetNode": 3,
+                  "appliedOnEvent": 3,
+                  "setEventId": 0,
+                  "type": "hierarchical",
+                  "reference": "DEPOT_1"
+               },
+               {
+                  "targetNode": 1,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               }
+            ]
+         },
+         {
+            "name": "cleanup",
+            "id": 2,
+            "type": "state",
+            "transitions": [
+               {
+                  "targetNode": 4,
+                  "appliedOnEvent": 2,
+                  "setEventId": 0,
+                  "type": "async",
+                  "reference": "QUEUE_2"
+               },
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               }
+            ]
+         },
+         {
+            "name": "working",
+            "id": 3,
+            "type": "state",
+            "transitions": [
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               },
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               }
+            ]
+         },
+         {
+            "name": "done",
+            "id": 4,
+            "type": "final",
+            "transitions": [
+               {
+                  "targetNode": 4,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               }
+            ]
+         }
+      ],
+      "events": [
+         {
+            "name": "omega",
+            "id": 0
+         },
+         {
+            "name": "shutdown",
+            "id": 1
+         },
+         {
+            "name": "done",
+            "id": 2
+         },
+         {
+            "name": "start",
+            "id": 3
+         }
+      ]
+   }
+}
+

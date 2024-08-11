@@ -27,7 +27,7 @@ static inline void remove_from_hash(sm_array *a, sm_state *s)
 sm_array *sm_array_create(size_t key_length,
                           size_t queue_size,
                           size_t state_size,
-                          sm_fsm **fsm,
+                          struct sm_fsm **fsm,
                           bool synchronized, bool E, bool H, bool K)
 {
     sm_array *a;

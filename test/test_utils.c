@@ -56,3 +56,30 @@ void sm_print_array(sm_array *a)
     sm_array_to_string(a, buffer);
     printf("Array\n=====\n%s\n", buffer);
 }
+
+void sm_print_directory(sm_directory *d)
+{
+    char buffer[SM_TEST_PRINT_BUFFER];
+    sm_directory_to_string(d, buffer);
+    printf("Directory\n=========\n%s\n", buffer);
+    sm_directory_record *rec = d->top; 
+    while (rec != NULL)
+    {
+        printf("Directory record\n");
+        printf("item name: %s\n", rec->name);
+        printf("item ptr: %p\n", rec->ptr);
+        printf("item ref: %p\n", rec->ref);
+        printf("next item rec addr: %p\n", rec->next);
+        printf("prev item rec addr: %p\n", rec->prev);
+        rec = rec->next;
+    }
+}
+
+char sm_buffer[SM_FSM_PRINT_BUFFER];
+void sm_print_fsm(sm_fsm *f, sm_directory *d)
+{
+    //char buffer[SM_FSM_PRINT_BUFFER];
+    char *buffer = sm_fsm_to_string(f, d);
+    printf("FSM\n===\n%s\n", buffer);
+}
+

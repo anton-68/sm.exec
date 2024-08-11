@@ -50,14 +50,29 @@ typedef enum sm_syslog_severity
 		}                                                                                            \
 		report(SM_EXEC, SM_LOG_WARNING, __LINE__, __FILE__, __func__, (__sm__message__), "-");         \
 	}
+#define SM_REPORT_ERROR(...)                                                                       \
+	{                                                                                                \
+		char __sm__message__[SM_LOGGER_PRINT_BUFFER];                                                \
+		sprintf(__sm__message__, __VA_ARGS__);                                                       \
+		if (strlen(__sm__message__) > SM_LOGGER_PRINT_BUFFER)                                        \
+		{                                                                                            \
+			report(SM_OAM, SM_LOG_ERR, __LINE__, __FILE__, __func__, "SYSLOG buffer exceeded", "-"); \
+		}                                                                                            \
+		report(SM_EXEC, SM_LOG_ERR, __LINE__, __FILE__, __func__, (__sm__message__), "-");       \
+	}
 #define SM_REPORT_CODE(severity, code) \
 	report(SM_EXEC, severity, __LINE__, __FILE__, __func__, "-", strerror(code))
 #define SM_SYSLOG(entity, severity, description, code) \
 	report((entity), (severity), __LINE__, __FILE__, __func__, (description), strerror(code))
+#define SM_SYSLOG_CAUSE(entity, severity, description, cause) \
+	report((entity), (severity), __LINE__, __FILE__, __func__, (description), cause)
 #else
 #define SM_REPORT_MESSAGE(severity, message)
+#define SM_REPORT_WARNING(...)
+#define SM_REPORT_ERROR(...)
 #define SM_REPORT_CODE(severity, code)
-#define SM_SYSLOG(entity, severity, description, cause)
+#define SM_SYSLOG(entity, severity, description, code)
+#define SM_SYSLOG_CAUSE(entity, severity, description, cause)
 #endif
 
 #ifdef SM_DEBUG

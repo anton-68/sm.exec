@@ -1,0 +1,203 @@
+Event
+=====
+address: 0x562e2aee42a0
+next: (nil)
+service_id: 0
+event_id: 0
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x562e2aee52d0
+next: (nil)
+service_id: 0
+event_id: 0
+size: 256 B
+hash key addr: 0x562e2aee52e0
+key string: Secret password ..............................
+key length: 46
+key hash: 0xBCDE
+priority[0]: 7
+priority[1]: 17
+handle: 0xa123
+linked: false
+disposable: true
+data:
+[Secret password ............... ...]
+
+Event
+=====
+address: 0x562e2aee52d0
+next: (nil)
+service_id: 0
+event_id: 0
+size: 256 B
+hash key addr: 0x562e2aee52e0
+key string: Test event data access
+key length: 46
+key hash: 0xBCDE
+priority[0]: 7
+priority[1]: 17
+handle: 0xa123
+linked: false
+disposable: true
+data:
+[Test event data access ...]
+
+Event
+=====
+address: 0x562e2aee5410
+next: (nil)
+service_id: 0
+event_id: 0
+size: 256 B
+hash key addr: 0x562e2aee5420
+key string: Test event data access
+key length: 46
+key hash: 0xBCDE
+priority[0]: 7
+priority[1]: 17
+handle: 0xa123
+linked: false
+disposable: true
+data:
+[Test clone ...]
+
+Event
+=====
+address: 0x562e2aee42a0
+next: (nil)
+service_id: 0
+event_id: 77
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x562e2aee42a0
+next: (nil)
+service_id: 0
+event_id: 77
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x562e2aee42a0
+next: 0x562e2aee5550
+service_id: 0
+event_id: 77
+size: 0 B
+linked: true
+disposable: true
+
+
+Linked event
+=====
+address: 0x562e2aee5550
+next: 0x562e2aee5670
+service_id: 0
+event_id: 0
+size: 256 B
+linked: true
+disposable: true
+data:
+[ ...]
+
+
+
+Linked event
+=====
+address: 0x562e2aee5670
+next: 0x562e2aee5790
+service_id: 0
+event_id: 1
+size: 256 B
+linked: true
+disposable: true
+data:
+[ ...]
+
+
+
+Linked event
+=====
+address: 0x562e2aee5790
+next: 0x562e2aee58b0
+service_id: 0
+event_id: 2
+size: 256 B
+linked: true
+disposable: true
+data:
+[ ...]
+
+
+
+Linked event
+=====
+address: 0x562e2aee58b0
+next: 0x562e2aee59d0
+service_id: 0
+event_id: 3
+size: 256 B
+linked: true
+disposable: true
+data:
+[ ...]
+
+
+
+Linked event
+=====
+address: 0x562e2aee59d0
+next: 0x562e2aee5af0
+service_id: 0
+event_id: 4
+size: 256 B
+linked: true
+disposable: true
+data:
+[ ...]
+
+
+
+Linked event
+=====
+address: 0x562e2aee5af0
+next: 0x562e2aee5c10
+service_id: 0
+event_id: 5
+size: 256 B
+linked: true
+disposable: true
+data:
+[ ...]
+
+
+
+Linked event
+=====
+address: 0x562e2aee5c10
+next: (nil)
+service_id: 0
+event_id: 6
+size: 256 B
+linked: false
+disposable: true
+data:
+[ ...]
+
+
+Event
+=====
+NULL
+
+Event
+=====
+NULL
+

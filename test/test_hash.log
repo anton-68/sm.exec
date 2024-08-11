@@ -1,0 +1,26 @@
+Hash_key
+=====
+string = 
+length = 3637233856
+hash = 00005596
+
+Hash_key
+=====
+string = (null)
+length = 3637233933
+hash = 00005596
+
+Hash_key
+=====
+string = test_key_0
+length = 10
+hash = D93F3EC2
+
+Hash_key
+=====
+string = test_key_1
+length = 10
+hash = 52F1EBC0
+
+sm_hash_key_match(&k0, &k1) = 0
+sm_hash_key_match(&k0, &k0) = 1

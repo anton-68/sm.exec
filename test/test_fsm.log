@@ -1,0 +1,236 @@
+
+System registry created...
+
+QUEUE_2 registered at 0x56121b7b04b0
+LOGGER_QUEUE registered at 0x56121b7b05a0
+APP1 registered at 0x561219e77859
+APP2 registered at 0x561219e778d2
+APP3 registered at 0x561219e7794b
+NOAP registered at 0x561219e779c4
+Directory
+=========
+address: 0x56121b7af480
+directory size: 6
+
+Directory record
+item name: NOAP
+item ptr: 0x561219e779c4
+item ref: 0x56121b7b0788
+next item rec addr: 0x56121b7b0730
+prev item rec addr: (nil)
+Directory record
+item name: APP3
+item ptr: 0x561219e7794b
+item ref: 0x56121b7b0738
+next item rec addr: 0x56121b7b06e0
+prev item rec addr: 0x56121b7b0780
+Directory record
+item name: APP2
+item ptr: 0x561219e778d2
+item ref: 0x56121b7b06e8
+next item rec addr: 0x56121b7b0690
+prev item rec addr: 0x56121b7b0730
+Directory record
+item name: APP1
+item ptr: 0x561219e77859
+item ref: 0x56121b7b0698
+next item rec addr: 0x56121b7b0640
+prev item rec addr: 0x56121b7b06e0
+Directory record
+item name: LOGGER_QUEUE
+item ptr: 0x56121b7b05a0
+item ref: 0x56121b7b0648
+next item rec addr: 0x56121b7b0550
+prev item rec addr: 0x56121b7b0690
+Directory record
+item name: QUEUE_2
+item ptr: 0x56121b7b04b0
+item ref: 0x56121b7b0558
+next item rec addr: (nil)
+prev item rec addr: 0x56121b7b0640
+
+FSM file 1 red...
+
+FSM sm0 compiled:
+SM Name: SM0
+The number of nodes: 2
+The final node: 2
+The initial node: 1
+The nodes:
+  Node name: idle
+  Node d: 1
+  Node type: Initial
+  The number of transitions: 2
+  The transitions:
+    Transition # 0
+    Transition type: Regular
+    Trigger event Id: 1
+    Target node Id: 2
+    (Re)set event Id: 0
+    Transition reference: APP1
+    Transition # 1
+    Transition type: Regular
+    Trigger event Id: 0
+    Target node Id: 1
+    (Re)set event Id: 0
+    Transition reference: NOAP
+  Node name: stop
+  Node d: 2
+  Node type: Final
+  The number of transitions: 1
+  The transitions:
+    Transition # 0
+    Transition type: Regular
+    Trigger event Id: 0
+    Target node Id: 2
+    (Re)set event Id: 0
+    Transition reference: NOAP
+The events:
+  Event name: omega
+  Event Id: 0
+  Event name: do
+  Event Id: 1
+FSM sm0 registered at 0x56121b7b07d0
+
+DEPOT_1 registered at 0x56121b7b0e50
+Directory
+=========
+address: 0x56121b7af480
+directory size: 8
+
+Directory record
+item name: DEPOT_1
+item ptr: 0x56121b7b0e50
+item ref: 0x56121b7b1e88
+next item rec addr: 0x56121b7b0c80
+prev item rec addr: (nil)
+Directory record
+item name: SM0
+item ptr: 0x56121b7b07d0
+item ref: 0x56121b7b0c88
+next item rec addr: 0x56121b7b0780
+prev item rec addr: 0x56121b7b1e80
+Directory record
+item name: NOAP
+item ptr: 0x561219e779c4
+item ref: 0x56121b7b0788
+next item rec addr: 0x56121b7b0730
+prev item rec addr: 0x56121b7b0c80
+Directory record
+item name: APP3
+item ptr: 0x561219e7794b
+item ref: 0x56121b7b0738
+next item rec addr: 0x56121b7b06e0
+prev item rec addr: 0x56121b7b0780
+Directory record
+item name: APP2
+item ptr: 0x561219e778d2
+item ref: 0x56121b7b06e8
+next item rec addr: 0x56121b7b0690
+prev item rec addr: 0x56121b7b0730
+Directory record
+item name: APP1
+item ptr: 0x561219e77859
+item ref: 0x56121b7b0698
+next item rec addr: 0x56121b7b0640
+prev item rec addr: 0x56121b7b06e0
+Directory record
+item name: LOGGER_QUEUE
+item ptr: 0x56121b7b05a0
+item ref: 0x56121b7b0648
+next item rec addr: 0x56121b7b0550
+prev item rec addr: 0x56121b7b0690
+Directory record
+item name: QUEUE_2
+item ptr: 0x56121b7b04b0
+item ref: 0x56121b7b0558
+next item rec addr: (nil)
+prev item rec addr: 0x56121b7b0640
+
+FSM file 2 red...
+
+FSM sm1 compiled:
+SM Name: SM1
+The number of nodes: 4
+The final node: 4
+The initial node: 1
+The nodes:
+  Node name: idle
+  Node d: 1
+  Node type: Initial
+  The number of transitions: 3
+  The transitions:
+    Transition # 0
+    Transition type: Regular
+    Trigger event Id: 1
+    Target node Id: 2
+    (Re)set event Id: 0
+    Transition reference: NOAP
+    Transition # 1
+    Transition type: Hierarchical
+    Trigger event Id: 3
+    Target node Id: 3
+    (Re)set event Id: 0
+    Transition reference: DEPOT_1
+    Transition # 2
+    Transition type: Regular
+    Trigger event Id: 0
+    Target node Id: 1
+    (Re)set event Id: 0
+    Transition reference: NOAP
+  Node name: cleanup
+  Node d: 2
+  Node type: State
+  The number of transitions: 2
+  The transitions:
+    Transition # 0
+    Transition type: Asynchronous
+    Trigger event Id: 2
+    Target node Id: 4
+    (Re)set event Id: 0
+    Transition reference: QUEUE_2
+    Transition # 1
+    Transition type: Regular
+    Trigger event Id: 0
+    Target node Id: 2
+    (Re)set event Id: 0
+    Transition reference: NOAP
+  Node name: working
+  Node d: 3
+  Node type: State
+  The number of transitions: 2
+  The transitions:
+    Transition # 0
+    Transition type: Regular
+    Trigger event Id: 0
+    Target node Id: 2
+    (Re)set event Id: 0
+    Transition reference: NOAP
+    Transition # 1
+    Transition type: Regular
+    Trigger event Id: 0
+    Target node Id: 2
+    (Re)set event Id: 0
+    Transition reference: NOAP
+  Node name: done
+  Node d: 4
+  Node type: Final
+  The number of transitions: 1
+  The transitions:
+    Transition # 0
+    Transition type: Regular
+    Trigger event Id: 0
+    Target node Id: 4
+    (Re)set event Id: 0
+    Transition reference: NOAP
+The events:
+  Event name: omega
+  Event Id: 0
+  Event name: shutdown
+  Event Id: 1
+  Event name: done
+  Event Id: 2
+  Event name: start
+  Event Id: 3
+
+FSM sm1 registered at 0x56121b801830
