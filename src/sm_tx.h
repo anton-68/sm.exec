@@ -9,7 +9,7 @@
 #include "sm_sys.h" 
 //#include "sm_queue2.h"
 #include "sm_state.h"
-//#include "sm_directory.h"
+#include "sm_directory.h"
 #include "sm_logger.h"
 //#include "sm_exec.h"
 
@@ -38,7 +38,7 @@ sm_tx *sm_tx_create(sm_exec *exec,
 void sm_tx_free(sm_tx *tx);
 
 
-// Thread-worker app
+// Thread-worker app prototype
 void *sm_tx_runner(void *arg);
 
 

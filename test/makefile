@@ -19,6 +19,7 @@ OBJS = 	$(SRC)sm_sys.o \
 		$(SRC)sm_hash.o \
 		$(SRC)sm_event.o \
 		$(SRC)sm_queue.o \
+		$(SRC)sm_queue2.o \
 		$(SRC)sm_state.o \
 		$(SRC)sm_array.o \
 		$(SRC)sm_directory.o \
@@ -33,6 +34,7 @@ TEST_OBJS =	test_sys.o \
 			test_hash.o \
 			test_event.o \
 			test_queue.o \
+			test_queue2.o \
 			test_state.o \
 			test_array.o \
 			test_directory.o \
@@ -43,6 +45,7 @@ EXES = 	test_sys \
 		test_hash \
 		test_event \
 		test_queue \
+		test_queue2 \
 		test_state \
 		test_array \
 		test_directory \
@@ -64,6 +67,9 @@ test_event : $(OBJS) test_event.o
 
 test_queue : $(OBJS) test_queue.o
 	$(CC) $(LFLAGS) $(OBJS) test_queue.o $(LIBS) -o test_queue
+
+test_queue2 : $(OBJS) test_queue2.o
+	$(CC) $(LFLAGS) $(OBJS) test_queue2.o $(LIBS) -o test_queue2
 
 test_state : $(OBJS) test_state.o
 	$(CC) $(LFLAGS) $(OBJS) test_state.o $(LIBS) -o test_state

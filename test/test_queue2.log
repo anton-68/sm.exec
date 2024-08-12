@@ -1,0 +1,428 @@
+Basic operations: 
+
+Queue2
+======
+address: 0x55f586f092b0
+top low event:
+NULL
+
+top high event:
+NULL
+
+Event
+=====
+NULL
+
+Event
+=====
+NULL
+
+Event
+=====
+address: 0x55f586f09370
+next: (nil)
+service_id: 0
+event_id: 0
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+NULL
+
+Event
+=====
+NULL
+
+Event
+=====
+address: 0x55f586f09370
+next: (nil)
+service_id: 0
+event_id: 0
+size: 0 B
+linked: false
+disposable: true
+
+
+Priorities (w/o locking): 
+
+Queue2
+======
+address: 0x55f586f092b0
+top low event:
+address: 0x55f586f09370
+next: 0x55f586f093b0
+service_id: 0
+event_id: 0
+size: 0 B
+linked: false
+disposable: true
+
+top high event:
+address: 0x55f586f09390
+next: 0x55f586f093d0
+service_id: 0
+event_id: 1
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09390
+next: (nil)
+service_id: 0
+event_id: 1
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f093d0
+next: (nil)
+service_id: 0
+event_id: 3
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09410
+next: (nil)
+service_id: 0
+event_id: 5
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09450
+next: (nil)
+service_id: 0
+event_id: 7
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09490
+next: (nil)
+service_id: 0
+event_id: 9
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f094d0
+next: (nil)
+service_id: 0
+event_id: 11
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09510
+next: (nil)
+service_id: 0
+event_id: 13
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09550
+next: (nil)
+service_id: 0
+event_id: 15
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09370
+next: (nil)
+service_id: 0
+event_id: 0
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f093b0
+next: (nil)
+service_id: 0
+event_id: 2
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f093f0
+next: (nil)
+service_id: 0
+event_id: 4
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09430
+next: (nil)
+service_id: 0
+event_id: 6
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09470
+next: (nil)
+service_id: 0
+event_id: 8
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f094b0
+next: (nil)
+service_id: 0
+event_id: 10
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f094f0
+next: (nil)
+service_id: 0
+event_id: 12
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09530
+next: (nil)
+service_id: 0
+event_id: 14
+size: 0 B
+linked: false
+disposable: true
+
+Queue2
+======
+address: 0x55f586f092b0
+top low event:
+NULL
+
+top high event:
+NULL
+
+
+Priorities (with locking): 
+
+Queue2
+======
+address: 0x55f586f092b0
+top low event:
+address: 0x55f586f09570
+next: 0x55f586f095b0
+service_id: 0
+event_id: 0
+size: 0 B
+linked: false
+disposable: true
+
+top high event:
+address: 0x55f586f09590
+next: 0x55f586f095d0
+service_id: 0
+event_id: 1
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09590
+next: (nil)
+service_id: 0
+event_id: 1
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f095d0
+next: (nil)
+service_id: 0
+event_id: 3
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09610
+next: (nil)
+service_id: 0
+event_id: 5
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09650
+next: (nil)
+service_id: 0
+event_id: 7
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09690
+next: (nil)
+service_id: 0
+event_id: 9
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f096d0
+next: (nil)
+service_id: 0
+event_id: 11
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09710
+next: (nil)
+service_id: 0
+event_id: 13
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09750
+next: (nil)
+service_id: 0
+event_id: 15
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09570
+next: (nil)
+service_id: 0
+event_id: 0
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f095b0
+next: (nil)
+service_id: 0
+event_id: 2
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f095f0
+next: (nil)
+service_id: 0
+event_id: 4
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09630
+next: (nil)
+service_id: 0
+event_id: 6
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09670
+next: (nil)
+service_id: 0
+event_id: 8
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f096b0
+next: (nil)
+service_id: 0
+event_id: 10
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f096f0
+next: (nil)
+service_id: 0
+event_id: 12
+size: 0 B
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x55f586f09730
+next: (nil)
+service_id: 0
+event_id: 14
+size: 0 B
+linked: false
+disposable: true
+
+Queue2
+======
+NULL
+

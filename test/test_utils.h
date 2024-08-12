@@ -13,6 +13,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include "../src/sm_event.h"
 #include "../src/sm_state.h"
 #include "../src/sm_queue.h"
+#include "../src/sm_queue2.h"
 #include "../src/sm_array.h"
 #include "../src/sm_directory.h"
 #include "../src/sm_fsm.h"
@@ -23,6 +24,7 @@ void sm_print_hash_key(const sm_hash_key *k);
 void sm_print_event(const sm_event *e);
 void sm_print_state(sm_state *s);
 void sm_print_queue(sm_queue *q);
+void sm_print_queue2(sm_queue2 *q); 
 void sm_print_array(sm_array *a);
 void sm_print_directory(sm_directory *d);
 void sm_print_fsm(sm_fsm *f, sm_directory *d);
