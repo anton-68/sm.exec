@@ -19,6 +19,7 @@ sm_queue2 *sm_queue2_create()
         SM_REPORT_MESSAGE(SM_LOG_ERR, "malloc() failed");
         return NULL;
     }
+    memset(q, '\0', sizeof(sm_queue2));
     pthread_mutexattr_t attr;
     if (SM_UNLIKELY((retval = pthread_mutexattr_init(&attr)) != EXIT_SUCCESS))
     {

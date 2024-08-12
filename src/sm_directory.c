@@ -7,29 +7,10 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 #include "sm_directory.h"
 
-// Private methods
-
-static sm_directory_record *find_record(sm_directory *t, const char *name)
-{
-    sm_directory_record *r = t->top;
-    while (r != NULL && strcmp(r->name, name))
-    {
-        r = r->next;
-    }
-    return r;
-}
-
-static char *find_name(sm_directory *t, void *ptr)
-{
-    sm_directory_record *r = t->top;
-    while (r != NULL && ptr != r->ptr)
-    {
-        r = r->next;
-    }
-    return r->name;
-}
-
-// Public methods
+static inline sm_directory_record *find_record(sm_directory *t, const char *name)
+    __attribute__((always_inline));
+static inline char *find_name(sm_directory *t, void *ptr)
+    __attribute__((always_inline));
 
 sm_directory *sm_directory_create()
 {
@@ -40,6 +21,7 @@ sm_directory *sm_directory_create()
         return NULL;
     }
     t->top = NULL;
+    SM_DEBUG_MESSAGE("sm_directory at [addr:%p] successfully created", t);
     return t;
 }
 
@@ -110,16 +92,21 @@ void sm_directory_remove(sm_directory *t, const char *name)
     }
 }
 
-void sm_directory_free(sm_directory *t)
+void sm_directory_destroy(sm_directory **d)
 {
+    sm_directory *t = *d;
     sm_directory_record *tmp;
     while (t->top != NULL)
     {
         tmp = t->top->next;
         free(t->top);
-        t->top->next = tmp;
+        t->top = tmp;
     }
+    SM_DEBUG_MESSAGE("sm_exec at [addr:%p] successfully destroyed", t);
+    *d = NULL;
 }
+
+// void sm_directory_purge(sm_directory **t){}
 
 int sm_directory_to_string(sm_directory *d, char *buffer)
 {
@@ -141,4 +128,24 @@ int sm_directory_to_string(sm_directory *d, char *buffer)
         s += sprintf(s, "directory size: %lu\n", num);
     }
     return (int)((char *)s - (char *)buffer);
+}
+
+static inline sm_directory_record *find_record(sm_directory *t, const char *name)
+{
+    sm_directory_record *r = t->top;
+    while (r != NULL && strcmp(r->name, name))
+    {
+        r = r->next;
+    }
+    return r;
+}
+
+static inline char *find_name(sm_directory *t, void *ptr)
+{
+    sm_directory_record *r = t->top;
+    while (r != NULL && ptr != r->ptr)
+    {
+        r = r->next;
+    }
+    return r->name;
 }

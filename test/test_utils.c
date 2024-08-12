@@ -97,3 +97,9 @@ void sm_print_fsm(sm_fsm *f, sm_directory *d)
     printf("FSM\n===\n%s\n", buffer);
 }
 
+void sm_print_exec(sm_exec *e)
+{
+    char buffer[SM_TEST_PRINT_BUFFER];
+    sm_exec_to_string(e, buffer);
+    printf("SM Executor\n===========\n%s\n", buffer);
+}

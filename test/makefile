@@ -26,6 +26,7 @@ OBJS = 	$(SRC)sm_sys.o \
 		$(SRC)sm_directory.o \
 		$(SRC)sm_fsm.o \
 		$(SRC)sm_tx.o \
+		$(SRC)sm_exec.o \
 		../lib/bj_hash/bj_hash.o \
 		../lib/jsmn/jsmn.o \
 		test_utils.o
@@ -40,7 +41,8 @@ TEST_OBJS =	test_sys.o \
 			test_state.o \
 			test_array.o \
 			test_directory.o \
-			test_fsm.o
+			test_fsm.o \
+			test_exec.o
 
 EXES = 	test_sys \
 		test_logger \
@@ -52,7 +54,8 @@ EXES = 	test_sys \
 		test_state \
 		test_array \
 		test_directory \
-		test_fsm
+		test_fsm \
+		test_exec
 
 all : $(EXES)
 
@@ -88,6 +91,9 @@ test_directory : $(OBJS) test_directory.o
 
 test_fsm : $(OBJS) test_fsm.o
 	$(CC) $(LFLAGS) $(OBJS) test_fsm.o $(LIBS) -o test_fsm
+
+test_exec : $(OBJS) test_exec.o
+	$(CC) $(LFLAGS) $(OBJS) test_exec.o $(LIBS) -o test_exec
 
 %.o : %.c
 	$(CC) $(LFLAGS) -c $< -o $@ $(DFLAGS) -I$(INCLUDE)

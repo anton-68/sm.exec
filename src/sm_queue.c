@@ -24,6 +24,7 @@ sm_queue *sm_queue_create(uint32_t event_size,
 		SM_REPORT_MESSAGE(SM_LOG_ERR, "aligned_alloc() failed");
 		return NULL;
 	}
+	memset(q, '\0', sizeof(sm_queue));
 	q->synchronized = synchronized;
 	if (q->synchronized)
 	{

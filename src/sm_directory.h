@@ -26,14 +26,13 @@ typedef struct sm_directory
     sm_directory_record *top;
 } sm_directory;
 
-// Public methods
-
 sm_directory *sm_directory_create();
 sm_directory *sm_directory_set(sm_directory *t, const char *name, void *ptr);
 void **sm_directory_get_ref(sm_directory *t, const char *name);
 char *sm_directory_get_name(sm_directory *t, void *ptr);
 void sm_directory_remove(sm_directory *t, const char *name);
-void sm_directory_free(sm_directory *t);
+void sm_directory_destroy(sm_directory **d);
+// void sm_directory_purge(sm_directory **t);
 int sm_directory_to_string(sm_directory *d, char *buffer);
 
 #endif // SM_DIRECTORY_H

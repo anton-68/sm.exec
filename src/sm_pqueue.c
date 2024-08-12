@@ -29,6 +29,7 @@ sm_pqueue *sm_pqueue_create(size_t capacity, bool synchronized)
 		SM_REPORT_MESSAGE(SM_LOG_ERR, "aligned_alloc() failed");
 		return NULL;
 	}
+	memset(pq, '\0', sizeof(sm_pqueue));
 	pq->capacity = capacity;
 	pq->size = 0;
 	pq->synchronized = synchronized;

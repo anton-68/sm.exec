@@ -1,174 +1,174 @@
 
 System registry created...
-QUEUE_2 registered at 0x55f3a8d3f4b0
-LOGGER_QUEUE registered at 0x55f3a8d3f5a0
-APP1 registered at 0x55f3a78234f4
-APP2 registered at 0x55f3a782356d
-APP3 registered at 0x55f3a78235e6
-NOAP registered at 0x55f3a782365f
+QUEUE_2 registered at 0x55bc80c164b0
+LOGGER_QUEUE registered at 0x55bc80c165a0
+APP1 registered at 0x55bc8061100c
+APP2 registered at 0x55bc80611085
+APP3 registered at 0x55bc806110fe
+NOAP registered at 0x55bc80611177
 Directory
 =========
-address: 0x55f3a8d3e480
+address: 0x55bc80c15480
 directory size: 6
 
 Directory record
 item name: NOAP
-item ptr: 0x55f3a782365f
-item ref: 0x55f3a8d3f788
-next item rec addr: 0x55f3a8d3f730
+item ptr: 0x55bc80611177
+item ref: 0x55bc80c16788
+next item rec addr: 0x55bc80c16730
 prev item rec addr: (nil)
 Directory record
 item name: APP3
-item ptr: 0x55f3a78235e6
-item ref: 0x55f3a8d3f738
-next item rec addr: 0x55f3a8d3f6e0
-prev item rec addr: 0x55f3a8d3f780
+item ptr: 0x55bc806110fe
+item ref: 0x55bc80c16738
+next item rec addr: 0x55bc80c166e0
+prev item rec addr: 0x55bc80c16780
 Directory record
 item name: APP2
-item ptr: 0x55f3a782356d
-item ref: 0x55f3a8d3f6e8
-next item rec addr: 0x55f3a8d3f690
-prev item rec addr: 0x55f3a8d3f730
+item ptr: 0x55bc80611085
+item ref: 0x55bc80c166e8
+next item rec addr: 0x55bc80c16690
+prev item rec addr: 0x55bc80c16730
 Directory record
 item name: APP1
-item ptr: 0x55f3a78234f4
-item ref: 0x55f3a8d3f698
-next item rec addr: 0x55f3a8d3f640
-prev item rec addr: 0x55f3a8d3f6e0
+item ptr: 0x55bc8061100c
+item ref: 0x55bc80c16698
+next item rec addr: 0x55bc80c16640
+prev item rec addr: 0x55bc80c166e0
 Directory record
 item name: LOGGER_QUEUE
-item ptr: 0x55f3a8d3f5a0
-item ref: 0x55f3a8d3f648
-next item rec addr: 0x55f3a8d3f550
-prev item rec addr: 0x55f3a8d3f690
+item ptr: 0x55bc80c165a0
+item ref: 0x55bc80c16648
+next item rec addr: 0x55bc80c16550
+prev item rec addr: 0x55bc80c16690
 Directory record
 item name: QUEUE_2
-item ptr: 0x55f3a8d3f4b0
-item ref: 0x55f3a8d3f558
+item ptr: 0x55bc80c164b0
+item ref: 0x55bc80c16558
 next item rec addr: (nil)
-prev item rec addr: 0x55f3a8d3f640
+prev item rec addr: 0x55bc80c16640
 
 FSM file 1 red...
 
 FSM sm0 compiled:
-FSM SM0 registered at 0x55f3a8d3f7d0
+FSM SM0 registered at 0x55bc80c167d0
 
-DEPOT_1 registered at 0x55f3a8d3fe50
+DEPOT_1 registered at 0x55bc80c16e50
 Directory
 =========
-address: 0x55f3a8d3e480
+address: 0x55bc80c15480
 directory size: 8
 
 Directory record
 item name: DEPOT_1
-item ptr: 0x55f3a8d3fe50
-item ref: 0x55f3a8d40e88
-next item rec addr: 0x55f3a8d3fc80
+item ptr: 0x55bc80c16e50
+item ref: 0x55bc80c17e88
+next item rec addr: 0x55bc80c16c80
 prev item rec addr: (nil)
 Directory record
 item name: SM0
-item ptr: 0x55f3a8d3f7d0
-item ref: 0x55f3a8d3fc88
-next item rec addr: 0x55f3a8d3f780
-prev item rec addr: 0x55f3a8d40e80
+item ptr: 0x55bc80c167d0
+item ref: 0x55bc80c16c88
+next item rec addr: 0x55bc80c16780
+prev item rec addr: 0x55bc80c17e80
 Directory record
 item name: NOAP
-item ptr: 0x55f3a782365f
-item ref: 0x55f3a8d3f788
-next item rec addr: 0x55f3a8d3f730
-prev item rec addr: 0x55f3a8d3fc80
+item ptr: 0x55bc80611177
+item ref: 0x55bc80c16788
+next item rec addr: 0x55bc80c16730
+prev item rec addr: 0x55bc80c16c80
 Directory record
 item name: APP3
-item ptr: 0x55f3a78235e6
-item ref: 0x55f3a8d3f738
-next item rec addr: 0x55f3a8d3f6e0
-prev item rec addr: 0x55f3a8d3f780
+item ptr: 0x55bc806110fe
+item ref: 0x55bc80c16738
+next item rec addr: 0x55bc80c166e0
+prev item rec addr: 0x55bc80c16780
 Directory record
 item name: APP2
-item ptr: 0x55f3a782356d
-item ref: 0x55f3a8d3f6e8
-next item rec addr: 0x55f3a8d3f690
-prev item rec addr: 0x55f3a8d3f730
+item ptr: 0x55bc80611085
+item ref: 0x55bc80c166e8
+next item rec addr: 0x55bc80c16690
+prev item rec addr: 0x55bc80c16730
 Directory record
 item name: APP1
-item ptr: 0x55f3a78234f4
-item ref: 0x55f3a8d3f698
-next item rec addr: 0x55f3a8d3f640
-prev item rec addr: 0x55f3a8d3f6e0
+item ptr: 0x55bc8061100c
+item ref: 0x55bc80c16698
+next item rec addr: 0x55bc80c16640
+prev item rec addr: 0x55bc80c166e0
 Directory record
 item name: LOGGER_QUEUE
-item ptr: 0x55f3a8d3f5a0
-item ref: 0x55f3a8d3f648
-next item rec addr: 0x55f3a8d3f550
-prev item rec addr: 0x55f3a8d3f690
+item ptr: 0x55bc80c165a0
+item ref: 0x55bc80c16648
+next item rec addr: 0x55bc80c16550
+prev item rec addr: 0x55bc80c16690
 Directory record
 item name: QUEUE_2
-item ptr: 0x55f3a8d3f4b0
-item ref: 0x55f3a8d3f558
+item ptr: 0x55bc80c164b0
+item ref: 0x55bc80c16558
 next item rec addr: (nil)
-prev item rec addr: 0x55f3a8d3f640
+prev item rec addr: 0x55bc80c16640
 
 FSM file 2 red...
 
 FSM SM1 compiled:
 
-FSM SM1 registered at 0x55f3a8d90840
+FSM SM1 registered at 0x55bc80c67840
 Directory
 =========
-address: 0x55f3a8d3e480
+address: 0x55bc80c15480
 directory size: 9
 
 Directory record
 item name: SM1
-item ptr: 0x55f3a8d90840
-item ref: 0x55f3a8d91208
-next item rec addr: 0x55f3a8d40e80
+item ptr: 0x55bc80c67840
+item ref: 0x55bc80c68208
+next item rec addr: 0x55bc80c17e80
 prev item rec addr: (nil)
 Directory record
 item name: DEPOT_1
-item ptr: 0x55f3a8d3fe50
-item ref: 0x55f3a8d40e88
-next item rec addr: 0x55f3a8d3fc80
-prev item rec addr: 0x55f3a8d91200
+item ptr: 0x55bc80c16e50
+item ref: 0x55bc80c17e88
+next item rec addr: 0x55bc80c16c80
+prev item rec addr: 0x55bc80c68200
 Directory record
 item name: SM0
-item ptr: 0x55f3a8d3f7d0
-item ref: 0x55f3a8d3fc88
-next item rec addr: 0x55f3a8d3f780
-prev item rec addr: 0x55f3a8d40e80
+item ptr: 0x55bc80c167d0
+item ref: 0x55bc80c16c88
+next item rec addr: 0x55bc80c16780
+prev item rec addr: 0x55bc80c17e80
 Directory record
 item name: NOAP
-item ptr: 0x55f3a782365f
-item ref: 0x55f3a8d3f788
-next item rec addr: 0x55f3a8d3f730
-prev item rec addr: 0x55f3a8d3fc80
+item ptr: 0x55bc80611177
+item ref: 0x55bc80c16788
+next item rec addr: 0x55bc80c16730
+prev item rec addr: 0x55bc80c16c80
 Directory record
 item name: APP3
-item ptr: 0x55f3a78235e6
-item ref: 0x55f3a8d3f738
-next item rec addr: 0x55f3a8d3f6e0
-prev item rec addr: 0x55f3a8d3f780
+item ptr: 0x55bc806110fe
+item ref: 0x55bc80c16738
+next item rec addr: 0x55bc80c166e0
+prev item rec addr: 0x55bc80c16780
 Directory record
 item name: APP2
-item ptr: 0x55f3a782356d
-item ref: 0x55f3a8d3f6e8
-next item rec addr: 0x55f3a8d3f690
-prev item rec addr: 0x55f3a8d3f730
+item ptr: 0x55bc80611085
+item ref: 0x55bc80c166e8
+next item rec addr: 0x55bc80c16690
+prev item rec addr: 0x55bc80c16730
 Directory record
 item name: APP1
-item ptr: 0x55f3a78234f4
-item ref: 0x55f3a8d3f698
-next item rec addr: 0x55f3a8d3f640
-prev item rec addr: 0x55f3a8d3f6e0
+item ptr: 0x55bc8061100c
+item ref: 0x55bc80c16698
+next item rec addr: 0x55bc80c16640
+prev item rec addr: 0x55bc80c166e0
 Directory record
 item name: LOGGER_QUEUE
-item ptr: 0x55f3a8d3f5a0
-item ref: 0x55f3a8d3f648
-next item rec addr: 0x55f3a8d3f550
-prev item rec addr: 0x55f3a8d3f690
+item ptr: 0x55bc80c165a0
+item ref: 0x55bc80c16648
+next item rec addr: 0x55bc80c16550
+prev item rec addr: 0x55bc80c16690
 Directory record
 item name: QUEUE_2
-item ptr: 0x55f3a8d3f4b0
-item ref: 0x55f3a8d3f558
+item ptr: 0x55bc80c164b0
+item ref: 0x55bc80c16558
 next item rec addr: (nil)
-prev item rec addr: 0x55f3a8d3f640
+prev item rec addr: 0x55bc80c16640

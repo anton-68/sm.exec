@@ -37,6 +37,7 @@ sm_array *sm_array_create(size_t key_length,
         SM_REPORT_MESSAGE(SM_LOG_ERR, "aligned_alloc() failed");
         return NULL;
     }
+    memset(a, '\0', sizeof(sm_array));
     a->synchronized = synchronized;
     if (a->synchronized)
     {

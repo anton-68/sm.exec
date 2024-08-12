@@ -11,53 +11,18 @@ SPDX-License-Identifier: LGPL-3.0-only */
 char *sm_node_type_to_string[4] = {"Process", "State", "Initial", "Final"};
 char *sm_transition_type_to_string[5] = {"Regular", "Cascade", "Hierarchical", "Asynchronous", "Static(FSM)"};
 
-// --- Private methods ---------------------------------------
+static inline sm_fsm *cleanup(sm_fsm *fsm, jsmntok_t *tokens)
+    __attribute__((always_inline));
+static inline char *tostr(const char *f, jsmntok_t *t)
+    __attribute__((always_inline));
+static inline bool streq(const char *js, jsmntok_t *t, const char *s)
+    __attribute__((always_inline));
+static inline int toint(const char *f, jsmntok_t *t)
+    __attribute__((always_inline));
 
-static sm_fsm *cleanup(sm_fsm *fsm, jsmntok_t *tokens)
+void sm_fsm_destroy(sm_fsm **sm)
 {
-    sm_fsm_free(fsm);
-    free(tokens);
-    return NULL;
-}
-
-static char *tostr(const char *f, jsmntok_t *t)
-{
-    char *js;
-    size_t token_size = t->end - t->start;
-    if ((js = malloc(token_size + 1)) == NULL)
-        return NULL;
-    strncpy(js, &f[t->start], token_size);
-    js[token_size] = '\0';
-    //    printf("\n==> tostr(fsm_jsmn, t) = %s", js);
-    //    fflush(NULL);
-    return js;
-}
-
-static bool streq(const char *js, jsmntok_t *t, const char *s)
-{
-    //    char *ts;
-    //    if(strncmp(js + t->start, s, t->end - t->start) == 0
-    //       && strlen(s) == (size_t) (t->end - t->start)) {
-    //        ts = tostr(js, t);
-    //        free(ts);
-    //    }
-    return (strncmp(js + t->start, s, t->end - t->start) == 0 && strlen(s) == (size_t)(t->end - t->start));
-}
-
-static int toint(const char *f, jsmntok_t *t)
-{
-    char *s = tostr(f, t);
-    if (s == NULL)
-        return -1;
-    int i = atoi(s);
-    free(s);
-    return i;
-}
-
-// --- Public methods ----------------------------------------
-
-void sm_fsm_free(sm_fsm *f)
-{
+    sm_fsm *f = *sm;
     if (f->nodes != NULL)
     {
         for (size_t i = 0; i < f->num_of_nodes; i++)
@@ -83,6 +48,8 @@ void sm_fsm_free(sm_fsm *f)
         free(f->events);
     }
     free(f);
+    SM_DEBUG_MESSAGE("sm_fsm at [addr:%p] successfully destroyed", f);
+    *sm = NULL;
 }
 
 sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *dir)
@@ -789,7 +756,7 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *dir)
         SM_SYSLOG_CAUSE(SM_JSON, SM_LOG_ERR, "FSM JSON exit state != STOP", "Malformed FSM JSON");
         return cleanup(fsm, tokens);
     }
-
+    SM_DEBUG_MESSAGE("sm_fsm at [addr:%p] successfully created", fsm);
     return fsm;
 }
 
@@ -900,4 +867,45 @@ sm_fsm_transition *sm_state_get_transition(sm_event *e, sm_state *s)
         SM_SYSLOG_CAUSE(SM_JSON, SM_LOG_ERR, "Cannot find transition in SM", "No default transition found");
         return NULL;
     }
+}
+
+static inline sm_fsm *cleanup(sm_fsm *fsm, jsmntok_t *tokens)
+{
+    sm_fsm_destroy(&fsm);
+    free(tokens);
+    return NULL;
+}
+
+static inline char *tostr(const char *f, jsmntok_t *t)
+{
+    char *js;
+    size_t token_size = t->end - t->start;
+    if ((js = malloc(token_size + 1)) == NULL)
+        return NULL;
+    strncpy(js, &f[t->start], token_size);
+    js[token_size] = '\0';
+    //    printf("\n==> tostr(fsm_jsmn, t) = %s", js);
+    //    fflush(NULL);
+    return js;
+}
+
+static inline bool streq(const char *js, jsmntok_t *t, const char *s)
+{
+    //    char *ts;
+    //    if(strncmp(js + t->start, s, t->end - t->start) == 0
+    //       && strlen(s) == (size_t) (t->end - t->start)) {
+    //        ts = tostr(js, t);
+    //        free(ts);
+    //    }
+    return (strncmp(js + t->start, s, t->end - t->start) == 0 && strlen(s) == (size_t)(t->end - t->start));
+}
+
+static inline int toint(const char *f, jsmntok_t *t)
+{
+    char *s = tostr(f, t);
+    if (s == NULL)
+        return -1;
+    int i = atoi(s);
+    free(s);
+    return i;
 }

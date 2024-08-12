@@ -145,5 +145,7 @@ int main(int argc, char *argv[])
 
     sm_print_directory(dir);
 
+    sm_directory_destroy(&dir);
+
     return 0;
 }

@@ -3,21 +3,21 @@ Priory queue (w/o locking):
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 7
 capacity: 100
 synchronized: 0
 
 Event
 =====
-address: 0x560cac7726c0
+address: 0x5651a3e586c0
 next: (nil)
 service_id: 0
 event_id: 2
@@ -29,7 +29,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772660
+address: 0x5651a3e58660
 next: (nil)
 service_id: 0
 event_id: 0
@@ -41,7 +41,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772690
+address: 0x5651a3e58690
 next: (nil)
 service_id: 0
 event_id: 1
@@ -53,7 +53,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772750
+address: 0x5651a3e58750
 next: (nil)
 service_id: 0
 event_id: 5
@@ -65,7 +65,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772780
+address: 0x5651a3e58780
 next: (nil)
 service_id: 0
 event_id: 6
@@ -77,7 +77,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac7726f0
+address: 0x5651a3e586f0
 next: (nil)
 service_id: 0
 event_id: 3
@@ -89,7 +89,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772720
+address: 0x5651a3e58720
 next: (nil)
 service_id: 0
 event_id: 4
@@ -101,7 +101,7 @@ disposable: true
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0
@@ -111,21 +111,21 @@ Priory queue (with locking):
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 7
 capacity: 100
 synchronized: 0
 
 Event
 =====
-address: 0x560cac7727b0
+address: 0x5651a3e587b0
 next: (nil)
 service_id: 1
 event_id: 0
@@ -137,7 +137,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac7727e0
+address: 0x5651a3e587e0
 next: (nil)
 service_id: 1
 event_id: 1
@@ -149,7 +149,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac7728a0
+address: 0x5651a3e588a0
 next: (nil)
 service_id: 1
 event_id: 5
@@ -161,7 +161,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772810
+address: 0x5651a3e58810
 next: (nil)
 service_id: 1
 event_id: 2
@@ -173,7 +173,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772870
+address: 0x5651a3e58870
 next: (nil)
 service_id: 1
 event_id: 4
@@ -185,7 +185,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac7728d0
+address: 0x5651a3e588d0
 next: (nil)
 service_id: 1
 event_id: 6
@@ -197,7 +197,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772840
+address: 0x5651a3e58840
 next: (nil)
 service_id: 1
 event_id: 3
@@ -209,7 +209,7 @@ disposable: true
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0
@@ -219,21 +219,21 @@ Priory queue (w/o locking, 'opposite'):
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 7
 capacity: 100
 synchronized: 0
 
 Event
 =====
-address: 0x560cac772a20
+address: 0x5651a3e58a20
 next: (nil)
 service_id: 1
 event_id: 6
@@ -245,7 +245,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac7729f0
+address: 0x5651a3e589f0
 next: (nil)
 service_id: 1
 event_id: 5
@@ -257,7 +257,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac7729c0
+address: 0x5651a3e589c0
 next: (nil)
 service_id: 1
 event_id: 4
@@ -269,7 +269,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772990
+address: 0x5651a3e58990
 next: (nil)
 service_id: 1
 event_id: 3
@@ -281,7 +281,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772960
+address: 0x5651a3e58960
 next: (nil)
 service_id: 1
 event_id: 2
@@ -293,7 +293,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772930
+address: 0x5651a3e58930
 next: (nil)
 service_id: 1
 event_id: 1
@@ -305,7 +305,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772900
+address: 0x5651a3e58900
 next: (nil)
 service_id: 1
 event_id: 0
@@ -317,7 +317,7 @@ disposable: true
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0
@@ -327,21 +327,21 @@ Priory queue (w/o locking, 'thin'):
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 7
 capacity: 100
 synchronized: 0
 
 Event
 =====
-address: 0x560cac772b70
+address: 0x5651a3e58b70
 next: (nil)
 service_id: 1
 event_id: 6
@@ -353,7 +353,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772b40
+address: 0x5651a3e58b40
 next: (nil)
 service_id: 1
 event_id: 5
@@ -365,7 +365,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772b10
+address: 0x5651a3e58b10
 next: (nil)
 service_id: 1
 event_id: 4
@@ -377,7 +377,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772ae0
+address: 0x5651a3e58ae0
 next: (nil)
 service_id: 1
 event_id: 3
@@ -389,7 +389,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772ab0
+address: 0x5651a3e58ab0
 next: (nil)
 service_id: 1
 event_id: 2
@@ -401,7 +401,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772a80
+address: 0x5651a3e58a80
 next: (nil)
 service_id: 1
 event_id: 1
@@ -413,7 +413,7 @@ disposable: true
 
 Event
 =====
-address: 0x560cac772a50
+address: 0x5651a3e58a50
 next: (nil)
 service_id: 1
 event_id: 0
@@ -425,7 +425,7 @@ disposable: true
 
 PQueue
 ======
-address: 0x560cac7722b0
+address: 0x5651a3e582b0
 size: 0
 capacity: 100
 synchronized: 0

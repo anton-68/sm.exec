@@ -1,19 +1,20 @@
-/* SM.EXEC
-   SM thread descriptor
-   anton.bondarenko@gmail.com */
+/* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
+Thread-worker descriptor class
+-------------------------------------------------------------------------------
+Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
+-------------------------------------------------------------------------------
+SPDX-License-Identifier: LGPL-3.0-only */
 
 #ifndef SM_TX_H
 #define SM_TX_H
 
 #include <stdlib.h>
 #include "sm_sys.h" 
-//#include "sm_queue2.h"
+#include "sm_queue2.h"
 #include "sm_state.h"
 #include "sm_directory.h"
-#include "sm_logger.h"
-//#include "sm_exec.h"
+#include "sm_exec.h"
 
-/*
 #define SM_TX_STACK_POINTER(tx) (sm_state **)((char *)(tx)->data + (tx)->data_size ) 
 
 struct sm_state;
@@ -46,5 +47,5 @@ void *sm_tx_runner(void *arg);
 int sm_tx_push_state(sm_tx * tx, sm_state *s);
 int sm_tx_pop_state(sm_tx * tx);
 bool sm_tx_stack_empty(sm_tx *tx);
-*/
+
 #endif //SM_TX_H 
