@@ -57,6 +57,13 @@ void sm_print_queue2(sm_queue2 *q)
     printf("Queue2\n======\n%s\n", buffer);
 }
 
+void sm_print_pqueue(sm_pqueue *q)
+{
+    char buffer[SM_TEST_PRINT_BUFFER];
+    sm_pqueue_to_string(q, buffer);
+    printf("PQueue\n======\n%s\n", buffer);
+}
+
 void sm_print_array(sm_array *a)
 {
     char buffer[SM_TEST_PRINT_BUFFER];

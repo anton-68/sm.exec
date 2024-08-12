@@ -20,25 +20,16 @@ typedef struct __attribute__((aligned(SM_WORD))) sm_queue
     bool synchronized;
 } sm_queue;
 
-#define SM_QUEUE_SIZE(q) (q)->size
-
-#define SM_QUEUE_TOP(q) (q)->head->next
-
-#define SM_QUEUE_CREATE_EMPTY(S) \
-    sm_queue_create(0, false, false, false, 0, (S))
-
 sm_queue *sm_queue_create(uint32_t event_size,
                           bool K, bool P, bool H,
                           unsigned num_of_events,
                           bool synchronized);
-/*                          
-sm_queue *sm_queue_bulk_create(uint32_t event_size,
-                               bool K, bool P, bool H,
-                               unsigned num_of_events,
-                               bool synchronized);
-*/
+#define SM_QUEUE_CREATE_EMPTY(S) \
+    sm_queue_create(0, false, false, false, 0, (S))
 void sm_queue_destroy(sm_queue **q);
 #define SM_QUEUE_DESTROY(Q) sm_queue_destroy((&(Q)))
+#define SM_QUEUE_SIZE(q) (q)->size
+#define SM_QUEUE_TOP(q) (q)->head->next
 int sm_queue_enqueue(sm_queue *q, sm_event **e);
 #define SM_QUEUE_ENQUEUE(Q, E) sm_queue_enqueue((Q), (&(E)))
 sm_event *sm_queue_dequeue(sm_queue *q);

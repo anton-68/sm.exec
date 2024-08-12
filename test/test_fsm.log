@@ -1,53 +1,53 @@
 
 System registry created...
 
-QUEUE_2 registered at 0x55cac567d4b0
-LOGGER_QUEUE registered at 0x55cac567d5a0
-APP1 registered at 0x55cac52fb999
-APP2 registered at 0x55cac52fba12
-APP3 registered at 0x55cac52fba8b
-NOAP registered at 0x55cac52fbb04
+QUEUE_2 registered at 0x562c930574b0
+LOGGER_QUEUE registered at 0x562c930575a0
+APP1 registered at 0x562c928b84f4
+APP2 registered at 0x562c928b856d
+APP3 registered at 0x562c928b85e6
+NOAP registered at 0x562c928b865f
 Directory
 =========
-address: 0x55cac567c480
+address: 0x562c93056480
 directory size: 6
 
 Directory record
 item name: NOAP
-item ptr: 0x55cac52fbb04
-item ref: 0x55cac567d788
-next item rec addr: 0x55cac567d730
+item ptr: 0x562c928b865f
+item ref: 0x562c93057788
+next item rec addr: 0x562c93057730
 prev item rec addr: (nil)
 Directory record
 item name: APP3
-item ptr: 0x55cac52fba8b
-item ref: 0x55cac567d738
-next item rec addr: 0x55cac567d6e0
-prev item rec addr: 0x55cac567d780
+item ptr: 0x562c928b85e6
+item ref: 0x562c93057738
+next item rec addr: 0x562c930576e0
+prev item rec addr: 0x562c93057780
 Directory record
 item name: APP2
-item ptr: 0x55cac52fba12
-item ref: 0x55cac567d6e8
-next item rec addr: 0x55cac567d690
-prev item rec addr: 0x55cac567d730
+item ptr: 0x562c928b856d
+item ref: 0x562c930576e8
+next item rec addr: 0x562c93057690
+prev item rec addr: 0x562c93057730
 Directory record
 item name: APP1
-item ptr: 0x55cac52fb999
-item ref: 0x55cac567d698
-next item rec addr: 0x55cac567d640
-prev item rec addr: 0x55cac567d6e0
+item ptr: 0x562c928b84f4
+item ref: 0x562c93057698
+next item rec addr: 0x562c93057640
+prev item rec addr: 0x562c930576e0
 Directory record
 item name: LOGGER_QUEUE
-item ptr: 0x55cac567d5a0
-item ref: 0x55cac567d648
-next item rec addr: 0x55cac567d550
-prev item rec addr: 0x55cac567d690
+item ptr: 0x562c930575a0
+item ref: 0x562c93057648
+next item rec addr: 0x562c93057550
+prev item rec addr: 0x562c93057690
 Directory record
 item name: QUEUE_2
-item ptr: 0x55cac567d4b0
-item ref: 0x55cac567d558
+item ptr: 0x562c930574b0
+item ref: 0x562c93057558
 next item rec addr: (nil)
-prev item rec addr: 0x55cac567d640
+prev item rec addr: 0x562c93057640
 
 FSM file 1 red...
 
@@ -90,62 +90,62 @@ The events:
   Event Id: 0
   Event name: do
   Event Id: 1
-FSM sm0 registered at 0x55cac567d7d0
+FSM sm0 registered at 0x562c930577d0
 
-DEPOT_1 registered at 0x55cac567de50
+DEPOT_1 registered at 0x562c93057e50
 Directory
 =========
-address: 0x55cac567c480
+address: 0x562c93056480
 directory size: 8
 
 Directory record
 item name: DEPOT_1
-item ptr: 0x55cac567de50
-item ref: 0x55cac567ee88
-next item rec addr: 0x55cac567dc80
+item ptr: 0x562c93057e50
+item ref: 0x562c93058e88
+next item rec addr: 0x562c93057c80
 prev item rec addr: (nil)
 Directory record
 item name: SM0
-item ptr: 0x55cac567d7d0
-item ref: 0x55cac567dc88
-next item rec addr: 0x55cac567d780
-prev item rec addr: 0x55cac567ee80
+item ptr: 0x562c930577d0
+item ref: 0x562c93057c88
+next item rec addr: 0x562c93057780
+prev item rec addr: 0x562c93058e80
 Directory record
 item name: NOAP
-item ptr: 0x55cac52fbb04
-item ref: 0x55cac567d788
-next item rec addr: 0x55cac567d730
-prev item rec addr: 0x55cac567dc80
+item ptr: 0x562c928b865f
+item ref: 0x562c93057788
+next item rec addr: 0x562c93057730
+prev item rec addr: 0x562c93057c80
 Directory record
 item name: APP3
-item ptr: 0x55cac52fba8b
-item ref: 0x55cac567d738
-next item rec addr: 0x55cac567d6e0
-prev item rec addr: 0x55cac567d780
+item ptr: 0x562c928b85e6
+item ref: 0x562c93057738
+next item rec addr: 0x562c930576e0
+prev item rec addr: 0x562c93057780
 Directory record
 item name: APP2
-item ptr: 0x55cac52fba12
-item ref: 0x55cac567d6e8
-next item rec addr: 0x55cac567d690
-prev item rec addr: 0x55cac567d730
+item ptr: 0x562c928b856d
+item ref: 0x562c930576e8
+next item rec addr: 0x562c93057690
+prev item rec addr: 0x562c93057730
 Directory record
 item name: APP1
-item ptr: 0x55cac52fb999
-item ref: 0x55cac567d698
-next item rec addr: 0x55cac567d640
-prev item rec addr: 0x55cac567d6e0
+item ptr: 0x562c928b84f4
+item ref: 0x562c93057698
+next item rec addr: 0x562c93057640
+prev item rec addr: 0x562c930576e0
 Directory record
 item name: LOGGER_QUEUE
-item ptr: 0x55cac567d5a0
-item ref: 0x55cac567d648
-next item rec addr: 0x55cac567d550
-prev item rec addr: 0x55cac567d690
+item ptr: 0x562c930575a0
+item ref: 0x562c93057648
+next item rec addr: 0x562c93057550
+prev item rec addr: 0x562c93057690
 Directory record
 item name: QUEUE_2
-item ptr: 0x55cac567d4b0
-item ref: 0x55cac567d558
+item ptr: 0x562c930574b0
+item ref: 0x562c93057558
 next item rec addr: (nil)
-prev item rec addr: 0x55cac567d640
+prev item rec addr: 0x562c93057640
 
 FSM file 2 red...
 
@@ -233,4 +233,4 @@ The events:
   Event name: start
   Event Id: 3
 
-FSM sm1 registered at 0x55cac56ce830
+FSM sm1 registered at 0x562c930a8830

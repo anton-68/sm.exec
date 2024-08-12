@@ -19,6 +19,11 @@ int main()
     sm_print_event(e);
     SM_EVENT_DESTROY(e);
 
+    // Minimal event
+    e = sm_event_create(1, false, false, true, false);
+    sm_print_event(e);
+    SM_EVENT_DESTROY(e);
+
     // Stand-alone complete event & access header
     e = sm_event_create(256, false, true, true, true);
     strcpy(SM_EVENT_DATA(e), "Secret password ..............................");

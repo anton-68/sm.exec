@@ -118,17 +118,7 @@ bool sm_queue2_is_empty(sm_queue2 *q)
     return (q->h0->next == NULL && q->h1->next == NULL);
 }
 
-sm_event *sm_queue2_get(const sm_queue2 *q)
-{
-    return q->h1->next;
-}
-
-sm_event *sm_queue2_get_high(const sm_queue2 *q)
-{
-    return q->h0->next;
-}
-
-void sm_enqueue2(sm_event **e, sm_queue2 *q)
+void sm_enqueue2(sm_queue2 *q, sm_event **e)
 {
     q->t1->next = *e;
     q->t1 = *e;
@@ -136,7 +126,7 @@ void sm_enqueue2(sm_event **e, sm_queue2 *q)
     *e = NULL;
 }
 
-void sm_enqueue2_high(sm_event **e, sm_queue2 *q)
+void sm_enqueue2_high(sm_queue2 *q, sm_event **e)
 {
     q->t0->next = *e;
     q->t0 = *e;
@@ -144,14 +134,14 @@ void sm_enqueue2_high(sm_event **e, sm_queue2 *q)
     *e = NULL;
 }
 
-int sm_lock_enqueue2(sm_event **e, sm_queue2 *q)
+int sm_lock_enqueue2(sm_queue2 *q, sm_event **e)
 {
     int retval;
     if (SM_UNLIKELY((retval = lock(q)) != EXIT_SUCCESS))
     {
         return retval;
     }
-    sm_enqueue2(e, q);
+    sm_enqueue2(q, e);
     if (SM_UNLIKELY((retval = pthread_cond_signal(&(q->empty))) != EXIT_SUCCESS))
     {
         SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
@@ -165,14 +155,14 @@ int sm_lock_enqueue2(sm_event **e, sm_queue2 *q)
     return EXIT_SUCCESS;
 }
 
-int sm_lock_enqueue2_high(sm_event **e, sm_queue2 *q)
+int sm_lock_enqueue2_high(sm_queue2 *q, sm_event **e)
 {
     int retval;
     if (SM_UNLIKELY((retval = lock(q)) != EXIT_SUCCESS))
     {
         return retval;
     }
-    sm_enqueue2_high(e, q);
+    sm_enqueue2_high(q, e);
     if (SM_UNLIKELY((retval = pthread_cond_signal(&(q->empty))) != EXIT_SUCCESS))
     {
         SM_SYSLOG(SM_CORE, SM_LOG_ERR, "pthread_cond_signal() failed", retval);
@@ -271,9 +261,9 @@ int sm_queue2_to_string(sm_queue2 *q, char *buffer)
     {
         s += sprintf(s, "address: %p\n", q);
         s += sprintf(s, "top low event:\n");
-        s += sm_event_to_string(sm_queue2_get(q), s);
+        s += sm_event_to_string(SM_QUEUE2_TOP_LOW(q), s);
         s += sprintf(s, "\ntop high event:\n");
-        s += sm_event_to_string(sm_queue2_get_high(q), s);
+        s += sm_event_to_string(SM_QUEUE2_TOP_HIGH(q), s);
     }
     return (int)((char *)s - (char *)buffer);
 }

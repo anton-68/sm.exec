@@ -12,16 +12,16 @@ int main()
     printf("Basic operations: \n\n");
     sm_queue2 *q0 = sm_queue2_create();
     sm_print_queue2(q0);
-    sm_print_event(sm_queue2_get(q0));
-    sm_print_event(sm_queue2_get_high(q0));
+    sm_print_event(SM_QUEUE2_TOP_LOW(q0));
+    sm_print_event(SM_QUEUE2_TOP_HIGH(q0));
     sm_event *e0 = sm_event_create(0, false, false, false, false);
-    SM_QUEUE2_ENQUEUE(e0, q0);
-    sm_print_event(sm_queue2_get(q0));
-    sm_print_event(sm_queue2_get_high(q0));
+    SM_QUEUE2_ENQUEUE(q0, e0);
+    sm_print_event(SM_QUEUE2_TOP_LOW(q0));
+    sm_print_event(SM_QUEUE2_TOP_HIGH(q0));
     e0 = sm_dequeue2(q0);
-    SM_QUEUE2_ENQUEUE_HIGH(e0, q0);
-    sm_print_event(sm_queue2_get(q0));
-    sm_print_event(sm_queue2_get_high(q0));
+    SM_QUEUE2_ENQUEUE_HIGH(q0, e0);
+    sm_print_event(SM_QUEUE2_TOP_LOW(q0));
+    sm_print_event(SM_QUEUE2_TOP_HIGH(q0));
     e0 = sm_dequeue2(q0);
     SM_EVENT_DESTROY(e0);
     printf("\nPriorities (w/o locking): \n\n"); 
@@ -29,10 +29,10 @@ int main()
     {
         e0 = sm_event_create(1, false, false, false, false);
         e0->event_id = i * 2;
-        SM_QUEUE2_ENQUEUE(e0, q0);
+        SM_QUEUE2_ENQUEUE(q0, e0);
         e0 = sm_event_create(1, false, false, false, false);
         e0->event_id = i * 2 + 1;
-        SM_QUEUE2_ENQUEUE_HIGH(e0, q0);
+        SM_QUEUE2_ENQUEUE_HIGH(q0, e0);
     }
     sm_print_queue2(q0);
     while (!sm_queue2_is_empty(q0))
@@ -45,10 +45,10 @@ int main()
     {
         e0 = sm_event_create(1, false, false, false, false);
         e0->event_id = i * 2;
-        SM_QUEUE2_LOCK_ENQUEUE(e0, q0);
+        SM_QUEUE2_LOCK_ENQUEUE(q0, e0);
         e0 = sm_event_create(1, false, false, false, false);
         e0->event_id = i * 2 + 1;
-        SM_QUEUE2_LOCK_ENQUEUE_HIGH(e0, q0);
+        SM_QUEUE2_LOCK_ENQUEUE_HIGH(q0, e0);
     }
     sm_print_queue2(q0);
     while (!sm_queue2_is_empty(q0))

@@ -24,17 +24,17 @@ sm_queue2 *sm_queue2_create();
 void sm_queue2_destroy(sm_queue2 **q2);
 #define SM_QUEUE2_DESTROY(Q) sm_queue2_destroy((&(Q)))
 bool sm_queue2_is_empty(sm_queue2 *q);
+#define SM_QUEUE2_TOP_LOW(q) (q)->h1->next
+#define SM_QUEUE2_TOP_HIGH(q) (q)->h0->next
+void sm_enqueue2(sm_queue2 *q, sm_event **e);
+#define SM_QUEUE2_ENQUEUE(Q, E) sm_enqueue2((Q), (&(E)))
+void sm_enqueue2_high(sm_queue2 *q, sm_event **e);
+#define SM_QUEUE2_ENQUEUE_HIGH(Q, E) sm_enqueue2_high((Q), (&(E)))
+int sm_lock_enqueue2(sm_queue2 *q, sm_event **e);
+#define SM_QUEUE2_LOCK_ENQUEUE(Q, E) sm_lock_enqueue2((Q), (&(E)))
+int sm_lock_enqueue2_high(sm_queue2 *q, sm_event **e);
+#define SM_QUEUE2_LOCK_ENQUEUE_HIGH(Q, E) sm_lock_enqueue2_high((Q), (&(E)))
 
-sm_event *sm_queue2_get(const sm_queue2 *q);
-sm_event *sm_queue2_get_high(const sm_queue2 *q);
-void sm_enqueue2(sm_event **e, sm_queue2 *q);
-#define SM_QUEUE2_ENQUEUE(E, Q) sm_enqueue2((&(E)), (Q))
-void sm_enqueue2_high(sm_event **e, sm_queue2 *q);
-#define SM_QUEUE2_ENQUEUE_HIGH(E, Q) sm_enqueue2_high((&(E)), (Q))
-int sm_lock_enqueue2(sm_event **e, sm_queue2 *q);
-#define SM_QUEUE2_LOCK_ENQUEUE(E, Q) sm_lock_enqueue2((&(E)), (Q))
-int sm_lock_enqueue2_high(sm_event **e, sm_queue2 *q);
-#define SM_QUEUE2_LOCK_ENQUEUE_HIGH(E, Q) sm_lock_enqueue2_high((&(E)), (Q))
 sm_event *sm_dequeue2(sm_queue2 *q);
 sm_event *sm_lock_dequeue2(sm_queue2 *q);
 int sm_queue2_to_string(sm_queue2 *q, char *buffer);

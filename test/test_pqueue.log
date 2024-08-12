@@ -1,0 +1,432 @@
+
+Priory queue (w/o locking): 
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 7
+capacity: 100
+synchronized: 0
+
+Event
+=====
+address: 0x560cac7726c0
+next: (nil)
+service_id: 0
+event_id: 2
+size: 0 B
+priority[0]: 1957747793
+priority[1]: 424238335
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772660
+next: (nil)
+service_id: 0
+event_id: 0
+size: 0 B
+priority[0]: 1804289383
+priority[1]: 846930886
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772690
+next: (nil)
+service_id: 0
+event_id: 1
+size: 0 B
+priority[0]: 1681692777
+priority[1]: 1714636915
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772750
+next: (nil)
+service_id: 0
+event_id: 5
+size: 0 B
+priority[0]: 1025202362
+priority[1]: 1350490027
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772780
+next: (nil)
+service_id: 0
+event_id: 6
+size: 0 B
+priority[0]: 783368690
+priority[1]: 1102520059
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac7726f0
+next: (nil)
+service_id: 0
+event_id: 3
+size: 0 B
+priority[0]: 719885386
+priority[1]: 1649760492
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772720
+next: (nil)
+service_id: 0
+event_id: 4
+size: 0 B
+priority[0]: 596516649
+priority[1]: 1189641421
+linked: false
+disposable: true
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+
+
+Priory queue (with locking): 
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 7
+capacity: 100
+synchronized: 0
+
+Event
+=====
+address: 0x560cac7727b0
+next: (nil)
+service_id: 1
+event_id: 0
+size: 0 B
+priority[0]: 2044897763
+priority[1]: 1967513926
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac7727e0
+next: (nil)
+service_id: 1
+event_id: 1
+size: 0 B
+priority[0]: 1365180540
+priority[1]: 1540383426
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac7728a0
+next: (nil)
+service_id: 1
+event_id: 5
+size: 0 B
+priority[0]: 336465782
+priority[1]: 861021530
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772810
+next: (nil)
+service_id: 1
+event_id: 2
+size: 0 B
+priority[0]: 304089172
+priority[1]: 1303455736
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772870
+next: (nil)
+service_id: 1
+event_id: 4
+size: 0 B
+priority[0]: 294702567
+priority[1]: 1726956429
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac7728d0
+next: (nil)
+service_id: 1
+event_id: 6
+size: 0 B
+priority[0]: 278722862
+priority[1]: 233665123
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772840
+next: (nil)
+service_id: 1
+event_id: 3
+size: 0 B
+priority[0]: 35005211
+priority[1]: 521595368
+linked: false
+disposable: true
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+
+
+Priory queue (w/o locking, 'opposite'): 
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 7
+capacity: 100
+synchronized: 0
+
+Event
+=====
+address: 0x560cac772a20
+next: (nil)
+service_id: 1
+event_id: 6
+size: 0 B
+priority[0]: 6
+priority[1]: 0
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac7729f0
+next: (nil)
+service_id: 1
+event_id: 5
+size: 0 B
+priority[0]: 5
+priority[1]: 1
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac7729c0
+next: (nil)
+service_id: 1
+event_id: 4
+size: 0 B
+priority[0]: 4
+priority[1]: 2
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772990
+next: (nil)
+service_id: 1
+event_id: 3
+size: 0 B
+priority[0]: 3
+priority[1]: 3
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772960
+next: (nil)
+service_id: 1
+event_id: 2
+size: 0 B
+priority[0]: 2
+priority[1]: 4
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772930
+next: (nil)
+service_id: 1
+event_id: 1
+size: 0 B
+priority[0]: 1
+priority[1]: 5
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772900
+next: (nil)
+service_id: 1
+event_id: 0
+size: 0 B
+priority[0]: 0
+priority[1]: 6
+linked: false
+disposable: true
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+
+
+Priory queue (w/o locking, 'thin'): 
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 7
+capacity: 100
+synchronized: 0
+
+Event
+=====
+address: 0x560cac772b70
+next: (nil)
+service_id: 1
+event_id: 6
+size: 0 B
+priority[0]: 0
+priority[1]: 6
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772b40
+next: (nil)
+service_id: 1
+event_id: 5
+size: 0 B
+priority[0]: 0
+priority[1]: 5
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772b10
+next: (nil)
+service_id: 1
+event_id: 4
+size: 0 B
+priority[0]: 0
+priority[1]: 4
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772ae0
+next: (nil)
+service_id: 1
+event_id: 3
+size: 0 B
+priority[0]: 0
+priority[1]: 3
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772ab0
+next: (nil)
+service_id: 1
+event_id: 2
+size: 0 B
+priority[0]: 0
+priority[1]: 2
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772a80
+next: (nil)
+service_id: 1
+event_id: 1
+size: 0 B
+priority[0]: 0
+priority[1]: 1
+linked: false
+disposable: true
+
+Event
+=====
+address: 0x560cac772a50
+next: (nil)
+service_id: 1
+event_id: 0
+size: 0 B
+priority[0]: 0
+priority[1]: 0
+linked: false
+disposable: true
+
+PQueue
+======
+address: 0x560cac7722b0
+size: 0
+capacity: 100
+synchronized: 0
+

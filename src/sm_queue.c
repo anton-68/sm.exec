@@ -87,7 +87,6 @@ sm_queue *sm_queue_create(uint32_t event_size,
 		SM_EVENT_DEPOT(e) = q;
 		enqueue(q, e);
 	}
-
 	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully created", q);
 	return q;
 }
@@ -115,8 +114,8 @@ void sm_queue_destroy(sm_queue **q)
 		e = tmp;
 	}
 	free(*q);
-	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully destroyed", *q);
 	*q = NULL;
+	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully destroyed", *q);
 }
 
 int sm_queue_enqueue(sm_queue *q, sm_event **e)

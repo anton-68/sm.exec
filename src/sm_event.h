@@ -113,9 +113,9 @@ struct sm_queue;
 */
 
 #define SM_EVENT_PRIORITY(E) \
-    ((unsigned long *)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) + SM_WORD * !!(E)->ctl.Q))
-    
-    //SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K) + 8 * (1 + (E)->ctl.K)))
+    ((unsigned long *)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) * !!(E)->ctl.K + SM_WORD * !!(E)->ctl.Q))
+
+// SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K) + 8 * (1 + (E)->ctl.K)))
 /*
 #define SM_EVENT_PRIORITY_0(E) \
     (*(unsigned long *)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K) + 8 * (1 + (E)->ctl.K)))
@@ -124,13 +124,13 @@ struct sm_queue;
     (*(unsigned long *)((char *)(E) + SM_WORD * (2 + (E)->ctl.Q + (E)->ctl.K) + 8 * (1 + (E)->ctl.K)))
 */
 #define SM_EVENT_HANDLE(E) \
-    (*(void **)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) + SM_WORD * (!!(E)->ctl.Q + !!(E)->ctl.P * 2)))
+    (*(void **)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) * !!(E)->ctl.K + SM_WORD * (!!(E)->ctl.Q + !!(E)->ctl.P * 2)))
 /*
 #define SM_EVENT_HANDLE(E) \
     (*(void **)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K + 2 * (E)->ctl.P) + 8 * (1 + (E)->ctl.K)))
 */
 #define SM_EVENT_DATA(E) \
-    ((void *)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) + SM_WORD * (!!(E)->ctl.Q + !!(E)->ctl.P * 2 + !!(E)->ctl.H)))
+    ((void *)((char *)(E) + sizeof(sm_event) + sizeof(sm_hash_key) * !!(E)->ctl.K + SM_WORD * (!!(E)->ctl.Q + !!(E)->ctl.P * 2 + !!(E)->ctl.H)))
 /*
 #define SM_EVENT_DATA(E) \
     ((void *)((char *)(E) + SM_WORD * (1 + (E)->ctl.Q + (E)->ctl.K + 2 * (E)->ctl.P + (E)->ctl.H) + 8 * (1 + (E)->ctl.K)))
