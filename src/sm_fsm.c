@@ -831,12 +831,11 @@ int sm_fsm_get_initial_state(sm_fsm *f)
 
 //////////////// refactor
 
-sm_fsm_node *sm_state_get_node(sm_state *s)
+sm_fsm_node *sm_fsm_get_node(sm_state *s)
 {
     sm_fsm *f = *(s->fsm);
     size_t i;
-    for (i = 0; i < f->num_of_nodes && f->nodes[i].id != s->state_id; i++)
-        ;
+    for (i = 0; i < f->num_of_nodes && f->nodes[i].id != s->state_id; i++);
     if (i == f->num_of_nodes)
     {
         return NULL;
@@ -847,9 +846,9 @@ sm_fsm_node *sm_state_get_node(sm_state *s)
     }
 }
 
-sm_fsm_transition *sm_state_get_transition(sm_event *e, sm_state *s)
+sm_fsm_transition *sm_fsm_get_transition(sm_event *e, sm_state *s)
 {
-    sm_fsm_node *n = sm_state_get_node(s);
+    sm_fsm_node *n = sm_fsm_get_node(s);
     size_t i;
     for (i = 0; i < n->num_of_transitions && n->transitions[i].appliedOnEvent != e->event_id; i++)
         ;

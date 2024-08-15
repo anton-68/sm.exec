@@ -8,18 +8,23 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #ifndef SM_TEST_UTILS_H
 #define SM_TEST_UTILS_H
 
+#include "sm.h"
+/*
 #include <stdlib.h>
-#include "../src/sm_hash.h"
-#include "../src/sm_event.h"
-#include "../src/sm_state.h"
-#include "../src/sm_queue.h"
-#include "../src/sm_queue2.h"
-#include "../src/sm_pqueue.h"
-#include "../src/sm_array.h"
-#include "../src/sm_directory.h"
-#include "../src/sm_fsm.h"
-#include "../src/sm_exec.h"
-
+#include "../include/sm_sys.h"
+#include "../include/sm_logger.h"
+#include "../include/sm_hash.h"
+#include "../include/sm_event.h"
+#include "../include/sm_state.h"
+#include "../include/sm_queue.h"
+#include "../include/sm_queue2.h"
+#include "../include/sm_pqueue.h"
+#include "../include/sm_array.h"
+#include "../include/sm_directory.h"
+#include "../include/sm_fsm.h"
+#include "../include/sm_exec.h"
+#include "../include/sm_tx.h"
+*/
 #define SM_TEST_PRINT_BUFFER 2048
 
 void sm_print_hash_key(const sm_hash_key *k); 
@@ -32,5 +37,6 @@ void sm_print_array(sm_array *a);
 void sm_print_directory(sm_directory *d);
 void sm_print_fsm(sm_fsm *f, sm_directory *d);
 void sm_print_exec(sm_exec *e);
+void sm_print_tx(sm_tx *tx);
 
 #endif//SM_TEST_UTILS_H

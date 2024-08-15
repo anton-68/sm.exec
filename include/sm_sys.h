@@ -8,6 +8,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #ifndef SM_SYS_H
 #define SM_SYS_H
 
+#include <dlfcn.h>
 #include <math.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -23,7 +24,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 
 /* Log & debug flags*/
 #define SM_LOG
-//#define SM_DEBUG
+#define SM_DEBUG
 
 /* Timestamp */
 typedef struct sm_timestamp
@@ -54,5 +55,8 @@ void get_tid_str(char *);
 
 /* System word (ILP64 and LP32) */
 #define SM_WORD sizeof(void *)
+
+/* Apply function speenlock interval*/
+#define SM_SPINLOCK_NS (long)10e6
 
 #endif //SM_SYS_H

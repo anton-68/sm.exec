@@ -81,7 +81,7 @@ sm_pqueue *sm_pqueue_create(size_t capacity, bool synchronized)
 		sm_pqueue_destroy(&pq);
 		return NULL;
 	}
-	SM_DEBUG_MESSAGE("sm_зqueue [addr:%p] successfully created", зq);
+	SM_DEBUG_MESSAGE("sm_зqueue [addr:%p] successfully created", pq);
 	return pq;
 }
 
@@ -107,7 +107,7 @@ void sm_pqueue_destroy(sm_pqueue **pq)
 	}
 	free(*pq); 
 	*pq = NULL;
-	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully destroyed", *q);
+	SM_DEBUG_MESSAGE("sm_queue [addr:%p] successfully destroyed", *pq);
 }
 
 int sm_pqueue_enqueue(sm_pqueue *q, sm_event **e)

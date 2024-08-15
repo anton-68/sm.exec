@@ -13,7 +13,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #include "sm_fsm.h"
 #include "sm_apply.h"
 
-#define SM_TX_STACK_POINTER(tx) (sm_state **)((char *)(tx)->data + (tx)->data_size /*- sizeof(sm_state **) */) 
+//#define SM_TX_STACK_POINTER(tx) (sm_state **)((char *)(tx)->data + (tx)->data_size /*- sizeof(sm_state **) */) 
 
 struct sm_tx;
 typedef struct sm_exec {

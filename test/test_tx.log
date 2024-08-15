@@ -1,0 +1,80 @@
+Thread worker
+=============
+address: 0x55a7d2075ed0
+tx data size: 1024
+tx data block size: 1024
+data block address: 0x55a7d2075a10
+synchronized: 0
+current state address: 0x55a7d2076e10
+default state address: 0x55a7d2076e10
+
+State
+=====
+address: 0x55a7d2076e10
+**fsm: 0x7ffe78787248
+*fsm: (nil)
+service_id: 0
+state_id: 65535
+size: 256 B
+Tx object address: 0x55a7d2075ed0
+data addr: 0x55a7d2076e28
+data addr (K): 0x55a7d2076e28
+data:
+[ ...]
+
+State
+=====
+address: 0x55a7d2076bc0
+**fsm: 0x7ffe78787248
+*fsm: (nil)
+service_id: 0
+state_id: 77
+size: 256 B
+Tx object address: 0xcafebabe
+data addr: 0x55a7d2076bd8
+data addr (K): 0x55a7d2076bd8
+data:
+[ ...]
+
+State
+=====
+address: 0x55a7d2076aa0
+**fsm: 0x7ffe78787248
+*fsm: (nil)
+service_id: 0
+state_id: 78
+size: 256 B
+Tx object address: 0xcafebabe
+data addr: 0x55a7d2076ab8
+data addr (K): 0x55a7d2076ab8
+data:
+[ ...]
+
+State
+=====
+address: 0x55a7d2076bc0
+**fsm: 0x7ffe78787248
+*fsm: (nil)
+service_id: 0
+state_id: 77
+size: 256 B
+Tx object address: 0xcafebabe
+data addr: 0x55a7d2076bd8
+data addr (K): 0x55a7d2076bd8
+data:
+[ ...]
+
+State
+=====
+address: 0x55a7d2076e10
+**fsm: 0x7ffe78787248
+*fsm: (nil)
+service_id: 0
+state_id: 65535
+size: 256 B
+Tx object address: 0xcafebabe
+data addr: 0x55a7d2076e28
+data addr (K): 0x55a7d2076e28
+data:
+[ ...]
+

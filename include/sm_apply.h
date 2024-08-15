@@ -8,9 +8,7 @@
 #include "sm_event.h"
 #include "sm_state.h"
 
-#define SM_FSM(S) (*(S)->fsm)
-
-// Public methods
+//#define SM_FSM(S) (*(S)->fsm)
 
 void sm_apply_event(sm_event *e, sm_state *s); 
 

@@ -46,6 +46,7 @@
 			"stdlib.h": "c",
 			"string.h": "c",
 			"stddef.h": "c"
-		}
+		},
+		"makefile.configureOnOpen": true
 	}
 }

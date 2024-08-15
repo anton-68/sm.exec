@@ -103,3 +103,10 @@ void sm_print_exec(sm_exec *e)
     sm_exec_to_string(e, buffer);
     printf("SM Executor\n===========\n%s\n", buffer);
 }
+
+void sm_print_tx(sm_tx *tx)
+{
+    char buffer[SM_TEST_PRINT_BUFFER];
+    sm_tx_to_string(tx, buffer);
+    printf("Thread worker\n=============\n%s\n", buffer);
+}

@@ -1,0 +1,215 @@
+Directory
+=========
+address: 0x5623cbd1c2a0
+directory size: 11
+
+Directory record
+item name: SERV
+item ptr: 0x7fae66529342
+item ref: 0x5623cbd1d2b8
+next item rec addr: 0x5623cbd1d260
+prev item rec addr: (nil)
+Directory record
+item name: NOAP
+item ptr: 0x7fae66526d8c
+item ref: 0x5623cbd1d268
+next item rec addr: 0x5623cbd1d210
+prev item rec addr: 0x5623cbd1d2b0
+Directory record
+item name: APPL
+item ptr: 0x7fae66528d52
+item ref: 0x5623cbd1d218
+next item rec addr: 0x5623cbd1d1c0
+prev item rec addr: 0x5623cbd1d260
+Directory record
+item name: DTMP
+item ptr: 0x7fae665287ca
+item ref: 0x5623cbd1d1c8
+next item rec addr: 0x5623cbd1d170
+prev item rec addr: 0x5623cbd1d210
+Directory record
+item name: SSEL
+item ptr: 0x7fae66528191
+item ref: 0x5623cbd1d178
+next item rec addr: 0x5623cbd1d120
+prev item rec addr: 0x5623cbd1d1c0
+Directory record
+item name: ORIG
+item ptr: 0x7fae665279e9
+item ref: 0x5623cbd1d128
+next item rec addr: 0x5623cbd1d0d0
+prev item rec addr: 0x5623cbd1d170
+Directory record
+item name: RECV
+item ptr: 0x7fae66526939
+item ref: 0x5623cbd1d0d8
+next item rec addr: 0x5623cbd1d080
+prev item rec addr: 0x5623cbd1d120
+Directory record
+item name: ROUT
+item ptr: 0x7fae66527339
+item ref: 0x5623cbd1d088
+next item rec addr: 0x5623cbd1d030
+prev item rec addr: 0x5623cbd1d0d0
+Directory record
+item name: SEND
+item ptr: 0x7fae66526d8c
+item ref: 0x5623cbd1d038
+next item rec addr: 0x5623cbd1c8d0
+prev item rec addr: 0x5623cbd1d080
+Directory record
+item name: CollectorQueue
+item ptr: 0x5623cbd1c850
+item ref: 0x5623cbd1c8d8
+next item rec addr: 0x5623cbd1c800
+prev item rec addr: 0x5623cbd1d030
+Directory record
+item name: exec
+item ptr: 0x5623cbd1c7e0
+item ref: 0x5623cbd1c808
+next item rec addr: (nil)
+prev item rec addr: 0x5623cbd1c8d0
+
+{
+    "reporter": "Router",
+    "proto": "dtmp",
+    "command": "report",
+    "event": "packet received",
+    "timestamp": "2024-08-15T16:34:51.730831863Z",
+    "received packet": {
+        "proto": "ip",
+        "from": "Controller",
+        "to": "SmartPhone_1",
+        "to_report": true,
+        "data": {
+            "proto": "dtmp",
+            "command": "originate_packet",
+            "to": "Server",
+            "data": {
+                "proto": "serv",
+                "command": "request"
+            }
+        }
+    }
+}
+{
+    "reporter": "Router",
+    "proto": "dtmp",
+    "command": "report",
+    "event": "packet routed",
+    "status": "success",
+    "timestamp": "2024-08-15T16:34:51.730980220Z",
+    "packet": {
+        "proto": "ip",
+        "from": "Controller",
+        "to": "SmartPhone_1",
+        "to_report": true,
+        "data": {
+            "proto": "dtmp",
+            "command": "originate_packet",
+            "to": "Server",
+            "data": {
+                "proto": "serv",
+                "command": "request"
+            }
+        }
+    }
+}
+{
+    "reporter": "SmartPhone_1",
+    "proto": "dtmp",
+    "command": "report",
+    "event": "packet received",
+    "timestamp": "2024-08-15T16:34:51.731034366Z",
+    "received packet": {
+        "proto": "ip",
+        "from": "Controller",
+        "to": "SmartPhone_1",
+        "to_report": true,
+        "data": {
+            "proto": "dtmp",
+            "command": "originate_packet",
+            "to": "Server",
+            "data": {
+                "proto": "serv",
+                "command": "request"
+            }
+        }
+    }
+}
+{
+    "reporter": "SmartPhone_1",
+    "proto": "dtmp",
+    "command": "report",
+    "event": "service selected",
+    "timestamp": "2024-08-15T16:34:51.731187143Z",
+    "detected_proto": "dtmp",
+    "assigned_event_id": 2,
+    "packet": {
+        "proto": "ip",
+        "from": "Controller",
+        "to": "SmartPhone_1",
+        "to_report": true,
+        "data": {
+            "proto": "dtmp",
+            "command": "originate_packet",
+            "to": "Server",
+            "data": {
+                "proto": "serv",
+                "command": "request"
+            }
+        }
+    }
+}
+{
+    "reporter": "SmartPhone_1",
+    "proto": "dtmp",
+    "command": "report",
+    "event": "dtmp command selected",
+    "timestamp": "2024-08-15T16:34:51.731338297Z",
+    "assigned_event_id": 1024,
+    "packet": {
+        "proto": "ip",
+        "from": "Controller",
+        "to": "SmartPhone_1",
+        "to_report": true,
+        "data": {
+            "proto": "dtmp",
+            "command": "originate_packet",
+            "to": "Server",
+            "data": {
+                "proto": "serv",
+                "command": "request"
+            }
+        }
+    }
+}
+{
+    "reporter": "SmartPhone_1",
+    "proto": "dtmp",
+    "command": "report",
+    "event": "event applied to SM",
+    "timestamp": "2024-08-15T16:34:51.731483494Z",
+    "event_id": 1024,
+    "state_id": 3,
+    "node_type": "Process",
+    "transition_type": "Regular",
+    "transition_ref": "APPL",
+    "target_node": 0,
+    "fsm_name": "ClientSM",
+    "packet": {
+        "proto": "ip",
+        "from": "Controller",
+        "to": "SmartPhone_1",
+        "to_report": true,
+        "data": {
+            "proto": "dtmp",
+            "command": "originate_packet",
+            "to": "Server",
+            "data": {
+                "proto": "serv",
+                "command": "request"
+            }
+        }
+    }
+}

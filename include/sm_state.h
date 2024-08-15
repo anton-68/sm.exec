@@ -140,8 +140,9 @@ struct sm_array;
     (*(sm_event **)((char *)(S) + SM_WORD * (1 + (S)->ctl.D + (S)->ctl.K + (S)->ctl.C) + 8 * (1 + (S)->ctl.K)))
 */
 
+struct sm_tx;
 #define SM_STATE_TX(S) \
-    (*(void **)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * (S)->ctl.E))
+    (*(struct sm_tx **)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * (S)->ctl.E))
 
 #define SM_STATE_HANDLE(S) \
     (*(void **)((char *)(S) + sizeof(sm_state) + (SM_WORD * 2 + sizeof(sm_hash_key)) * (S)->ctl.D + SM_WORD * ((S)->ctl.E + (S)->ctl.T)))

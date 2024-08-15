@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: LGPL-3.0-only */
 
 CC = gcc
-INCLUDE	= /usr/local/include
+INCLUDE	= -I/usr/local/include -I../include
 CFLAGS = -std=gnu11 -fPIC -O2 -g -Wall -pthread
 DFLAGS = -std=gnu11 -fPIC -O0 -ggdb -Wall -Werror -pthread -fno-stack-protector
 LFLAGS = -pthread
@@ -27,8 +27,10 @@ OBJS = 	$(SRC)sm_sys.o \
 		$(SRC)sm_fsm.o \
 		$(SRC)sm_tx.o \
 		$(SRC)sm_exec.o \
+		$(SRC)sm_apply.o \
 		../lib/bj_hash/bj_hash.o \
 		../lib/jsmn/jsmn.o \
+		../lib/parson/parson.o \
 		test_utils.o
 
 TEST_OBJS =	test_sys.o \
@@ -42,7 +44,9 @@ TEST_OBJS =	test_sys.o \
 			test_array.o \
 			test_directory.o \
 			test_fsm.o \
-			test_exec.o
+			test_tx.o \
+			test_exec.o \
+			test_apply.o
 
 EXES = 	test_sys \
 		test_logger \
@@ -55,9 +59,16 @@ EXES = 	test_sys \
 		test_array \
 		test_directory \
 		test_fsm \
-		test_exec
+		test_tx \
+		test_exec \
+		test_apply
 
-all : $(EXES)
+all : $(EXES) apply_apps.so chmod
+
+APP_OBJS =	$(OBJS) apply_apps.o
+
+apply_apps.so : $(APP_OBJS)
+	$(CC) $(LFLAGS) -shared $(APP_OBJS) $(LIBS) -o apply_apps.so
 
 test_sys : $(OBJS) test_sys.o
 	$(CC) $(LFLAGS) $(OBJS) test_sys.o -o test_sys
@@ -92,14 +103,25 @@ test_directory : $(OBJS) test_directory.o
 test_fsm : $(OBJS) test_fsm.o
 	$(CC) $(LFLAGS) $(OBJS) test_fsm.o $(LIBS) -o test_fsm
 
+test_tx : $(OBJS) test_tx.o
+	$(CC) $(LFLAGS) $(OBJS) test_tx.o $(LIBS) -o test_tx
+
 test_exec : $(OBJS) test_exec.o
 	$(CC) $(LFLAGS) $(OBJS) test_exec.o $(LIBS) -o test_exec
 
+test_apply : $(OBJS) test_apply.o
+	$(CC) $(LFLAGS) $(OBJS) test_apply.o $(LIBS) -ldl -o test_apply
+
 %.o : %.c
-	$(CC) $(LFLAGS) -c $< -o $@ $(DFLAGS) -I$(INCLUDE)
+	$(CC) $(LFLAGS) -c $< -o $@ $(DFLAGS) $(INCLUDE)
+
+.PHONY : chmod
+chmod :
+	chmod -x *.so
 
 .PHONY : clean
 clean :
 	rm -f $(OBJS)
 	rm -f $(TEST_OBJS)
 	rm -f $(EXES)
+	rm -f apply_apps.o apply_apps.so

@@ -84,6 +84,8 @@ sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *dir);
 void sm_fsm_destroy(sm_fsm **sm);
 char *sm_fsm_to_string(sm_fsm *f, sm_directory *dir);
 int sm_fsm_get_initial_state(sm_fsm *f);
+sm_fsm_node *sm_fsm_get_node(sm_state *s);
+sm_fsm_transition *sm_fsm_get_transition(sm_event *e, sm_state *s);
 
 // move to the fsm module
 // sm_fsm_node *sm_state_get_node(sm_state *s);

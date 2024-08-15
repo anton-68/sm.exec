@@ -1,0 +1,129 @@
+{
+   "worker": {
+      "nodes": [
+         {
+            "name": "idle",
+            "id": 1,
+            "type": "initial",
+            "transitions": [
+               {
+                  "targetNode": 4,
+                  "appliedOnEvent": 1,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "RECV"
+               },
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "APPL"
+               }
+            ]
+         },
+         {
+            "name": "selector",
+            "id": 2,
+            "type": "process",
+            "transitions": [
+               {
+                  "targetNode": 3,
+                  "appliedOnEvent": 2,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "DTMP"
+               },
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "APPL"
+               }
+            ]
+         },
+         {
+            "name": "command",
+            "id": 3,
+            "type": "process",
+            "transitions": [
+               {
+                  "targetNode": 5,
+                  "appliedOnEvent": 1025,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "ORIG"
+               },
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "APPL"
+               }
+            ]
+         },
+         {
+            "name": "link4",
+            "id": 4,
+            "type": "process",
+            "transitions": [
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "SSEL"
+               }
+            ]
+         },
+         {
+            "name": "link5",
+            "id": 5,
+            "type": "process",
+            "transitions": [
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "SEND"
+               }
+            ]
+         },
+         {
+            "name": "done",
+            "id": 0,
+            "type": "final",
+            "transitions": [
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "APPL"
+               }
+            ]
+         }
+      ],
+      "events": [
+         {
+            "name": "omega",
+            "id": 0
+         },
+         {
+            "name": "ip",
+            "id": 1
+         },
+         {
+            "name": "dtmp",
+            "id": 2
+         },
+         {
+            "name": "originate_packet",
+            "id": 1027
+         }
+      ]
+   }
+}

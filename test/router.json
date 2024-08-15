@@ -1,0 +1,65 @@
+{
+   "router": {
+      "nodes": [
+         {
+            "name": "idle",
+            "id": 1,
+            "type": "initial",
+            "transitions": [
+               {
+                  "targetNode": 2,
+                  "appliedOnEvent": 1,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "RECV"
+               },
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "APPL"
+               }
+            ]
+         },
+         {
+            "name": "link2",
+            "id": 2,
+            "type": "process",
+            "transitions": [
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "ROUT"
+               }
+            ]
+         },
+         {
+            "name": "done",
+            "id": 0,
+            "type": "final",
+            "transitions": [
+               {
+                  "targetNode": 0,
+                  "appliedOnEvent": 0,
+                  "setEventId": 0,
+                  "type": "regular",
+                  "reference": "NOAP"
+               }
+            ]
+         }
+      ],
+      "events": [
+         {
+            "name": "omega",
+            "id": 0
+         },
+         {
+            "name": "ip",
+            "id": 1
+         }
+      ]
+   }
+}
