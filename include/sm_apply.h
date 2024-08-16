@@ -1,6 +1,9 @@
-/* SM.EXEC
-   Apply event function
-   (c) anton.bondarenko@gmail.com */
+/* SM.EXEC <http://dx.doi.org/10.13140/RG.2.2.12721.39524>
+Apply function
+-------------------------------------------------------------------------------
+Copyright 2009-2024 Anton Bondarenko <anton.bondarenko@gmail.com>
+-------------------------------------------------------------------------------
+SPDX-License-Identifier: LGPL-3.0-only */
 
 #ifndef SM_APPLY_H
 #define SM_APPLY_H
