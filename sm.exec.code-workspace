@@ -45,7 +45,10 @@
 			"param.h": "c",
 			"stdlib.h": "c",
 			"string.h": "c",
-			"stddef.h": "c"
+			"stddef.h": "c",
+			"socket.h": "c",
+			"types.h": "c",
+			"sm_apply.h": "c"
 		},
 		"makefile.configureOnOpen": true
 	}

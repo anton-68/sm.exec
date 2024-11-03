@@ -14,7 +14,7 @@ static inline sm_event *dequeue(sm_queue *q)
 
 sm_queue *sm_queue_create(uint32_t event_size,
 						  bool K, bool P, bool H,
-						  unsigned num_of_events,
+						  size_t num_of_events,
 						  bool synchronized)
 {
 	sm_queue *q;

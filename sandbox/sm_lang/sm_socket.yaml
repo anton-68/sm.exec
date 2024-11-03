@@ -1,0 +1,44 @@
+fsm : 
+{
+    name : tcp4_seq_socket,
+    service_id : sm_net,
+    events :
+        bind,
+        listen,
+        connect,
+        write,
+        read,
+        ack,
+        nack
+    states :
+    {
+        [
+            idle,
+            accept,
+            listen,
+            connect,
+            read
+        ],
+        initial : idle,
+        final : idle
+    },
+    selectors :
+    {
+        socket,
+        bound
+    },
+    transitions :
+    [
+        { from : idle,       on : listen,       to : socket,       apply : socket },
+        { from : socket,     on : socket_error, to : idle,         apply : log },
+        { from : socket,     on : listen,       to : bound,        apply : bind, log },
+        { from : bound,      on : bind_error,       to : socket,       apply : log },
+        { from : idle,       on : listen,       to : socket,       apply : log },
+        { from : idle,       on : listen,       to : socket,       apply : log },
+        { from : idle,       on : listen,       to : socket,       apply : log },
+        { from : idle,       on : listen,       to : socket,       apply : log },
+        { from : idle,       on : listen,       to : socket,       apply : log },
+        { from : idle,       on : listen,       to : socket,       apply : log },
+        
+    ],
+}

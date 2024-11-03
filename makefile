@@ -8,7 +8,7 @@
 CC = gcc
 INCLUDE	= -I/usr/local/include -Iinclude
 CFLAGS = -std=gnu11 -fPIC -O2 -g -Wall -pthread
-DFLAGS = -std=gnu11 -fPIC -O0 -ggdb -Wall -Werror -pthread -fno-stack-protector
+DFLAGS = -std=gnu11 -fPIC -O0 -ggdb -Wall -Werror -pthread -fno-stack-protector -fdump-rtl-expand
 LFLAGS = -pthread
 BUILD = build/
 LIBS = -lpthread -lm
@@ -29,8 +29,27 @@ OBJS = 	$(SRC)sm_sys.o \
 		$(SRC)sm_tx.o \
 		$(SRC)sm_exec.o \
 		$(SRC)sm_apply.o \
+		$(SRC)sm_adaptor.o \
+		$(SRC)sm_service.o \
 		lib/bj_hash/bj_hash.o \
 		lib/jsmn/jsmn.o
+
+PICS =	$(SRC)sm_sys.png \
+		$(SRC)sm_logger.png \
+		$(SRC)sm_hash.png \
+		$(SRC)sm_event.png \
+		$(SRC)sm_queue.png \
+		$(SRC)sm_queue2.png \
+		$(SRC)sm_pqueue.png \
+		$(SRC)sm_state.png \
+		$(SRC)sm_array.png \
+		$(SRC)sm_directory.png \
+		$(SRC)sm_fsm.png \
+		$(SRC)sm_tx.png \
+		$(SRC)sm_exec.png \
+		$(SRC)sm_apply.png \
+		$(SRC)sm_adaptor.png \
+		$(SRC)sm_service.png
 
 all : sm.so
 
@@ -40,6 +59,12 @@ sm.so : $(OBJS)
 %.o : %.c
 	$(CC) $(LFLAGS) -c $< -o $@ $(DFLAGS) $(INCLUDE)
 
+graphs : $(PICS)
+
+%.png : %.*.expand
+	cally.py $< | dot -Grankdir=LR -Tpng -o $@
+
 .PHONY : clean
 clean :
 	rm -f $(OBJS)
+	rm -f $(SRC)*.expand

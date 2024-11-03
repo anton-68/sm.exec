@@ -1,0 +1,122 @@
+= SM.EXEC HL Component Model
+
+== SM.EXEC Components
+
+SM.EXEC component model includes three domains:
+
+* The AM execution environment (application container).
+* The external world adaptors (external incoming events sources).
+* The service (SM-s and apps).
+
+=== SM.EXEC Container
+
+The SM.EXEC container (EE) is an actor running one or more threads. 
+
+Each thread has its own descriptor in the system, contaning address of the default (singleton) SM state object and the address of the input queue.
+
+Also each thread descriptor contains reference to the exec descriptor - the root of the system object tree.
+
+The SM.EXEC container provides a directory service and hold information about all registered Adaptor and Service objects, system indexes,  and links them together during bootstrapping by filing-in the neccesary fields of each of them.  
+
+Thus the SM.EXEC EE descriptor contains following data elements:
+
+* The system directory object reference. 
+* Reference(s) to thread-worker descriptor(s).
+* Reference(s) to adator(s) object(s).
+* Reference(s) to service object(s).
+* The event registry (optional?).
+* The system queue(s).
+* The system (root) state objects.
+
+=== System Directory
+
+System directiory is the hash mapping object IDs to their addresses. Object type list includes (but not limited to) queues, singleton states, arrays, apps, FSM objects, thread-worker descriptors, EXEC itself.
+
+System directory is the first system object created.
+
+=== SM.EXEC Adaptors
+
+Each adaptor on registration (deployment) provides to EE descriptor the address of the sm_<name of adaptor>_deploy, sm_<name of adaptor>_start and sm_<name of adaptor>_stop methods and the address where EE will store the address of the queue assigned to this adaptor (do we still need double reference?). All packed inthe sm_adaptor descriptor structure.
+
+The <solution_prefix>_<name of adaptor>_adaptor_create method is provided for the driver programmer can easily guess how to create the adaptor object. 
+
+The sm_<name of adaptor>_start method will instantiate and link all data structures and functions including SM-s, apps, states etc. So the services should be instantiated in advance to avoid overload of event queues.
+
+Normally adaptors wrap external activity - process(es) or thread(s) and therefore doesn't use own array of per-session states.
+
+On instantiation each adaptor allocates the depot of events with characterictics relevant ot its events' data structures.
+
+During the instantiation the adaptor receives from the EE the address of the event registry and the address of the system directory. 
+
+-> sm_adaptor.h/.c
+
+=== SM.EXEC Services
+
+Application Domain (services) should be deployed and instantiated in advance of respective adaptors. API the same to adaptors. 
+
+But services contain its own queues in addition to states, arrays and SM-s. Also services usually contain per-session and per-subscriber information in arrays of states accesible by hask keys calculated from subscriber IDs.
+
+-> sm_service.h/.c
+
+=== Thread-Workers
+
+Thread-Workers are deployed and instantiated after the application domain. 
+
+Thred-Worker Descriptor contains following data:
+
+* Address of the default (singleton) SM state object - typically the initial state of the service.
+* Address of the input queue of the service.
+* Reference to the exec descriptor - the root of the system object tree.
+
+The SM.EXEC container provides a directory service and hold information about all registered Adaptor and Service objects, system indexes,  and links them together during bootstrapping by filing-in the neccesary fields of each of them.  
+
+=== Event Index
+
+Event index - is the bidirectional mapping between event names and event IDs concatenated with the service IDs. 
+
+=== System Queue(s)
+
+System queues - are the queues assigned to the Thread-Workers and known to the adaptors as the queue to place incoming events.
+
+=== System State(s)
+
+System state - is the singleton state tiying together system queue and the default input SM. Often this is service selector SM.
+
+== SM.EXEC Components Bootstrapping
+
+=== SM.EXEC Service Development
+
+The following steps in the common case should be performed to create SM.EXEC solution:
+
+* Design and develop (either in C or in JSON) all necessary SM-s.
+* Collect and register along with the previous step all necessary events.
+* Develop and sompile to .so dynamic libs all necessary apps.
+* Develop all required lifecycle methods for each adaptor and each service.
+* Develop the driver program which will bootstrap the solution.
+
+=== SM.EXEC System Bootstrapping
+
+The main steps for service bootstrapping:
+
+* Create system directory (sm_directory).
+* Create and register sm_exec descriptor (sm_exec).
+* Load and register all necessary apps.
+* Create, instantiate and register all necessary SM-s (sm_fsm).
+* Plan, allocate and register necessary system queues (sm_queue2).
+* Plan, allocate and register necessary system arrays (sm_array).
+* Create system singleton states and register them (sm_state).
+* Create, instantiate and register all services. (sm_service)
+* Create thread-workers and link system states and system queues to them (sm_tx).
+* Start thread-workers.
+* Create, instantiate and register adaptors (sm_adaptor).
+
+Solution-specific modules:
+
+* Services.
+* Adaptors.
+* FSM-s.
+* apps.
+* driver.
+
+=== SM.EXEC Service Running
+

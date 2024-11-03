@@ -1,0 +1,21 @@
+--- # TCP Socket FSM Data Block
+socket:
+ domain    :
+ type      :
+ protocol  :
+in_addr:
+ address   :
+ port      :
+
+--- # TCP Socket State Machine
+FSM tcp_socket 
+{
+    State idle
+    {
+        On bind
+    } 
+    State bound
+    State listening
+}
+ State idle : 
+  Type: Initial | Normal | Router | Final

@@ -2,11 +2,12 @@
     "configurations": [
         {
             "name": "Linux",
-            "compilerPath": "/usr/bin/gcc-9",
+            "compilerPath": "/usr/bin/gcc",
             "compilerArgs": [],
             "intelliSenseMode": "linux-gcc-x64",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/include",
                 "/usr/lib/gcc/x86_64-linux-gnu/9/include"
             ],
             "defines": [],

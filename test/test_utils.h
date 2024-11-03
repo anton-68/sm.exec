@@ -8,7 +8,7 @@ SPDX-License-Identifier: LGPL-3.0-only */
 #ifndef SM_TEST_UTILS_H
 #define SM_TEST_UTILS_H
 
-#include "sm.h"
+#include "../include/sm.h"
 /*
 #include <stdlib.h>
 #include "../include/sm_sys.h"

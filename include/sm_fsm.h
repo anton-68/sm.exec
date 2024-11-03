@@ -81,6 +81,7 @@ typedef struct sm_fsm
 
 // Public methods
 sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *dir);
+// int sm_fsm_parse
 void sm_fsm_destroy(sm_fsm **sm);
 char *sm_fsm_to_string(sm_fsm *f, sm_directory *dir);
 int sm_fsm_get_initial_state(sm_fsm *f);

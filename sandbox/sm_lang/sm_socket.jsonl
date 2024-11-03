@@ -1,0 +1,35 @@
+{
+    "name" : "tcp_socket",
+    "service_id" : "sm_net",
+    "events" :
+    [
+        "created",
+        "bound",
+        "listening_started",
+        "error",
+        "closed",
+        "data_received"
+    ] ,    
+    "states" :
+    [
+        "declared",
+        "created",
+        "bound",
+        "listening",
+        "closed"
+    ] ,
+    "initial state" : "declared",
+    "final" : "closed",
+    "transitions" :
+    [
+        {
+            "from" : "declared", 
+            "on" : "created",
+            "to" : "created",
+            "apply" : "log"
+        },
+        {
+        }
+    ] ,
+    "selectors" : []
+}
