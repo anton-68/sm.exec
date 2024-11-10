@@ -23,6 +23,24 @@ SPDX-License-Identifier: LGPL-3.0-only */
 struct sm_state;
 typedef int (*sm_app)(sm_event *, struct sm_state *);
 
+/* fsm_status:
+
+            destroy() ┌─────┐ create()
+        ┌─────────────► NIL │────────────┐  ┌────┐
+        │             └──▲──┘            │  │    │ parse()
+┌──────────────┐         │  destroy()┌───▼──┴──┐ │ add_state()
+│ INSTANTIATED │         └───────────│ DEFINED │ │ add_transition()
+└───────▲──────┘                     └──────▲──┘ │ add_action()
+        │          instantiate()         │  │    │ ...
+        └────────────────────────────────┘  └────┘
+*/
+typedef enum sm_fsm_status
+{
+    SM_FSM_NIL,         // declared or destroyed
+    SM_FSM_DEFINED,     // allocated and filled
+    SM_FSM_INSTANTIATED // compiled and linked
+} sm_fsm_status;
+
 typedef enum sm_fsm_transition_type
 {
     SM_REGULAR,      // sm_app **     / char *app_name
@@ -81,9 +99,14 @@ typedef struct sm_fsm
 
 // Public methods
 sm_fsm *sm_fsm_create(const char *fsm_json, sm_directory *dir);
-// int sm_fsm_parse
+
+
+//  sm_fsm *sm_fsm_create();
+//  int sm_fsm_parse(const char *fsm_json, sm_fsm *fsm, sm_directory *dir)
 void sm_fsm_destroy(sm_fsm **sm);
 char *sm_fsm_to_string(sm_fsm *f, sm_directory *dir);
+
+
 int sm_fsm_get_initial_state(sm_fsm *f);
 sm_fsm_node *sm_fsm_get_node(sm_state *s);
 sm_fsm_transition *sm_fsm_get_transition(sm_event *e, sm_state *s);
