@@ -36,7 +36,7 @@ typedef int (*sm_app)(sm_event *, struct sm_state *);
 */
 typedef enum sm_fsm_status
 {
-    SM_FSM_NIL,         // declared or destroyed
+    // SM_FSM_NIL,         // declared or destroyed
     SM_FSM_DEFINED,     // allocated and filled
     SM_FSM_INSTANTIATED // compiled and linked
 } sm_fsm_status;
@@ -58,12 +58,20 @@ typedef enum sm_fsm_node_type
     SM_FINAL
 } sm_fsm_node_type;
 
+typedef enum sm_fsm_output
+{
+    SM_NO_OUTPUT,
+    SM_INPUT_EVENT,
+    SM_NEW_EVENT
+} sm_fsm_output;
+
 typedef struct sm_fsm_transition
 {
     void *transitionRef;
     uint16_t appliedOnEvent;
     uint16_t setEventId;
     uint16_t targetNode;
+    sm_fsm_output output;
     sm_fsm_transition_type type;
 } sm_fsm_transition;
 

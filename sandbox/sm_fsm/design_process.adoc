@@ -1,0 +1,12 @@
+= Intro
+
+Below are random notes on the design process for reactive network systems, mostly focused on various protocol signalling processors.
+
+[
+Add more on: 
+- Systems in the focus.
+- IT/Enterprise vs Telecom
+- 
+]
+
+=  
